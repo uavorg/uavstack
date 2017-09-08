@@ -1,0 +1,42 @@
+@CHARSET "UTF-8";
+/*原子布局 BEGINI*/
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+textarea{
+	resize: none;
+}
+
+.HeadBG {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+/**
+重写 begin
+*/
+.AppHubMVCSearchBar {
+    height: 248px;
+}
+.AppHubMVCSearchBarInputText{
+	width: 70%;
+}
+.modal-body {
+	text-align: left;
+}
+/**
+重写 end
+*/

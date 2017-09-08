@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>ce-datamonitorsystem</artifactId>
+		<groupId>com.creditease.moniter</groupId>
+		<version>1.0</version>
+		<relativePath>../com.creditease.uav.superpom</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>com.creditease.uav.hook.jdbc</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.monitorframework.apm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.monitorframework.dproxy</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.16.1-GA</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.40</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- c3p0 -->
+		<dependency>
+			<groupId>com.mchange</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>0.9.2.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- druid -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/proxool/proxool -->
+		<dependency>
+			<groupId>com.cloudhopper.proxool</groupId>
+			<artifactId>proxool</artifactId>
+			<version>0.9.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-dbcp/commons-dbcp -->
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- HikariCP -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP-java6</artifactId>
+			<version>2.3.13</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
+		<dependency>
+    			<groupId>org.mybatis</groupId>
+    			<artifactId>mybatis</artifactId>
+   				<version>3.2.8</version>
+   				<scope>provided</scope>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/com.codahale.metrics/metrics-core -->
+		<dependency>
+			<groupId>com.codahale.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>3.0.2</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>

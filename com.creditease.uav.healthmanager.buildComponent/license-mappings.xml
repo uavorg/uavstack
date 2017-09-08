@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<license-lookup xmlns="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup https://source.jasig.org/schemas/maven-notice-plugin/license-lookup/license-lookup-v1.0.xsd">
+    <artifact>
+        <groupId>aredis.sourceforge.net</groupId>
+        <artifactId>aredis-api</artifactId>
+        <version>1.4</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>com.creditease.moniter</groupId>
+        <artifactId>com.creditease.uav.healthmanager.buildComponent</artifactId>
+        <version>1.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>com.creditease.moniter</groupId>
+        <artifactId>com.creditease.uav.elasticsearch.client</artifactId>
+        <version>1.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>activemq-core-5.7.0.jar</groupId>
+        <artifactId>activemq-core-5.7.0.jar</artifactId>
+        <version>5.7.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>commons-net-3.0.jar</groupId>
+        <artifactId>commons-net-3.0.jar</artifactId>
+        <version>3.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>credinet-util.jar</groupId>
+        <artifactId>credinet-util.jar</artifactId>
+        <version>1.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>geronimo-j2ee-management_1.1_spec-1.0.1.jar</groupId>
+        <artifactId>geronimo-j2ee-management_1.1_spec-1.0.1.jar</artifactId>
+        <version>1.0.1</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>geronimo-jms_1.1_spec-1.1.1.jar</groupId>
+        <artifactId>geronimo-jms_1.1_spec-1.1.1.jar</artifactId>
+        <version>1.1.1</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>mspl_client-1.0.0.jar</groupId>
+        <artifactId>mspl_client-1.0.0.jar</artifactId>
+        <version>1.0.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+</license-lookup>

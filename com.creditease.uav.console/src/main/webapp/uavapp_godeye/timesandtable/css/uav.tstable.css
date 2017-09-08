@@ -1,0 +1,185 @@
+@CHARSET "UTF-8";
+/**原子布局 BEGINI**/
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+hr{
+	margin:0px;
+}
+
+.win {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+.headDiv {
+  font-size: 16px;
+  background-color: #eeeeee;
+  height: 43px;
+  line-height:42px;   
+}
+
+.icon-myout {
+	float: right;
+	margin-top: 5px;
+	margin-right: 15px;
+	font-size: 2em;
+}
+
+.icon-myout:hover {
+	cursor: pointer;
+	border-radius: 3px;
+	box-shadow: 0 0 2px 2px #000000;
+}
+/**标题**/
+.titleDiv{
+  font-size: 14px;
+  color: #ffffff;
+  background-color: #0088bb;
+  height: 27px;
+  text-align: left;
+  padding:2px;
+}
+.titleDiv2{
+  font-size: 14px;
+  color: #000000;
+  background-color: #eeeeee;
+  text-align: left;
+  padding:2px;
+  margin:5px 2px 0px 5px;
+  border-radius: 3px;
+  border:solid 0.5px #eeeeee;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+.titleDiv3{
+  font-size: 14px;
+  color: #000000;
+  background-color: #ffffff;
+  text-align: left;
+  padding:2px;
+  margin:0px 2px 0px 8px;
+  border-radius: 1px;
+  border:solid 1px #ffffff;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.titileCursor{
+	cursor: pointer;
+}
+
+/**指标**/
+.labelDiv div{
+	display: inline-block;
+	vertical-align: top;
+  	font-size: 14px;
+}
+
+.labelDivIndex{
+	border:solid 1px #ffffff;
+	margin: 5px;
+  	border-radius:4px;
+  	padding:1px 3px 1px 3px;
+}
+.labelDivIndex .title{
+  	border-radius:4px;
+  	padding:2px 5px 2px 5px;
+    background-color: #804000;
+  	color: #ffffff;
+  	width: 100%;
+}
+.labelDivIndex .titleSelect{
+  	border-radius:4px;
+  	padding:2px 5px 2px 5px;
+  	color: #ffffff;
+}
+.labelDivIndex .value{
+  	padding:2px 5px 2px 5px;
+}
+
+.labelDivIndex hr{
+    background-color: #ffffff;
+    border: 0px;
+    height: 1px;
+}
+
+/**用户选中**/
+.userSelect{
+  color : #ffffff;
+  border:solid 1px #ffffff;
+  background-color: #008000;
+}
+.userSelectUrl{
+	background-color: #b8f5b8;
+    color: black;
+}
+/**鼠标滑过**/
+.control-group {
+    margin-bottom: 10px;
+}
+.titleDiv2:hover,.titleDiv3:hover{
+  cursor: pointer;
+  border:solid 1px #008000;
+}
+.labelDivIndex:hover{
+  cursor: pointer;
+  border:solid 1px #008000;
+}
+
+/**时间控件按钮样式**/
+.control-group {
+	margin-bottom: 10px;
+}
+
+.control-group input {
+	background-color: #eeeeee;
+	border:1px solid #cccccc;
+  	border-radius:4px 0 0 4px;
+  	padding: 4px 6px;
+}
+.control-group .add-on {
+	background-color: #eeeeee;
+	border:1px solid #cccccc;
+  	border-radius:0 4px 4px 0;
+  	padding: 4.5px 6px;
+}
+
+/*重写bootstrap radio begin */
+.radio .btn-primary {
+	border:1px solid #cccccc;
+	background-color: #eeeeee;
+	color: #cccccc;
+	width:64px;
+	height:30px;
+}
+.radio .btn-primary:hover, .radio .btn-primary.active:hover {
+	border:1px solid #0088bb;
+	background-color: #0088bb;
+	color: #ffffff;
+}
+.radio .btn-primary.active {
+	border:1px solid #000000;
+	background-color: #0088bb;
+	color: #ffffff;
+}
+
+/*重写bootstrap radio end */
+
+.errMsg{
+	color:red;
+	margin-right:5px;
+}

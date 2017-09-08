@@ -1,0 +1,84 @@
+Licensed to UAVStack under one or more contributor license
+agreements. See the NOTICE file distributed with this work
+for additional information regarding copyright ownership.
+Apereo licenses this file to you under the Apache License,
+Version 2.0 (the "License"); you may not use this file
+except in compliance with the License.  You may obtain a
+copy of the License at the following location:
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+
+This project includes:
+  activemq-core-5.7.0.jar:activemq-core-5.7.0.jar under Apache 2.0
+  Apache Commons Codec under The Apache Software License, Version 2.0
+  Apache Commons Logging under The Apache Software License, Version 2.0
+  Apache HBase - Shaded - Client under The Apache Software License, Version 2.0
+  Apache HttpAsyncClient under Apache License, Version 2.0
+  Apache HttpClient under Apache License, Version 2.0
+  Apache HttpCore under Apache License, Version 2.0
+  Apache HttpCore NIO under Apache License, Version 2.0
+  Apache Log4j under The Apache Software License, Version 2.0
+  aredis-api under Apache 2.0
+  base64 under Public domain
+  BSON under The Apache Software License, Version 2.0
+  c3p0 under GNU Lesser General Public License, Version 2.1 or Eclipse Public License, Version 1.0
+  com.creditease.uav.agent.heartbeat under Apache License, Version 2.0
+  com.creditease.uav.base under Apache License, Version 2.0
+  com.creditease.uav.cache.redis under Apache License, Version 2.0
+  com.creditease.uav.collect under Apache License, Version 2.0
+  com.creditease.uav.datastore under Apache License, Version 2.0
+  com.creditease.uav.elasticsearch.client under Apache 2.0
+  com.creditease.uav.fastjson under Apache License, Version 2.0
+  com.creditease.uav.healthmanager under Apache License, Version 2.0
+  com.creditease.uav.healthmanager.buildComponent under Apache 2.0
+  com.creditease.uav.helper under Apache License, Version 2.0
+  com.creditease.uav.httpasync under Apache License, Version 2.0
+  com.creditease.uav.invokechain under Apache License, Version 2.0
+  com.creditease.uav.logging under Apache License, Version 2.0
+  com.creditease.uav.messaging under Apache License, Version 2.0
+  com.creditease.uav.mq under Apache License, Version 2.0
+  com.creditease.uav.notifycenter under Apache License, Version 2.0
+  com.creditease.uav.notifymanager under Apache License, Version 2.0
+  com.creditease.uav.threadanalysis under Apache License, Version 2.0
+  com.creditease.uav.upgrade under Apache License, Version 2.0
+  commons-net-3.0.jar:commons-net-3.0.jar under Apache 2.0
+  credinet-util.jar:credinet-util.jar under Apache 2.0
+  fastjson under Apache 2
+  Findbugs Annotations under Apache License under Apache License, Version 2.0
+  FindBugs-jsr305 under The Apache Software License, Version 2.0
+  geronimo-j2ee-management_1.1_spec-1.0.1.jar:geronimo-j2ee-management_1.1_spec-1.0.1.jar under Apache 2.0
+  geronimo-jms_1.1_spec-1.1.1.jar:geronimo-jms_1.1_spec-1.1.1.jar under Apache 2.0
+  Gson under The Apache Software License, Version 2.0
+  Guava: Google Core Libraries for Java under The Apache Software License, Version 2.0
+  Hamcrest Core under New BSD License
+  htrace-core under The Apache Software License, Version 2.0
+  influxdb java bindings under The MIT License (MIT)
+  Jackson-annotations under The Apache Software License, Version 2.0
+  Jackson-core under The Apache Software License, Version 2.0
+  jackson-databind under The Apache Software License, Version 2.0
+  Java Servlet API under CDDL + GPLv2 with classpath exception
+  JSON-RPC for java under The MIT License (MIT)
+  JUnit under Eclipse Public License 1.0
+  mchange-commons-java library under GNU Lesser General Public License, Version 2.1 or Eclipse Public License, Version 1.0
+  MongoDB Driver under The Apache Software License, Version 2.0
+  MongoDB Java Driver Core under The Apache Software License, Version 2.0
+  mspl_client-1.0.0.jar:mspl_client-1.0.0.jar under Apache 2.0
+  MySQL java connector under The GNU General Public License, Version 2
+  Netty/All-in-One under Apache License, Version 2.0
+  OkHttp under Apache 2.0
+  Okio under Apache 2.0
+  Retrofit under Apache 2.0
+  rocketmq-client 3.2.6 under Apache License, Version 2.0
+  rocketmq-common 3.2.6 under Apache License, Version 2.0
+  rocketmq-remoting 3.2.6 under Apache License, Version 2.0
+  SLF4J API Module under MIT License
+  SLF4J LOG4J-12 Binding under MIT License
+  The Netty Project under Apache License, Version 2.0
+

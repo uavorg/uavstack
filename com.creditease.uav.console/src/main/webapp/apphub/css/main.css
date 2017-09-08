@@ -1,0 +1,28 @@
+body {
+	padding-top: 50px;
+	padding-left: 3px;
+	padding-right: 3px;
+	background:#FFFFFF;
+	font-family:Microsoft YaHei;
+}
+
+/*app img view*/
+img{
+	height:70px;
+	width:70px;
+}
+
+
+/*app view*/
+.appDiv{
+	margin-top: 20px;
+	margin-left: 30px;
+	text-align: center;
+	width: 80px;
+	float: left;
+}
+/*边框圆处理,阴影添加*/
+.appIco{
+	border-radius:10px;
+	box-shadow:2.5px 2.5px 0 0 #d9d6c3;
+}

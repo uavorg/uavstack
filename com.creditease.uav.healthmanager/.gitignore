@@ -1,0 +1,9 @@
+/build
+/bin
+/target
+<<<<<<< HEAD
+/logs
+=======
+/logs/
+/metadata/
+>>>>>>> refs/remotes/origin/boanyeliu

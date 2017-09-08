@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	id="WebApp_ID" version="2.5">-->
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>UAV测试WEB应用程序</display-name>
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/springMVC-servlet.xml</param-value>
+</context-param> 
+	<servlet>
+		<description></description>
+		<display-name>CXFClientE2ETest</display-name>
+		<servlet-name>CXFClientE2ETest</servlet-name>
+		<servlet-class>com.creditease.monitorframework.fat.CXFClientE2ETest</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CXFClientE2ETest</servlet-name>
+		<url-pattern>/CXFClientE2ETest</url-pattern>
+	</servlet-mapping>
+	
+	
+	<servlet>
+		<description></description>
+		<display-name>ServerRespTimeTest</display-name>
+		<servlet-name>ServerRespTimeTest</servlet-name>
+		<servlet-class>com.creditease.monitorframework.fat.ServerRespTimeTest</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ServerRespTimeTest</servlet-name>
+		<url-pattern>/ServerRespTimeTest</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+	    <description></description>
+	    <display-name>Log4jTest</display-name>
+	    <servlet-name>Log4jTest</servlet-name>
+	    <servlet-class>com.creditease.monitorframework.fat.Log4jTest</servlet-class>
+    </servlet>
+    <servlet-mapping>
+	    <servlet-name>Log4jTest</servlet-name>
+	    <url-pattern>/Log4jTest</url-pattern>
+    </servlet-mapping>
+	
+	<servlet>
+		<description></description>
+		<display-name>TestServiceServlet</display-name>
+		<servlet-name>TestServiceServlet</servlet-name>
+		<servlet-class>com.creditease.monitorframework.fat.service.TestServiceServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>TestServiceServlet</servlet-name>
+		<url-pattern>/ws/*</url-pattern>
+	</servlet-mapping>
+	
+	
+	<servlet>
+		<description></description>
+		<display-name>AppCustomMonitor</display-name>
+		<servlet-name>AppCustomMonitor</servlet-name>
+		<servlet-class>com.creditease.monitorframework.fat.AppCustomMonitor</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AppCustomMonitor</servlet-name>
+		<url-pattern>/AppCustomMonitor</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	    <servlet-name>SimpleServlet</servlet-name>
+	    <servlet-class>com.creditease.monitorframework.fat.invokechain.SimpleServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+	    <servlet-name>SimpleServlet</servlet-name>
+	    <url-pattern>/SimpleServlet</url-pattern>
+    </servlet-mapping>
+
+	<servlet>
+		<description></description>
+		<display-name>FastScanMonitor</display-name>
+		<servlet-name>FastScanMonitor</servlet-name>
+		<servlet-class>com.creditease.monitorframework.fat.FastScanServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FastScanMonitor</servlet-name>
+		<url-pattern>/FastScanMonitor</url-pattern>
+	</servlet-mapping>
+	
+	
+	<!-- jersey restful service START --> 
+	<servlet>
+		<servlet-name>jersey-serlvet</servlet-name>
+		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+		<init-param>
+			<param-name>jersey.config.server.provider.packages</param-name>
+			<param-value>com.creditease.monitorframework.fat</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>jersey-serlvet</servlet-name>
+		<url-pattern>/rs/*</url-pattern>
+	</servlet-mapping>
+	<!-- jersey restful service END --> 
+	
+	
+	<!-- spring mvc service START --> 
+	<servlet>  
+        <servlet-name>springMVC</servlet-name>  
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>  
+        <load-on-startup>1</load-on-startup>  
+    </servlet>  
+    <servlet-mapping>  
+        <servlet-name>springMVC</servlet-name>  
+        <url-pattern>/springmvc/*</url-pattern>  
+    </servlet-mapping>  
+    <!--  spring mvc service END -->
+    
+    
+	<filter>
+		<filter-name>MyTestFilter</filter-name>
+		<filter-class>com.creditease.monitorframework.fat.filters.TestFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>MyTestFilter</filter-name>
+		<url-pattern>/FastScanMonitor</url-pattern>
+	</filter-mapping>
+	
+	
+	<listener>
+		<listener-class>com.creditease.monitorframework.fat.listeners.TestListener</listener-class>
+	</listener>
+		
+    <listener>
+	<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	
+	</listener>
+</web-app>

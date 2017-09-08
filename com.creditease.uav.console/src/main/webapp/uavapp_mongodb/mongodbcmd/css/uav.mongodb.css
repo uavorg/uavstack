@@ -1,0 +1,202 @@
+@CHARSET "UTF-8";
+/*原子布局 BEGINI*/
+html {
+	height:100%;
+}
+
+body{
+    color: white;
+    font-size: 16px;
+    font-family: "微软雅黑";
+    /*background-color: #f6f5ec;*/
+    margin-top:0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom:0px;
+    text-align: center;
+    height:100%;
+}
+
+
+/*头部布局*/
+.topDiv{
+    text-align: left;
+    margin-left: 5px;
+    font-size:14px;
+    text-shadow: rgba(0,0,0,0.9) 0px 1px 2px;
+}
+
+.topDiv div{
+    cursor: pointer;
+    float: right;
+    font-size: 1.6em;
+    margin-right: 15px;
+    margin-top: -13px;
+}
+
+.topDiv div:hover{
+    border-radius:3px;
+    box-shadow:0 0 4px 4px white;
+}
+.topDiv div:active{
+    border-radius:3px;
+    box-shadow:0 0 4px 4px white;
+}
+
+.tagTitle {
+	width:225px;
+	height:18px;
+	overflow:hidden;
+	display:inline-block;
+	color:#D3FF93;
+}
+
+.idTitle {
+	color:#EDEDED;
+	width:225px;
+	display:inline-block;
+	overflow:hidden;
+}
+
+.middleDiv{
+    height: 60px;
+    margin-bottom: 1px;
+}
+.middleDiv table{
+    width: 100%;
+    height: 100%;
+    border-collapse:collapse;
+}
+.middleDiv table td {
+    width: 30%;
+    height: 60px;
+    border: 1px solid #333;
+    background:rgba(139,136,120,0.5);
+    vertical-align: bottom;
+}
+.middleDiv table td div{
+    /*background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, rgba(0, 0, 0, 0) 1px);*/
+    background-size: 1em 1em, 1.6em 2em, .8em 2em;
+    width: 100%;
+}
+.osRate {
+   color:#FFEC8B;
+}
+.cpuTitle,.memoryTitle,.connTitle{
+    left: 5px;
+    position: absolute;
+    margin-top:2px;
+    color:#cfcfcf;
+    font-size:14px;
+    text-shadow: rgba(0,0,0,0.9) 0px 1px 2px;
+}
+.memoryTitle{
+    left: 97px;
+}
+.connTitle{
+    left: 190px;
+}
+
+.appInstance {
+	margin-left:5px;
+	margin-right:5px;
+	margin-top:2px;
+	padding-left:5px;
+	text-align:left;
+	overflow:hidden;
+}
+
+.appInstance.live {
+	background: rgba(118,238,0,0.3);
+	border:1px solid #A2CD5A;
+}
+
+.appInstance.dying {
+	background: rgba(255,0,0,0.4);
+	border:1px solid #F08080;
+}
+
+.appInstance.dead {
+	background: rgba(105,105,105,0.4);
+	border:1px solid #898989;	
+}
+
+.appDetailContent{
+    vertical-align: top;
+    white-space:normal;
+    word-break:break-all;
+}
+
+.shine2 {
+    display: block;
+    position: relative;
+    background: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(255,255,255,0)), color-stop(50%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)));
+    background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    background: -o-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    background: -ms-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#00ffffff',GradientType=1 );
+    background: linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    padding: 0px 12px;
+    left: -24px;
+    height: 1px;
+    -webkit-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -khtml-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -moz-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -o-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -webkit-transition: all 0.3s ease-in-out;
+    -khtml-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.contentDiv{
+    text-align: left;
+    margin:10px;
+}
+
+.contentDiv .title{
+    font-size: 16px;
+    font-weight:bold;
+    color: #33CCFF;
+}
+
+.contentDiv .timeTitle{
+	font-size: 14px;
+	color: #C7C7C7;
+	margin-left:15px;
+}
+
+.contentDiv .kv span{
+    color: #009ad6;
+}
+
+
+.contentDiv .kv .kvField {
+	color:#999999;
+}
+
+.contentDiv .kv .kvSubField {
+	color:#0aaaaa;
+}
+
+.componentName {
+	color: #C0FF3E;
+}
+
+.componentTab {
+	border:1px solid gray;
+	padding-left:10px;
+	background:#444444;
+}
+
+.componentfeature{
+	color: #E0EEEE;
+}
+
+.componentFTab {
+	color: #009ad6;
+	padding-left:10px;
+}

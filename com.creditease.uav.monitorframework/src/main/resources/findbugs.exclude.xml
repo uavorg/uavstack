@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+   <Match>
+        <Class name="com.creidtease.monitor.captureframework.repository.StandardMonitorElementInstance" />   		
+   		<Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER" />
+   </Match>
+   <Match>
+        <Class name="com.creidtease.monitor.captureframework.repository.StandardMonitorElement" />   		
+   		<Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER" />
+   </Match>
+    <Match>
+        <Class name="com.creidtease.monitor.captureframework.spi.MonitorFactory" />   		
+   		<Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER" />
+   </Match>
+</FindBugsFilter>

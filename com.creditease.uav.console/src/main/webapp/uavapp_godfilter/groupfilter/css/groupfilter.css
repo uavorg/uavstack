@@ -1,0 +1,72 @@
+@CHARSET "UTF-8";
+/**原子布局 BEGINI**/
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+.win {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+table{width: 100%;}
+td{padding-top: 5px;padding-bottom: 5px;}
+.title{text-align: right;width: 15%;}
+.userinput{text-align: left;width: 85%;}
+.errorMsg{color: red;margin-right: 10px;}
+.confirmMsg{color: red;}
+input{width: 100%;}
+select{width: 100%;}
+.groupLayer0{color: #800000;}
+
+.checkboxHeight{
+	height:300px;
+}
+.checkboxDivTitle{
+	color:#0080c0;
+}
+.checkboxDiv{
+	margin-top:5px;
+	overflow:auto;
+	text-align: left;
+}
+.checkboxDiv input{
+	width: 15px;
+	height:15px;
+	vertical-align: sub;
+}
+.checkboxDiv span input:hover,.checkboxDiv span span:hover{
+	cursor: pointer;
+}
+.glyphicon-cog{
+	margin:0px 0 0 10px;
+	font-size:12px;
+	color:#0080c0;
+}
+
+
+/**重写json css**/
+.jsonOutter {
+    overflow: hidden;
+}
+
+/**重写css**/
+.modal-body {
+    position: relative;
+    max-height: 450px;
+    padding: 5px;
+    overflow-y: auto;
+}
+

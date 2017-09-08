@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>日志查询</title>
+</head>
+<body>
+<h1>日志信息列表</h1>
+<div>
+	appid:<input id= "appid" type="text" value="ccsp"/>
+	ip:<input id="ip" type="text" value="127.0.0.1">
+	startTimes:<input id="stimes" type="text" value="June 08,2016 12:19:35"/>
+	endTimes:<input id="etimes" type="text" value="June 08,2016 20:19:35"/>
+	size:<input id="psize" type="text" value="1000"/>
+	<br>
+	logid:<input id="logid" type="text" value="F:/testenv/apache-tomcat-7.0.65/logs/ccsp.log" size="50"/>
+	reversed:<input id="reversed" name="reversed" type="radio" value="true" >先新后旧
+	<input id="reversed" name="reversed" type="radio" value="false">先旧后新
+	<a href="#" id="getlog">取得最新日志</a>
+</div>
+<div id="rs">
+	
+</div>
+<script src="../../../appvendors/jquery/jquery-2.1.4.min.js"></script>
+<script src="../../../apphub/js/common/helper.js"></script>
+<script type="text/javascript">
+
+
+	$('#getlog').click(function() {
+		$("#rs").empty();
+		appid = $('#appid').val();
+		logid = $('#logid').val();
+		stimes = $("#stimes").val();
+		etimes = $("#etimes").val();
+		ip = $("#ip").val();
+		psize = $("#psize").val();
+		reversed = $("#reversed:checked").val();
+		data = {"appid": appid, "ip": ip, "logid" : logid, "starttime": new Date(stimes).getTime(), "endtime": (new Date(etimes).getTime()), "psize": psize, "reversed" : reversed};
+		$.post("../../../rs/godeye/log/q/hm",
+				JSON.stringify(data), 
+				function(result) {
+			//rsobj = jQuery.parseJSON(result).rs;
+			rsobj = result.rs;
+			logs = jQuery.parseJSON(rsobj);
+			for(var i = 0;i < logs.length; i++){
+				logtimestamp = logs[logs.length - i - 1]._timestamp;
+				content = logs[logs.length - i - 1].content;
+				num = logs[logs.length - i -1]._lnum;
+				time = new Date(+logtimestamp) ;
+				$('#rs').append(TimeHelper.getTime(+logtimestamp, "FMS") +'['+ num +']==' + content).append("<br>");
+			}
+		 $('#rs').append(logs.length);
+		});	
+	}	
+	);
+</script>
+</body>
+</html> 

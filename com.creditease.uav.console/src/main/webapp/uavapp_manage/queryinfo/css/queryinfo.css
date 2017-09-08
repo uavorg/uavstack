@@ -1,0 +1,83 @@
+body {
+    text-align: center;
+}
+
+.modal-header
+{
+    padding: 2px 2px;
+    padding-top: 2px;
+    padding-right: 15px;
+    padding-bottom: 2px;
+    padding-left: 15px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    background-color: #337ab7;	
+}
+
+.modal-footer {
+    padding: 2px 2px;
+}
+
+
+.modal-body {
+    position: relative;
+    max-height: 400px;
+    padding: 5px;
+    overflow-y: auto;
+}
+
+.h5, h5
+{
+	text-align:left;
+	font-weight:1000;
+	margin-top: 10px;
+    margin-bottom: 10px;
+    font-weight: 900;
+    font-size: 14px;   
+}
+
+td{
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.title
+{
+	text-align: right;
+	width: 15%;
+}
+
+.userinput
+{
+	text-align: left;
+	width: 85%;
+}
+
+.errorMsg
+{
+	color: red;
+	margin-right: 10px;
+}
+
+input {
+    width: 100%;
+}
+
+table{
+	width:100%
+}
+
+.urlTextArea
+{
+	width:100%;
+	resize:none;
+}
+
+.unEditAbleSpan
+{
+white-space:nowrap;white-space:norma;display:inline-block;;	
+}
+
+
+.jsonTitle{color: #008000;}
+.jsonValue{color: #800000;}

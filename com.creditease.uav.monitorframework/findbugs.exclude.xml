@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+   <Match>
+        <Class name="com.creidtease.monitor.captureframework.repository.StandardMonitorElementInstance" />   		
+   		<Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER" />
+   </Match>
+   <Match>
+        <Class name="com.creidtease.monitor.captureframework.repository.StandardMonitorElement" />   		
+   		<Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER" />
+   </Match>
+    <Match>
+        <Class name="com.creidtease.monitor.captureframework.spi.MonitorFactory" />   		
+   		<Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER" />
+   </Match>
+   <Match>
+     <Class name="com.creditease.monitor.UAVServerInstaller" />  
+    
+   </Match>
+   <Match>
+     <Class name="com.creditease.monitor.log.ConsoleLogger" />  
+    	<Bug pattern="NP_ALWAYS_NULL" />
+   </Match>
+   <Match>
+   	<Class name="com.creditease.monitor.UAVMetaDataMgr" />
+   	<Bug pattern="MS_MUTABLE_COLLECTION" />
+   </Match>
+  
+</FindBugsFilter>

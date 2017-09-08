@@ -1,0 +1,11 @@
+insert time : 30005
+query DSAggregatequery.json: 4065
+query DSAggregatequeryGtLt.json: 6373
+query DSAggregatequeryMKV.json: 2515
+query DSAggregatequeryRegex_GtInOR.json: 3308
+query DSAggregatequeryRegex.json: 1779
+query DSAggregatequeryRegexInOR.json: 2685
+query DSAggregatequeryRegexMKVInOR.json: 2456
+query DSfind.json: 338
+query total: 23519
+update DSupdate.json: 10396

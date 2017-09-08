@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>ce-datamonitorsystem</artifactId>
+		<groupId>com.creditease.moniter</groupId>
+		<version>1.0</version>
+		<relativePath>../com.creditease.uav.superpom</relativePath>
+	</parent>
+
+
+	<artifactId>com.creditease.uav.threadanalysis</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.helper</artifactId>
+
+		</dependency>
+
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.base</artifactId>
+
+		</dependency>
+
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.messaging</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.elasticsearch.client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.logging</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.httpasync</artifactId>
+
+		</dependency>
+
+	<!-- <dependency> <groupId>com.creditease.moniter</groupId> <artifactId>com.creditease.uav.elasticsearch.client</artifactId> 
+		</dependency> -->
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!--把findbug绑定到install周期，每次install的时候强制进行findbug检查，不过不能build成功 -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<!--2.5会有时间转换的问题 -->
+				<version>3.0.4</version>
+				<configuration>
+					<threshold>High</threshold>
+					<effort>Default</effort>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<findbugsXmlOutputDirectory>${basedir}/target</findbugsXmlOutputDirectory>
+					<excludeFilterFile>${basedir}/findbugs.exclude.xml</excludeFilterFile>
+					<!--<includeFilterFile>${basedir}\findbugs.include.xml</includeFilterFile> -->
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-source</id>
+						<phase>install</phase>
+						<!-- 要绑定到的生命周期的阶段 -->
+						<goals>
+							<!-- 要绑定的插件的目标 -->
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

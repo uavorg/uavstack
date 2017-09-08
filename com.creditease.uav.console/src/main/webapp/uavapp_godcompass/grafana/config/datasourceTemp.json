@@ -1,0 +1,16 @@
+{
+  "name": "OPENTSDB",
+  "type": "opentsdb",
+  "url": "URL",
+  "access": "proxy",
+  "jsonData": {
+    "tsdbVersion": 3,
+    "tsdbResolution": 1,
+    "timeField": "l_timestamp",
+    "esVersion": 5
+  },
+  "secureJsonFields": {
+    
+  },
+  "database": "DATABASE"
+}

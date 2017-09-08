@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="format-detection" content="telephone=no" />  
+    <title>帮助文档</title>
+    <style type="text/css">
+    body {
+		font-size: 14px;
+		font-family: "微软雅黑";
+		margin-top: 0px;
+		margin-left: 0px;
+		margin-right: 0px;
+		margin-bottom: 0px;
+		text-align: left;
+		height: 100%;
+	}
+    .titleDiv {
+	  font-size: 16px;
+	  color: #ffffff;
+	  background-color: #009ad6;
+	  height: 43px;
+	  line-height:43px;   
+	}
+	.titleMainDiv{
+	  font-size: 16px;
+	  line-height:43px;  
+	  text-align: center;
+	}
+	table{ 
+		border-collapse:collapse;
+		margin:10px;
+	}
+	td {
+		border:solid #000 1px;
+  		padding: 0.3em;
+	} 
+	p{
+		margin-left:3px;
+	}
+	img{width:40%;}
+	
+	
+	@media (max-width: 767px) {
+		img{width:98%;}
+	}
+	
+	@media (min-width: 768px) and  (max-width: 1130px) 
+	{
+		img{width:50%;}
+	}
+    </style>
+</head>
+<body >
+	<div class="titleMainDiv">预警说明</div>
+	<div class="titleDiv">一、监控组</div>
+		<p>1.服务端//服务作为服务器的性能指标</p>
+		<p>2.客户端//服务作为客户端发送请求的性能指标</p>
+		<p>3.日志//日志监控</p>
+	<div class="titleDiv">二、监控指标组</div>
+		<p>服务端</p>
+		<p>1.进程状态指标系//进程性能指标</p>
+		<p>2.容器状态指标系//宿主机性能指标</p>
+		<p>3.服务状态指标系//具体url服务响应指标</p>
+		<p>4.应用状态指标系//应用响应指标</p>
+		<p>5.应用服务器状态指标系//服务器响应指标</p>
+		<p>6.java虚拟机状态指标系//服务器jvm性能指标+<strong>自定义指标</strong></p>
+		<p>客户端</p>
+		<p>1.调用状态指标系//作为客户端调用其他服务性能指标</p>
+		<p>日志</p>
+		<p>1.应用ID//应用名(war包名)</p>
+		<p>2.指定日志//指定日志全路径文件名</p>
+	<div class="titleDiv">三、监控实例名</div>
+		<p>1.此行可不填，若不填则为全局策略；</p>
+		<p>2.所填实例的预警以此策略为准，全局策略对其失效。</p>
+		<p>3.若有多个实例，则在此栏填写监控实例组名(自行命名)，下一栏填写各监控实例名，以","(半角逗号)分隔。</p>
+		<p>4.监控实例名与第二行的监控指标组名相关，填写规则见下表。</p>
+		<p/>
+		<table>
+				<tr>
+					<td>监控指标组名</td>
+					<td>监控实例名</td>
+					<td>示例</td>
+				</tr>				
+				<tr>
+					<td>进程状态指标系</td>
+					<td>IP_进程名或IP</td>
+					<td>127.0.0.1_java</td>
+				</tr>
+				<tr>
+					<td>容器状态指标系</td>
+					<td>具体IP</td>
+					<td>127.0.0.1</td>
+				</tr>
+				<tr>
+					<td>服务状态指标系</td>
+					<td>具体服务url地址或上级地址</td>
+					<td>http://127.0.0.1:8080/isign/isign/signPDF</td>
+				</tr>
+				<tr>
+					<td>应用状态指标系</td>
+					<td>应用地址</td>
+					<td>http://127.0.0.1:8080/isign</td>
+				</tr>
+				<tr>
+					<td>应用服务器状态指标系</td>
+					<td>服务器地址</td>
+					<td>http://127.0.0.1:8080</td>
+				</tr>
+				<tr>
+					<td>java虚拟机状态指标系</td>
+					<td>服务器地址</td>
+					<td>http://127.0.0.1:8080</td>
+				</tr>
+				<tr>
+					<td>调用状态指标系</td>
+					<td>服务器ip:端口#应用实例名#调用服务类型(redis,http,mongo,mysql等)://调用服务ip:端口</td>
+					<td>127.0.0.1:9090#smsmanager#redis://127.0.0.1:6379</td>
+				</tr>
+		</table>
+	<div class="titleDiv">四、描述</div>
+		<p>填写对此策略的描述</p>
+	<div class="titleDiv">五、触发条件</div>
+		<p>触发条件可以增加多个，各条件之间的关系为或。</p>
+		<p>1.触发表达式：形式为 [指标参数名][比较符][值]，比较符有<、>、=，示例：os.cpu.load>90。对于每种监控指标组名，只能使用对应的指标参数名。监控指标组名与指标参数名的对应见附表。</p>
+		<p>2.持续时间：  策略判断的时间长度，单位为秒。（可不填，不填表示表达式条件发生则触发预警）</p>
+		<p>3.聚集操作：  选择对时间范围内的参数值做的聚集操作类型。</p>
+	<div class="titleDiv">六、触发动作</div>
+		<p>1.短信:预警接收者的手机号码，如有多个以","(半角逗号)分隔。</p>
+		<p>2.邮箱:预警接收者的邮箱地址，如有多个以","(半角逗号)分隔。</p>
+	<div class="titleDiv">附表</div>
+		<table>
+				<tr>
+					<td>监控指标组名</td>
+					<td>指标参数名</td>
+				</tr>
+				<tr>
+					<td>容器状态指标系</td>
+					<td>
+						os.cpu.load (系统cpu 占用百分比)<br/>
+						os.cpu.avgload(系统cpu 平均占用百分比)<br>
+						os.cpu.freemem (系统空闲内存 单位:Byte)<br/>
+						os.conn.cur (系统服务连接数)<br/>              
+						os.io.disk.挂载目录(目录中/用.代替).free(挂载目录磁盘空闲量 单位:KB)<br/>
+						os.io.disk.挂载目录(目录中/用.代替).use(挂载目录磁盘使用量 单位:KB)<br/>      
+						os.io.disk.挂载目录(目录中/用.代替).useRate(挂载目录磁盘使用率)<br/> 
+						(具体挂载目录的空闲量、使用量、使用率 例: os.io.disk.data.free)<br/> 
+						os.io.disk.sda(b/c..).disk_write(disk_read) (系统物理磁盘读写速度 单位:KB/s)<br/>  
+					</td>
+				</tr>
+				<tr>
+					<td>进程状态指标系</td>
+					<td>
+						cpu (进程占用cpu百分比) <br/>
+						mem(进程占用内存，单位:KB)<br/>
+						memRate(进程内存占用百分比)<br/>              
+						conn(进程连接数)<br/> 
+						conn_PORT(进程指定端口连接数，例：conn_8080)<br/>     
+						in (进程入口流量 单位:KB/s)<br/> 
+						out (进程出口流量 单位:KB/s)<br/>
+						in_PORT(进程指定端口入口流量，例：in_8070)<br>
+						out_PORT(进程指定端口出口流量，例：out_8070)<br>
+						disk_read (进程读磁盘速度 单位:KB/s)<br/> 
+						disk_write (进程写磁盘速度 单位:KB/s)<br/> 						
+					</td>
+				</tr>
+				<tr>
+					<td>应用服务器状态指标系</td>
+					<td rowspan="3">
+						tavg (平均响应时间，单位:ms)<br/>                
+						tmax(最长响应时间，单位:ms)<br/> 
+						tmin(最短响应时间 ，单位:ms)<br/>
+						tsum(响应时间总和，单位:ms)<br>
+						err(错误数，响应400以上)<br/>
+						warn(警告计数)<br>                         
+						RC+响应代码(如RC500，RC502 出现次数)<br/> 
+						count(访问计数，总访问量)<br/>                     
+					</td>
+				</tr>
+				<tr>
+					<td>应用状态指标系</td>
+				</tr>
+				<tr>
+					<td>服务状态指标系</td>
+				</tr>
+				<tr>
+					<td>java虚拟机状态指标系</td>
+					<td>
+						<strong>自定义指标名</strong><br>
+						cpu_p (jvm进程cpu消耗)<br/>
+						cpu_s (jvm采集的系统cpu 占用百分比，与top命令采集的os.cpu.load不同)<br> 
+						thread_live (活跃线程计数)<br>
+						thread_daemon (守护线程计数)<br>
+						thread_peak (线程峰值计数)<br>
+						thread_started (线程启动计数)<br> 
+						class_load (类加载计数)<br> 
+						class_unload (类卸载计数)<br> 
+						class_total (全部类计数)<br> 
+						mgc_count (MinorGC计数)<br/>
+						mgc_time (minor gc，时间 单位:ms)<br/>
+						fgc_count (FullGC计数)<br/>
+						fgc_time (full gc，时间 单位:ms)<br/>
+						指标通用模式：<br>
+						内存管理指标_use (已使用容量，单位：Byte)<br/>
+						内存管理指标_init (初始化容量，单位：Byte)<br/>
+						内存管理指标_commit (已提交容量，单位：Byte)<br/>
+						内存管理指标_max (最大容量，单位：Byte)<br/>
+						内存管理指标包含：heap(堆)、noheap(非堆)、perm(持久代)、code(代码缓存)、eden(新生代-Eden)、surv(新生代-survior)、old(老生代)<br>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>调用状态指标系</td>
+					<td>
+						
+						tavg (平均响应时间，单位:ms)<br/>                
+						tmax(最长响应时间，单位:ms)<br/> 
+						tmin(最短响应时间 ，单位:ms)<br/>
+						tsum(响应时间总和，单位:ms)<br>
+						err(错误数，响应400以上)<br/>			                        			
+						count(访问计数，总访问量)<br/> 
+						AC+方法名(方法访问计数)<br/>  						
+					</td>
+				</tr>
+				<tr>
+					<td>日志</td>
+					<td>content(内容)   另：log的策略表达式为content:=XXX  表示日志包含XXX内容</td>
+				</tr>
+		</table>
+	<div class="titleDiv">示例1</div>
+		<p><img src="image001.png"/></p>
+		<p><img src="image002.png"/></p>
+		<p><img src="image003.png"/></p>
+		<p>此策略为对进程指标的监控，且策略适用对象为127.0.0.1和127.0.0.1上的进程。</p>
+		<p>预警触发条件为进程cpu占用率在300秒内的平均值超过90%。</p>
+		<p>预警触发后通过邮件发送给xxx@yyyy。</p>
+	<div class="titleDiv">示例2</div>
+		<p><img src="image004.png"/></p>
+		<p><img src="image005.png"/></p>
+		<p><img src="image006.png"/></p>
+		<p><img src="image007.png"/></p>
+		<p><img src="image008.png"/></p>
+		<p>此策略为对具体应用服务响应指标的监控，且策略适用对象为http://127.0.0.1:8080/ smsgateway和http://127.0.0.1:8080/smsgateway这两个应用服务。</p>
+		<p>预警触发条件为最长响应时间tmax超过2000ms，或者60秒内平均响应时间tavg在60秒内超过1000ms，或者60秒内响应代码400以上的次数超过2。</p>
+		<p>预警触发后通过短信发送给152XXXXXX。</p>
+	<div class="titleDiv">示例3</div>
+		<p><img src="image009.png"/></p>
+		<p>此策略为日志的监控，且策略适用对象为ccsp应用中/app/t7-ccsp/logs/ccsp.log和/app/t7-ccsp/logs/ccsp_err.log这两个日志文件。</p>
+		<p>预警触发条件为日志内容包含ERROR字段。</p>
+		<p>预警触发后通过邮件和短信报警。</p>
+</body>

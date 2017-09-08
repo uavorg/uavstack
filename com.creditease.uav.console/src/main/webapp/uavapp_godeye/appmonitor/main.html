@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title></title>
+<link rel="stylesheet"
+	href="../../appvendors/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet"
+	href="../../appvendors/bootstrap/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css"
+	href="../../apphub/css/comp.window.css">
+<link rel="stylesheet" type="text/css"
+	href="../../apphub/css/comp.mvc.css">
+<link rel="stylesheet" type="text/css"
+	href="../../apphub/css/comp.tablist.css">
+<link rel="stylesheet" type="text/css" href="../../apphub/css/crud.css">
+<link rel="stylesheet" type="text/css"
+	href="../../apphub/css/comp.selector.css">
+<link href="../../appvendors/vis/css/vis-network.min.css"
+	rel="stylesheet" type="text/css" />
+<link rel="stylesheet"
+	href="../../appvendors/treetable/css/jquery.treetable.css">
+<link rel="stylesheet" href="../../appvendors/bootstrap/css/bootstrap-datetimepicker.css">
+<link rel="stylesheet" type="text/css" href="css/uav.appmonitor.css">
+</head>
+<body>
+
+
+	<!--third party-->
+	<script type="text/javascript"  src="../../appvendors/jquery/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript"	src="../../appvendors/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript"  src="../../appvendors/highcharts/highcharts.js"></script>
+	<script  type="text/javascript" src="../../appvendors/highcharts/themes/gray.js"></script>
+	<script type="text/javascript"	src="../../appvendors/vis/js/vis-network.min.js"></script>
+	<script type="text/javascript"	src="../../appvendors/treetable/js/jquery.treetable.js"></script>
+	<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap-datetimepicker.js"></script>
+	<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap-datetimepicker.zh-CN.js"></script>
+	<!--apphub support lib-->
+	<script  type="text/javascript" src="../../apphub/js/common/helper.js"></script>
+	<script type="text/javascript"  src="../../apphub/js/common/string.js"></script>
+	<script  type="text/javascript" src="../../apphub/js/common/collection.js"></script>
+	<script  type="text/javascript" src="../../apphub/js/common/window.js"></script>
+	<script  type="text/javascript" src="../../apphub/js/common/mvc.js"></script>
+	<script type="text/javascript"  src="../../apphub/js/common/tablist.js"></script>
+	<script type="text/javascript"  src="../../apphub/js/common/charts.js"></script>
+	<script type="text/javascript"  src="../../apphub/js/common/vnetwork.js"></script>
+	<script type="text/javascript"  src="../../apphub/js/common/crud.js"></script>
+	<script type="text/javascript"  src="../../apphub/js/common/selector.js"></script>
+	<!--app lib-->
+	<script type="text/javascript"  src="js/uav.appstream.js"></script>
+	<script type="text/javascript"  src="js/uav.profile.js"></script>
+	<script type="text/javascript"  src="js/uav.apm.js"></script>
+	<script type="text/javascript"  src="js/uav.log.js"></script>
+	<script type="text/javascript"  src="js/uav.dbpool.js"></script>
+	<script type="text/javascript"  src="js/uav.jta.js"></script>
+	<script type="text/javascript"  src="js/uav.appmonitor.js"></script>
+	
+	<!--Monitor view configuration BEGIN-->
+	<div class="modal fade" id="MonitorConfigDialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5>监控工具箱</h5>
+				</div>
+				<div class="modal-body" style="height:250px;color:#333;">
+					<!-- Monitor Data -->
+					<div align="left" style='color: #000;'>实时数据查看起始时间</div>
+					<div align="left">
+						<select id="MonitorConfigDialog_STHour"
+							style="width: 90px; display: inline-block;">
+						</select> <select id="MonitorConfigDialog_STMin"
+							style="width: 90px; display: inline-block;">
+						</select>
+						<button id="MonitorConfigDialog_ViewBtn" class="btn btn-primary"
+							style="width: 80px;" data-dismiss="modal">查看</button>
+					</div>
+					<!-- Extention -->
+					<div align="left" id="MonitorConfigDialog_Tool" style="margin-top:15px;"></div>
+				</div>
+				<div class="modal-footer">					
+					<button class="btn" data-dismiss="modal" onclick="app.controller.closeMonitorCfgDialog()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--Monitor view configuration END-->
+</body>
+</html>

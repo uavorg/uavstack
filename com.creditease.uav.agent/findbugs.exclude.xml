@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+   <Match>
+        <Class name="com.creditease.agent.helpers.JVMToolHelper" />   		
+   		<Bug pattern="DC_DOUBLECHECK" />
+   </Match>
+   <Match>
+        <Class name="com.creditease.agent.ConfigurationManager" />   		
+   		<Bug pattern="LI_LAZY_INIT_STATIC" />
+   </Match>
+   <Match>
+   		<Bug pattern="DM_DEFAULT_ENCODING" />
+   </Match>
+   <Match>
+   		<Class name="com.creditease.agent.feature.logagent.TailFile$CompareByLastModifiedTime" />
+   		<Bug pattern="DM_BOXED_PRIMITIVE_FOR_COMPARE" />
+   </Match>
+   
+</FindBugsFilter>

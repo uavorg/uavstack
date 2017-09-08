@@ -1,0 +1,42 @@
+div {
+	margin-top: 5px;
+}
+
+.logindiv {
+	text-align: center;
+	width: 300px;
+	margin: 0px auto;
+	margin-top: 50px;
+}
+
+.loginHeadIcon {
+	width: 65px;
+	height: 65px;
+	display: block;
+	position: relative;
+	float: left;
+}
+
+.loginHeadTextDiv {
+	padding-left: 70px;
+	text-align: left;
+}
+
+.form-control {
+	font-size: 16px;
+}
+
+.btn {
+	width: 296px;
+	font-size: 16px;
+}
+
+.logoImg {
+	width: 30px;
+	height: 30px;
+}
+
+.errorMsg{
+	color: red;
+	display: none;
+}

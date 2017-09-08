@@ -1,0 +1,9 @@
+query DSAggregatequery.json: 26497
+query DSAggregatequeryGtLt.json: 356
+query DSAggregatequeryMKV.json: 4427
+query DSAggregatequeryRegex_GtInOR.json: 7438
+query DSAggregatequeryRegex.json: 3984
+query DSAggregatequeryRegexInOR.json: 7278
+query DSAggregatequeryRegexMKVInOR.json: 4997
+query DSfind.json: 729
+query total: 55706

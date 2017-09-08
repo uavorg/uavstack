@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+ <Match>
+     <Class name="com.creditease.uav.client.HealthManagerClient" />  
+    
+   </Match> 
+   <Match>
+	   		<Bug pattern="DM_DEFAULT_ENCODING" />
+	   </Match>
+</FindBugsFilter>

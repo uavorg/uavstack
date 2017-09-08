@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title></title>
+	
+	<!-- Bootstrap -->
+    <link rel="stylesheet" href="../../../appvendors/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../../../appvendors/bootstrap/css/font-awesome.min.css">
+    
+    <!-- modal config -->
+    <link rel="stylesheet" href="../../../apphub/css/crud.css">
+    
+    <script type="text/javascript" src="../../../appvendors/jquery/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="../../../appvendors/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>	 	   
+    <!-- 组件固定内容  :位置置于BODY内   BEGIN -->
+	<div class="modal fade" id="ExampleModal2" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+		        <div class="modal-header">
+		             <h5>标题编辑区</h5>
+		        </div>
+		        <div class="modal-body">
+					
+					<!--  编辑区域 BEGIN -->
+					
+						内容编辑区
+						
+						
+					<!--  编辑区域 END -->
+						
+		        </div>
+		        <div class="modal-footer">
+		        	<button class="btn btn-primary" data-dismiss="modal">提交</button>
+		            <button class="btn" data-dismiss="modal">关闭</button>
+		        </div>
+	        </div>
+	    </div>
+    </div>
+    
+    <!-- 组件固定内容  END -->
+    
+    <script>
+    	/* $.fn.serializeJson=function(){
+    		var serializeObj={};
+    		var array=this.serializeArray();
+    		var str=this.serialize();
+    		$(array).each(function(){
+    			if(serializeObj[this.name]){
+    				if($.isArray(serializeObj[this.name])){
+    					serializeObj[this.name].push(this.value);
+    				}else{
+    					serializeObj[this.name]=[serializeObj[this.name],this.value];
+    				}
+    			}else{
+    				serializeObj[this.name]=this.value;
+    			}
+    			});
+    			return serializeObj;
+    		};
+    	
+    	function clickCommit(val){
+			var pnode = val.parentNode;
+			var ppnode = pnode.parentNode;
+			var mbody = ppnode.getElementsByTagName("div")[1];
+			var form = mbody.getElementsByTagName("form")[0];
+			console.log(form.id);
+			
+			//把表单中内容转化为JSON串
+			var jsonuserinfo =$('#'+form.id).serializeJson();  
+		    alert(JSON.stringify(jsonuserinfo));  
+			
+    	};
+    	 */
+
+    	 //ID 用户定义
+		$("#ExampleModal2").modal();
+    	
+    </script>
+
+</body>
+</html>

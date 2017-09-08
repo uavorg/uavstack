@@ -1,0 +1,40 @@
+.AppHubTabListNode {
+	font-size: 14px;
+    width: 230px;
+    position:relative;
+    vertical-align: top;
+    display:inline-block;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    border-radius:1px;
+}
+
+.Dark {
+	border:1px solid black;
+	color:white;
+    background-color: rgb(51, 51, 51);
+    box-shadow:0 0 1px 1px #888888;
+}
+
+.Light {
+	border:1px solid #eeeeee;
+	color:#333333;
+    background-color: #eeeeee;
+    box-shadow:0 0 0px 3px #aaaaaa;
+    border-radius:5px;
+}
+
+.AppHubTabListGroup {
+    border:1px dashed gray;
+    padding:1px;	
+}
+
+.GroupTitle {
+	font-size: 16px;
+	font-weight:bold;
+	color:#333;
+	!text-shadow: rgba(0,0,0,0.5) 0px 1px 1px;
+	text-align:left;
+	background:#f8f8f8;
+}

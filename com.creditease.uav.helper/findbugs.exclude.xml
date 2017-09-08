@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+  <Match>
+        <Class name="com.creditease.agent.helpers.DateTimeHelper" />   	
+   </Match>
+   <Match>
+   		
+   		<Bug pattern="DM_DEFAULT_ENCODING" />
+   </Match>
+   <Match>
+   		<Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING"/>
+   </Match>
+    <Match>
+   		<Bug pattern="VO_VOLATILE_INCREMENT"/>
+   </Match>
+</FindBugsFilter>

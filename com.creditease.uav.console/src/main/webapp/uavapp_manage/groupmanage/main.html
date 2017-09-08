@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title></title>
+    <link rel="stylesheet" href="../../appvendors/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../../appvendors/bootstrap/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="../../apphub/css/comp.mvc.css">
+    <link rel="stylesheet" type="text/css" href="css/groupmanage.css">
+    <!-- modal config -->
+    <link rel="stylesheet" href="../../apphub/css/crud.css">
+
+</head>
+<body>
+
+<!--third party-->
+<script type="text/javascript" src="../../appvendors/jquery/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap.min.js"></script>
+
+<!--apphub support lib-->
+<script type="text/javascript"  src="../../apphub/js/common/helper.js"></script>
+<script type="text/javascript"  src="../../apphub/js/common/window.js"></script>
+<script type="text/javascript" src="../../apphub/js/common/string.js"></script>
+<script type="text/javascript"  src="../../apphub/js/common/mvc.js"></script>
+<script type="text/javascript" src="../../apphub/js/common/crud.js"></script>
+<!--group lib-->
+<script type="text/javascript"  src="js/restful.client.js"></script>
+<script type="text/javascript"  src="js/group.init.js"></script>
+<script type="text/javascript"  src="js/group.add.js"></script>
+<script type="text/javascript"  src="js/group.table.js"></script>
+<script type="text/javascript"  src="js/group.del.js"></script>
+<script type="text/javascript"  src="js/group.modfy.js"></script>
+<script type="text/javascript"  src="js/group.searchbar.js"></script>
+
+
+<div id="groupManagerHeadSearchBar" class="AppHubMVCSearchBar" ></div>	
+
+<!-- 添加组件固定内容  :位置置于BODY内   BEGIN -->
+<div class="modal fade" id="addGroupDiv" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5><strong>新建授权</strong></h5>
+            </div>
+            <div class="modal-body">
+                <!--  编辑区域 BEGIN -->
+                <form id="addGroupFrom">
+                    <table>
+                        <tr>
+                            <td class="title" valign="top">组ID：</td>
+                            <td class="userinput"><input id="addGroupid" type="text"/></td>
+                        </tr>
+                        <tr>
+                            <td class="title" valign="top">授权APP：</td>
+                            <td class="userinput">
+                                <select multiple="multiple" size="15" id="addAppids">
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+                <!--  编辑区域 END -->
+            </div>
+            <div class="modal-footer">
+                <span class="errorMsg" id="addErrorMsg"></span>
+                <button class="btn btn-primary" onclick="javascript:addGroupSubmit();">提交</button>
+                <button class="btn" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 组件固定内容  END -->
+
+
+
+<!-- 查看/编辑 组件固定内容  :位置置于BODY内   BEGIN -->
+<div class="modal fade" id="viewGroupDiv" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5><strong>授权详情</strong></h5>
+            </div>
+            <div class="modal-body">
+                <!--  编辑区域 BEGIN -->
+                <form id="editGroupFrom">
+                    <table>
+                        <tr>
+                            <td class="title" valign="top">组ID：</td>
+                            <td class="userinput"><span id="viewGroupid"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="title" valign="top">授权APP：</td>
+                            <td class="userinput">
+                                <select multiple="multiple" size="15" id="viewAppids" disabled="disabled">
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+                <!--  编辑区域 END -->
+            </div>
+            <div class="modal-footer">
+                <span class="errorMsg" id="modfyErrorMsg"></span>
+                <button class="btn btn-primary" onclick="javascript:vmButtonSwitch();"  id="vmButton">编辑</button>
+                <button class="btn" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 查看/编辑 组件固定内容  END -->
+</body>
+
+</html>

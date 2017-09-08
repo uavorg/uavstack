@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>
+            【UAV预警】#title#
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            li{list-style:none;}
+        </style>
+    </head>
+    
+    <body style="margin: 0; padding: 0;word-break:break-all;">
+        <table align="center" border="10" cellpadding="0" cellspacing="0" width="600"
+        style="border: 1px solid #cccccc; border-collapse: collapse;">
+            <tbody>
+                <tr>
+                    <td bgcolor="#f5f6f7" style="padding: 10px 30px 40px 30px;">
+						<div style="font-family: Arial, sans-serif; font-size: 18px; line-height: 20px;">#title#</div>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 10px 0 10px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
+                                        <li  style="margin-bottom:10px;">
+                                            <span>
+                                                发生时间
+                                            </span>
+                                            <span>
+                                                ：
+                                            </span>
+                                            <span style="color: #DC143C;">
+                                                 #timeFlag#
+                                            </span>
+                                        </li>
+                                       
+                                        <li style="margin-bottom:10px;">
+                                            <span>
+                                                问题描述
+                                            </span>
+                                            <span>
+                                                ：
+                                            </span>
+                                            <span style="color: #DC143C;">
+                                                 #description#
+                                            </span>
+                                        </li>
+                                        <li style="margin-bottom:10px;">
+                                            <span>
+                                                事件类型
+                                            </span>
+                                            <span>
+                                                ：
+                                            </span>
+                                            <span style="color: #DC143C;">
+                                               #id#
+                                            </span>
+                                        </li>
+                                        <li style="margin-bottom:10px;">
+                                            <span>
+                                                事件详情
+                                            </span>
+                                            <span>
+                                                ：
+                                            </span>
+                                            <a href="#msgurl#?#key#" style="font-family: Arial, sans-serif; font-size: 16px; color:#0066CC; text-decoration:none;">
+                                               点击直接查看预警详情
+                                            </a>
+                                        </li>
+                                        <li style="margin-bottom:10px;">
+                                            <span>
+                                                智能服务治理系统
+                                            </span>
+                                            <span>
+                                                ：
+                                            </span>
+                                            <a href="#uavurl#" style="font-family: Arial, sans-serif; font-size: 16px; color:#0066CC; text-decoration:none;">
+                                               点击并登录查看
+                                            </a>
+                                        </li>
+                                        <li style="margin-bottom:10px;">
+                                        <span >
+                                            上下文信息
+                                        </span>
+                                        <span>
+                                            ：
+                                        </span>
+                                        </li>
+                                        <dd>
+                                            <li >
+                                                <span>
+                                                    IP地址
+                                                </span>
+                                                <span>
+                                                    ：
+                                                </span>
+                                                <span>
+                                                    #ip#(#host#)
+                                                </span>
+                                            </li>
+                                            <hr>
+                                            <li>
+                                                <span>
+                                                    UAV节点进程
+                                                </span>
+                                                <span>
+                                                    ：
+                                                </span>
+                                                <span>
+                                                    #nodename#(#nodeuuid#)
+                                                </span>
+                                            </li>
+                                             <hr>
+                                            <li>
+                                                <span>
+                                                    报警组件
+                                                </span>
+                                                <span>
+                                                    ：
+                                                </span>
+                                                <span>
+                                                   #component#.#feature#
+                                                </span>
+                                            </li>
+                                             <hr>
+                                             #args#
+                                        </dd>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        本条信息是系统自动发送，请勿回复！
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="background-color:#383838; width:100%; padding:0 100px ">
+                            <tbody>
+                                <tr>
+                                    <td align="center" style="height:44px">
+                                        <a style="margin:0 30px; font-family:Helvetica Neue Light,Helvetica Neue,WenQuanYi Micro Hei,Trebuchet MS,Arial; color:#fff; text-decoration:none; font-size:17px">
+                                            <div>
+                                                ©2016 宜信技术研发中心
+                                            </div>
+                                            <div>
+                                                智能微服务团队
+                                            </div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+
+</html>

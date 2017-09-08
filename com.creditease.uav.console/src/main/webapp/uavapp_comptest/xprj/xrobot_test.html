@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+<title>XRobot</title>
+<meta charset="UTF-8">
+    <meta name="description" content="this is my page">
+    <meta name="content-type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="../../appvendors/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../../appvendors/bootstrap/css/font-awesome.min.css">
+    
+    <script type="text/javascript" src="../../appvendors/jquery/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../apphub/js/common/string.js"></script>
+    <script type="text/javascript" src="../../apphub/js/common/helper.js"></script>
+</head>
+<body>
+	<input type="text" id="channelName"  value="alex"/><input type="button"  value="StartRobotChannel" onclick="runRobotChannel('start_channel')"/>
+	<input type="button"  value="StopRobotChannel" onclick="runRobotChannel('stop_channel')"/>
+	<input type="button"  value="ListRobotChannel" onclick="runRobotChannel('list_channel')"/>
+	<div><img alt="" src="" id="qrCode"></div>
+	<div id="channelList"></div>
+	<script>
+		function runRobotChannel(cmd) {
+			
+			var channelName=HtmlHelper.id("channelName").value;
+			
+			var query={
+					intent:cmd,
+					request:{
+					   type:"WechatRobotChannel",
+					   name:channelName,
+					}
+			};
+			
+			var qStr=StringHelper.obj2str(query);
+			
+			AjaxHelper.call({
+	            url: "../../rs/xrobot/command",
+	            data: qStr,
+	            async: true,
+	            cache: false,
+	            type: "post",
+	            dataType: "html",
+	            success: function (data) {
+	            	var jsonData = eval("("+data+")");
+	            	if (cmd=="start_channel") {
+	            		var img=HtmlHelper.id("qrCode");
+		            	img.src="data:image/jpeg;base64,"+jsonData["rs"];
+	            	}
+	            	else if(cmd=="stop_channel") {
+	            		alert(jsonData["rs"]);
+	            	}
+	            	else if(cmd=="list_channel") {
+	            		var list=HtmlHelper.id("channelList");
+	            		list.innerHTML=jsonData["rs"];
+	            	}
+	            	
+	            },
+	            error: function (data) {
+	            	alert(data);
+	            },
+	        });		
+		}
+	
+	</script>
+</body>
+</html>

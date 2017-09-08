@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <artifactId>ce-datamonitorsystem</artifactId>
+        <groupId>com.creditease.moniter</groupId>
+        <version>1.0</version>
+        <relativePath>../com.creditease.uav.superpom</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>com.creditease.uav.notifycenter</artifactId>
+	
+	<dependencies>		
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.helper</artifactId>
+
+		</dependency>
+		
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.base</artifactId>
+
+		</dependency>
+		
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.cache.redis</artifactId>
+
+		</dependency>
+		
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.datastore</artifactId>
+
+		</dependency>
+		
+	    <dependency>
+        	<groupId>activemq-core-5.7.0.jar</groupId>
+        	<artifactId>activemq-core-5.7.0.jar</artifactId>
+        	<version>5.7.0</version>
+        	<scope>system</scope>
+        	<systemPath>${basedir}/lib/activemq-core-5.7.0.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+        	<groupId>commons-net-3.0.jar</groupId>
+        	<artifactId>commons-net-3.0.jar</artifactId>
+        	<version>3.0</version>
+        	<scope>system</scope>
+        	<systemPath>${basedir}/lib/commons-net-3.0.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+        	<groupId>geronimo-jms_1.1_spec-1.1.1.jar</groupId>
+        	<artifactId>geronimo-jms_1.1_spec-1.1.1.jar</artifactId>
+        	<version>1.1.1</version>
+        	<scope>system</scope>
+        	<systemPath>${basedir}/lib/geronimo-jms_1.1_spec-1.1.1.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+        	<groupId>geronimo-j2ee-management_1.1_spec-1.0.1.jar</groupId>
+        	<artifactId>geronimo-j2ee-management_1.1_spec-1.0.1.jar</artifactId>
+        	<version>1.0.1</version>
+        	<scope>system</scope>
+        	<systemPath>${basedir}/lib/geronimo-j2ee-management_1.1_spec-1.0.1.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+        	<groupId>credinet-util.jar</groupId>
+        	<artifactId>credinet-util.jar</artifactId>
+        	<version>1.0</version>
+        	<scope>system</scope>
+        	<systemPath>${basedir}/lib/credinet-util.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+        	<groupId>mspl_client-1.0.0.jar</groupId>
+        	<artifactId>mspl_client-1.0.0.jar</artifactId>
+        	<version>1.0.0</version>
+        	<scope>system</scope>
+        	<systemPath>${basedir}/lib/mspl_client-1.0.0.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.0</version>
+		</dependency>
+        
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+        </plugins>    
+	</build>
+</project>

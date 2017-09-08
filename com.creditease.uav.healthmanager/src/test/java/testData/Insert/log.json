@@ -1,0 +1,58 @@
+/*-
+ * <<
+ * UAVStack
+ * ==
+ * Copyright (C) 2016 - 2017 UAVStack
+ * ==
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * >>
+ */
+
+[
+	{
+		time:1464248773620,
+		host:"09-201211070016",
+		ip:"127.0.0.1",
+		svrid:"F:/testenv/apache-tomcat-7.0.65---F:/testenv/apache-tomcat-7.0.65",
+		tag:"L",
+		frames:{
+			"ccsp":[
+				{
+					"MEId":"log",
+					"Instances":[
+						{
+							"id":"F:/testenv/apache-tomcat-7.0.65/logs/ccsp.log",
+							"values":{
+								"content":[
+									{
+										"content":"2016-localhost-startStop-1INFORootWebApplicationContext:initializationstarted", 
+										"_timestamp":"1464848536125", 
+										"_lnum" : "123"
+									}
+								]
+							}
+						},
+						{
+							"id":"/ccsp/log_error.log",
+							"values":{
+								"content":[
+									{"content":"xxxxxxxxxx", "_timestamp":"1464848536127", "_lnum" : "123"}
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	}
+]

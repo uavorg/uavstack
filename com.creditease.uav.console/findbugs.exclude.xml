@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+  <Match>
+  	<Pattern value="DM_BOXED_PRIMITIVE_FOR_PARSING,DM_DEFAULT_ENCODING" />
+  </Match>
+   
+</FindBugsFilter>

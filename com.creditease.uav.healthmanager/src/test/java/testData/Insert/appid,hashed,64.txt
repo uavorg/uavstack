@@ -1,0 +1,47 @@
+insert time : 98335
+query DSAggregatequery.json: 30661
+query DSAggregatequeryGtLt.json: 19071
+query DSAggregatequeryMKV.json: 4320
+query DSAggregatequeryRegex_GtInOR.json: 8981
+query DSAggregatequeryRegex.json: 7015
+query DSAggregatequeryRegexInOR.json: 10743
+query DSAggregatequeryRegexMKVInOR.json: 13563
+query DSfind.json: 920
+query total: 95274
+update DSupdate.json: 14009
+
+--- Sharding Status --- 
+  sharding version: {
+	"_id" : 1,
+	"minCompatibleVersion" : 5,
+	"currentVersion" : 6,
+	"clusterId" : ObjectId("5718a9e06490c102df486cb9")
+}
+  shards:
+	{  "_id" : "shard1",  "host" : "shard1/localhost:10001,localhost:20001,localhost:30001" }
+	{  "_id" : "shard2",  "host" : "shard2/localhost:10002,localhost:20002,localhost:30002" }
+	{  "_id" : "shard3",  "host" : "shard3/localhost:10003,localhost:20003,localhost:30003" }
+  balancer:
+	Currently enabled:  yes
+	Currently running:  no
+	Failed balancer rounds in last 5 attempts:  0
+	Migration Results for the last 24 hours: 
+		87 : Success
+		1 : Failed with error 'chunk too big to move', from shard1 to shard3
+		8 : Failed with error 'chunk too big to move', from shard1 to shard2
+		2 : Failed with error 'aborted', from shard1 to shard3
+		3 : Failed with error 'aborted', from shard1 to shard2
+  databases:
+	{  "_id" : "profileDataStore",  "primary" : "shard1",  "partitioned" : true }
+		profileDataStore.uav_profile
+			shard key: { "appid" : "hashed" }
+			chunks:
+				shard1	2
+				shard2	2
+				shard3	2
+			{ "appid" : MinKey } -->> { "appid" : NumberLong("-6148914691236517204") } on : shard1 Timestamp(3, 2) 
+			{ "appid" : NumberLong("-6148914691236517204") } -->> { "appid" : NumberLong("-3074457345618258602") } on : shard1 Timestamp(3, 3) 
+			{ "appid" : NumberLong("-3074457345618258602") } -->> { "appid" : 0 } on : shard2 Timestamp(3, 4) 
+			{ "appid" : 0 } -->> { "appid" : NumberLong("3074457345618258602") } on : shard2 Timestamp(3, 5) 
+			{ "appid" : NumberLong("3074457345618258602") } -->> { "appid" : NumberLong("6148914691236517204") } on : shard3 Timestamp(3, 6) 
+			{ "appid" : NumberLong("6148914691236517204") } -->> { "appid" : MaxKey } on : shard3 Timestamp(3, 7) 

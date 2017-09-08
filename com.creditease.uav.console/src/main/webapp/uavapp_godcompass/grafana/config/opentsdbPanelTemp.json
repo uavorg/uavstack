@@ -1,0 +1,92 @@
+{
+  "aliasColors": {
+    
+  },
+  "bars": false,
+  "dashLength": 10,
+  "dashes": false,
+  "datasource": "",
+  "fill": 1,
+  "id": 24,
+  "legend": {
+    "avg": false,
+    "current": false,
+    "max": false,
+    "min": false,
+    "show": true,
+    "total": false,
+    "values": false
+  },
+  "lines": true,
+  "linewidth": 1,
+  "links": [
+    
+  ],
+  "nullPointMode": "null",
+  "percentage": false,
+  "pointradius": 5,
+  "points": false,
+  "renderer": "flot",
+  "seriesOverrides": [
+    
+  ],
+  "spaceLength": 10,
+  "span": 4,
+  "stack": false,
+  "steppedLine": false,
+  "targets": [
+    {
+      "aggregator": "avg",
+      "currentFilterGroupBy": false,
+      "currentFilterKey": "",
+      "currentFilterType": "literal_or",
+      "currentFilterValue": "",
+      "downsampleAggregator": "avg",
+      "downsampleFillPolicy": "none",
+      "downsampleInterval": "",
+      "filters": [
+        {
+          "filter": "",
+          "groupBy": false,
+          "tagk": "instid",
+          "type": "regexp"
+        }
+      ],
+      "metric": "",
+      "refId": "A"
+    }
+  ],
+  "thresholds": [
+    
+  ],
+  "timeFrom": null,
+  "timeShift": null,
+  "title": "Panel Title",
+  "tooltip": {
+    "shared": true,
+    "sort": 0,
+    "value_type": "individual"
+  },
+  "type": "graph",
+  "xaxis": {
+    "buckets": null,
+    "mode": "time",
+    "name": null,
+    "show": true,
+    "values": [
+      
+    ]
+  },
+  "yaxes": [
+    {
+      "format": "short",
+      "logBase": 1,
+      "show": true
+    },
+    {
+      "format": "short",
+      "logBase": 1,
+      "show": true
+    }
+  ]
+}

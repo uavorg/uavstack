@@ -1,0 +1,173 @@
+html {
+	height:100%;
+}
+body {
+	padding-top: 0px;
+	font-family:Microsoft YaHei;
+	overflow:none;
+	overflow-y:hidden;
+	overflow-x:hidden;
+	height:100%;
+}
+h4{color:#FFF;margin:15px 0px;}
+
+.menuCtrl {
+	width: 7px;
+	height: 50px;
+	border: 1px solid #b0b0b0;
+	background:#333;
+	position: absolute;
+	top: 0px;
+	left: 192px;
+	z-index: 10000;
+}
+/*
+ * Global add-ons
+ */
+.sub-header {
+	padding-bottom: 10px;
+	border-bottom: 1px solid #eee;
+}
+
+/*app 页面 ico 位置处理 BEGIN*/
+.tc2{
+	margin-right: 30px;
+}
+.tc2 img{
+	height: 20px;width: 20px;border-radius:5px;
+}
+.tc2 span{
+	vertical-align:middle;
+}
+/*app 页面 ico 位置处理 END*/
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+	border: 0;
+}
+/* Sidebar navigation */
+.nav-sidebar {
+	margin-right: -21px; /* 20px padding + 1px border */
+	margin-bottom: 20px;
+	margin-left: -20px;
+}
+.nav-sidebar > li > a {
+	padding-right: 20px;
+	padding-left: 20px;
+}
+
+
+.appContent{
+	border-width: 0px;
+	width: -moz-calc(100% - 200px);  
+	width: -webkit-calc(100% - 200px); 
+	width: calc(100% - 200px); 
+	position:relative;
+	float:left;
+	/*margin-top:-50px;*/
+	margin-top:0px;
+	margin-left:200px;
+	scrolling:none;
+}
+
+.appContentMax{
+	border-width: 0px;
+	width: -moz-calc(100%);  
+	width: -webkit-calc(100%); 
+	width: calc(100%); 
+	position:relative;
+	float:left;
+	/*margin-top:-50px;*/
+	margin-top:0px;
+	margin-left:0px;
+	scrolling:none;
+}
+
+/*app菜单*/
+.appMenu{
+	text-align: center;
+	padding-right: 20px;
+	padding-left: 20px;
+	cursor:pointer;
+	color: #000000;
+}
+/*app侧边菜单滑过，bootstarp CSS重写*/
+.nav-sidebar > li > a:hover{
+	color: #000000;
+	background-color: #82aedf;
+}
+/*app侧边菜单被选中*/
+.appSidebarMenuSel{
+	color: #ffffff;
+	background-color: #4185cf;
+}
+
+
+/*phone css*/
+@media (min-width: 768px)
+{
+	.mynavbar{
+		width:200px;
+	}
+
+	.navbar-header{float:none;}
+
+	.sidebar {
+		width:200px;
+		position: fixed;
+		top: 50px;
+		bottom: 0;
+		left: 0;
+		z-index: 1000;
+		display: block;
+		padding: 0px 20px;
+		overflow-x: hidden;
+		overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+		background-color: #f5f5f5;
+		border-right: 1px solid #eee;
+	}
+}
+
+@media (max-width: 767px) {
+
+	/*重写bootstrap 样式 为了调整到1130兼容，默认是768 BEGIN*/
+	/*.nav>li>a {*/
+		/*position: relative;*/
+		/*display: block;*/
+		/*padding: 10px 15px;*/
+	/*}*/
+	/*.collapse.in {*/
+		/*display: block;*/
+	/*}*/
+	/*.nav>li {*/
+		/*position: relative;*/
+		/*display: block;*/
+	/*}*/
+	/*.navbar-toggle{display:block;margin-right: 0px;}*/
+	/*.navbar-header{width: 100%;}*/
+	/*重写bootstrap 样式 为了调整到1130兼容，默认是768 END*/
+
+	.appContent{
+		width: 100%;
+		margin:50px auto auto auto;
+	}
+	
+	.menuCtrl {
+		display:none;
+	}
+
+	.sidebar {
+		margin-top: -100px;
+		opacity: 0;
+	}
+
+}
+
+@media (min-width: 768px) and  (max-width: 1130px) {
+	.mynavbar ,.sidebar {
+		width: 200px;
+	}
+}

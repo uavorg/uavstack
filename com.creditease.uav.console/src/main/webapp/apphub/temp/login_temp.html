@@ -1,0 +1,32 @@
+<div class="logindiv" >
+	<div style="margin-bottom:40px;">
+		<img src="uavapp_main/appIco.png" class="loginHeadIcon"/>
+		<div class="loginHeadTextDiv">
+			<span style="font-size:26px;color:#003333;text-shadow: rgba(0,33,33,0.9) 0px 1px 1px;display:block;padding-top:5px;">智能服务平台</span>
+			<span style="font-size:14px;color:#00BBFF;">Intelligent Service Platform</span>
+		</div>
+	</div>
+	<div>		
+		<input type="text" class="form-control" placeholder="域账号" value="" id="loginId">
+	</div>
+	<div >		
+		<input type="password" class="form-control" placeholder="域密码" value="" id="loginPwd">
+	</div>
+	<div id="loginCaptchDiv"></div>
+	<div>
+		<button type="button" class="btn btn-primary" onclick="javascript:login_RSClient()">登录</button>
+	</div>
+	<div>
+		<span class="errorMsg" id="loginErrorMsg">账号或密码错误</span>
+	</div>
+</div>
+<center style="color:#00BBFF;font-size:14px;margin-top:150px;">
+<div>©2016~2017 UAVStack</div>
+<div>UAV.org</div>
+<div>http://uavorg.github.io/main</div>
+</center>
+<!--this page css-->
+<link rel="stylesheet" href="apphub/css/login.css">
+<script src="apphub/js/login.temp.js"></script>
+<!--移动端样式支持:经过验证，iphone似乎可以不需要,ipad略微有点偏小，但可接受
+<link rel="stylesheet" href="apphub/css/login.mobile.iphone.css">-->

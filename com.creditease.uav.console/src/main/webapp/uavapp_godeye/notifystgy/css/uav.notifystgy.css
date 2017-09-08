@@ -1,0 +1,321 @@
+@CHARSET "UTF-8";
+/*原子布局 BEGINI*/
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+.ListBG {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+.ObjectBG {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+.ObjectBG input,select,textarea,.selectDiv{
+  width: 50%;
+  height: 34px;
+  border-radius: 2px;
+  min-width: 340px;
+  margin-top:1px;
+}
+
+.selectDiv{
+	display: inline-flex;
+}
+
+.ObjectBG textarea{
+	resize: none;
+	height:50px;
+}
+
+.ObjectBG .well{
+  width: 50%;
+  min-width: 340px;
+  border-radius: 2px;
+  margin: 0 auto;
+  padding:0px;
+  text-align:left;
+}
+
+.well-title{
+	float: left;
+	margin-top:3px;
+	margin-left:3px;
+    color: white;
+}
+
+.well-title-div{
+	background-color: #009ad6;
+    text-align: right;
+    width: 100%;
+    color: white;
+}
+.well-add{
+	font-size: 18px;
+	margin-top:3px;
+	margin-right:7px;
+}
+
+.well-add:hover {
+	border-radius: 3px;
+	box-shadow: 0 0 1px 1px white;
+}
+
+.well-list{
+	margin-top:2px;
+	margin-left:3px;
+	border-bottom: dotted 1px #999;
+}
+.well-list:hover{
+	background: #cae4ff;
+}
+.well-del{
+	font-size: 18px;
+	float: right;
+	margin-right:7px;
+}
+.well-del:hover {
+	border-radius: 3px;
+	box-shadow: 0 0 1px 1px #ff0000;
+}
+.well-edit{
+	font-size: 18px;
+	float: right;
+	margin-right:20px;
+}
+.well-edit:hover {
+	border-radius: 3px;
+	box-shadow: 0 0 1px 1px #000000;
+}
+.icon-myout,.icon-myhelp {
+	float: right;
+	margin-top: 5px;
+	margin-right: 15px;
+	font-size: 2em;
+}
+
+.icon-myout:hover {
+	border-radius: 3px;
+	box-shadow: 0 0 4px 4px #ffffff;
+}
+
+.icon-myhelp{
+ 	height: 31.4px;
+ 	width: 31.4px;
+ 	
+ }
+ 	
+.icon-myhelp:hover{    
+ 	border-radius: 50px;
+ 	box-shadow: 0 0 4px 4px #ffffff;	
+}
+
+.titleDiv {
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #009ad6;
+  height: 43px;
+  line-height:43px;   
+}
+
+.titleDiv-stgy-nodata{
+	color: black;
+    margin-left: -85px;
+}
+
+.conditions select{
+  min-width: 200px;
+  width: 200px;
+}
+
+.conditions input{
+  width: 200px;
+  display: inline
+}
+
+
+/*下拉框按钮CSS*/
+.selBut{
+	width: 90%;
+	text-align: left;
+	padding:0px;
+}
+.selBut_but{
+	width: 10%;
+}
+.selBut_must{
+	width: 90%;
+	text-align: left;
+	border:solid 1px red;	
+}
+
+.input_must{
+	text-align: left;
+	border:solid 1px red;	
+}
+.input_update{
+	text-align: left;
+	border:solid 1px green;	
+}
+
+.input_must:focus{
+	border:0px;	
+}
+.defNone{
+	display:none;
+}
+
+.displayMsgInput{
+    display: inline-block;
+    text-align: left;
+    background-color: #cde6c7;
+    padding-top: 4px;
+    padding-left: 2px;
+	border:0px;	
+}
+
+.displayMsgTitle{
+	border:0px;	
+	font-weight: 900;
+}
+.listIndex{
+	color : black;
+    border-radius: 3px 3px 3px 3px;
+    background-color: #dddddd;
+}
+.listIndex > hr{
+	margin:0px;
+	border-top: 1px solid #ffffff;
+	
+}
+.listIndex_server{
+	color : #ffffff;
+    background-color: #0aaaaa;
+}
+.listIndex_client{
+	color : #ffffff;
+    background-color: #a6c166;
+}
+.listIndex_log{
+	color : #ffffff;
+    background-color: #c99f32;
+}
+.listIndex_appmetrics{
+	color : #ffffff;
+    background-color: #970097;
+}
+/**重写CSS*/
+.table>tbody>tr>td{
+	 vertical-align:middle;
+}
+
+
+.titleMsgDiv{
+	margin-top: -34px;
+    height: 34px;
+}
+
+
+/**
+*触发策略 begin
+*/
+.StgyDiv .edit-div-where{
+  font-size: 14px;
+  width: 95%;
+  border-radius: 2px;
+  margin: 0 auto;
+  text-align:left;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border:solid 1px green;
+}
+
+.StgyDiv .edit-div{
+  font-size: 14px;
+  height: 130px; 
+  width: 95%;
+  min-width: 340px;
+  border-radius: 2px;
+  margin: 0 auto;
+  text-align:left;
+  padding: 5px;
+  overflow-y:auto;  
+  color:#000000;
+}
+
+.StgyDiv .edit-div:empty:before{
+	content: attr(placeholder);
+	color:darkgrey;
+}
+
+.whereStgyEdit{
+    border-radius: 4px;
+}
+.whereStgyEdit-success{
+	background-color: #dddddd;
+  	color:#000000;
+    display: inline-block;
+    margin: 1px;
+}
+.whereStgyEdit-delete{
+	text-decoration: line-through;
+    border: solid 1px red;
+    color: red;
+    display: inline-block;
+    margin: 1px;
+}
+
+.btn-success {
+    margin: 5px;
+    color: #000000; 
+    padding: 3px 10px;
+    background-color: #ffffff;
+    border-color: #3c763d;
+}
+.btn-success:hover {
+    color: #000000; 
+    background-color: #dddddd;
+}
+
+.well-list-display{
+	display: -webkit-box;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}   
+.action-textarea-delete{
+	display: inline-flex;
+    position: absolute;
+    margin-top: 17px;
+    margin-left: 5px;
+}
+
+.action-textarea-delete span{
+    border:solid 1px #ffffff;
+    font-size: 18px;
+}
+.action-textarea-delete span:hover{
+    font-size: 18px;
+    border:solid 1px red;
+  	border-radius: 2px;
+}
+
+/**
+*触发策略 end
+*/

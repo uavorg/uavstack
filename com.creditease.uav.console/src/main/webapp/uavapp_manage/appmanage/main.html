@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title></title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet"  type="text/css" href="../../appvendors/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet"  type="text/css" href="../../appvendors/bootstrap/css/font-awesome.min.css">
+    <link rel="stylesheet"  type="text/css" href="../../apphub/css/crud.css">
+    <link rel="stylesheet" type="text/css" href="../../apphub/css/comp.mvc.css">
+    <link rel="stylesheet" type="text/css" href="css/uav.app.manage.css">
+    
+    <script type="text/javascript" src="../../appvendors/jquery/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap.min.js"></script>
+
+    <!--apphub support lib-->
+    <script type="text/javascript" src="../../apphub/js/common/collection.js"></script>
+    <script type="text/javascript" src="../../apphub/js/common/helper.js"></script>
+    <script type="text/javascript" src="../../apphub/js/common/string.js"></script>
+    <script type="text/javascript" src="../../apphub/js/common/crud.js"></script>
+    <script type="text/javascript"  src="../../apphub/js/common/mvc.js"></script>
+    <script type="text/javascript"  src="../../apphub/js/common/window.js"></script>
+    
+    <!--group lib-->
+    <script type="text/javascript" src="js/hash.js"></script>
+    <script type="text/javascript" src="js/app.del.js"></script>    
+    <script type="text/javascript" src="js/init.modal.js"></script>      
+    <script type="text/javascript" src="js/table.control.js"></script>
+	<script type="text/javascript" src="js/table.js"></script>
+	<script type="text/javascript" src="js/searchbar.js"></script>
+	<script type="text/javascript" src="js/searchbar.control.js"></script>
+    <script type="text/javascript" src="js/restful.app.client.js"></script>   
+</head>
+<body>
+	<div id="AppManagerHeadSearchBar" class="AppHubMVCSearchBar" ></div>	
+	<div class="AppManagerTableContainer" id="AppManagerTableDiv"></div>
+	
+	<div class="modal fade" id="AppRegisterModal" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+		        <div class="modal-header">
+		             <h5>注册APP</h5>
+		        </div>
+		        <div class="modal-body">
+		           <form id="mRegistForm">
+		           		<table>
+		           			<tr>
+		           			<td class="title">访问路径：</td>
+		           				<td class="userinput"><textarea id="AddUrlAppUrl"  class="urlTextArea" placeholder="应用名请以uavapp_开始"></textarea></td>
+		           			</tr>
+		           			<tr>
+		           			<td class="title">配置路径：</td>
+		           				<td class="userinput"><textarea id="AddUrlAppConfigPath"  class="urlTextArea" placeholder="可选，默认加载访问路径"></textarea></td>
+		           			</tr>
+		           		</table>
+				   </form>
+		        </div>
+		        <div class="modal-footer">
+		        	<span class="errorMsg" id="errorMsg" style="display:none">输入不能为空</span>
+		        	<button id="AddUrlSavaBTN" class="btn btn-primary" onclick="clickSave(this.id);">保存</button>
+		            <button class="btn" data-dismiss="modal">关闭</button>
+		        </div>
+	        </div>
+	    </div>
+    </div>
+    
+   	<div class="modal fade" id="AppEditModal" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+		        <div class="modal-header">
+		             	<h5>APP详情</h5>
+		        </div>
+		        <div class="modal-body">
+				   <form>
+				   	<table>
+		           		<tr>
+		           				<td class="title">应用名：</td>
+		           				<td class="userinput"><span id="AppName" class="unEditAbleSpan"></span></td>
+		           		</tr>
+		           		<tr>
+		           				<td class="title">APPID：</td>
+		           				<td class="userinput"><span id="AppEditId" class="unEditAbleSpan"></span></td>
+		           		</tr>
+		           		<tr>
+		           				<td class="title">操作人：</td>
+		           				<td class="userinput"><span id="AppEditOptionUser" class="unEditAbleSpan"></span> </td>
+		           		</tr>
+				   		<tr>
+		           				<td class="title">创建时间：</td>
+		           				<td class="userinput"><span id="AppEditCreateTime" class="unEditAbleSpan"></span> </td>
+		           		</tr>
+		           		<tr>
+		           				<td class="title">操作时间：</td>
+		           				<td class="userinput"><span id="AppEditOptionTime" class="unEditAbleSpan"></span> </td>
+		           		</tr>
+		           		<tr>
+		           				<td class="title">访问路径：</td>
+		           				<td class="userinput"><textarea id="AppEditURL"   class="urlTextArea" placeholder="应用名请以uavapp_开始"></textarea> </td>
+		           		</tr>
+		           		<tr>
+		           				<td class="title">配置路径：</td>
+		           				<td class="userinput"><textarea id="AppEditConfigPath"   class="urlTextArea" placeholder="可选，默认加载访问路径"></textarea> </td>
+		           		</tr>
+				   	</table>
+				   </form>
+		        </div>
+		        <div class="modal-footer">
+		        	<span class="errorMsg" id="errorMsgEdit" style="display:none">输入不能为空</span>
+		        	<button class="btn btn-primary"  id="RefreshButton" onclick="javascript:refreshAppById();">APP配置更新</button>
+		        	<button class="btn btn-primary" value="edit" id="EditSaveButton" onclick="clickEdit(this.id)">编辑</button>
+		            <button class="btn" data-dismiss="modal">关闭</button>
+		        </div>
+	        </div>
+	    </div>
+   </div>          
+</body>
+</html>

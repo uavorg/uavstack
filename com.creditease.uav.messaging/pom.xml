@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ce-datamonitorsystem</artifactId>
+        <groupId>com.creditease.moniter</groupId>
+        <version>1.0</version>
+        <relativePath>../com.creditease.uav.superpom</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>com.creditease.uav.messaging</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.creditease.moniter</groupId>
+            <artifactId>com.creditease.uav.helper</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.creditease.moniter</groupId>
+            <artifactId>com.creditease.uav.mq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.creditease.moniter</groupId>
+            <artifactId>com.creditease.uav.logging</artifactId>
+        </dependency>
+        
+        <!--test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

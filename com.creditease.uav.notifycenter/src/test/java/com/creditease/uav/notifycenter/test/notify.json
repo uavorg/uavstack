@@ -1,0 +1,41 @@
+/*-
+ * <<
+ * UAVStack
+ * ==
+ * Copyright (C) 2016 - 2017 UAVStack
+ * ==
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * >>
+ */
+
+[
+{
+        "time": 1458637138558,
+        "id": "NotificationEvent.Event.AppServer.HealthReAction",
+        "title": "AppServerHealthReAction",
+        "description": "AppServer[E:/ZZ/UnionAppServer/Tomcat/bin/apache-tomcat-7.0.65::E:/ZZ/UnionAppServer/Tomcat/bin/apache-tomcat-7.0.65] restart SUCCESS",
+        "host": "09-201506110096",
+        "ip": "127.0.0.1",
+        "args": {
+            "serverid": "E:/ZZ/UnionAppServer/Tomcat/bin/apache-tomcat-7.0.65::E:/ZZ/UnionAppServer/Tomcat/bin/apache-tomcat-7.0.65",
+            "component": "MO-6704",
+            "nodename": "监控代理程序",
+            "feature": "monitoragent",
+            "action_mail": "[\"priority1@mail.com,priority1@mail.com\", \"priority2@mail.com\"]",
+            "action_sms": "[\"135333433,135333433,135333433\", \"135333433,135333433\"]",
+            "action_phone":"[\"135333433,135333433\", \"135333433,135333433\"]",
+            "nodeuuid": "712173364785070080"
+            
+        }
+}
+]

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ce-datamonitorsystem</artifactId>
+        <groupId>com.creditease.moniter</groupId>
+        <version>1.0</version>
+        <relativePath>../com.creditease.uav.superpom</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>com.creditease.uav.tomcat.plus.core</artifactId>
+    
+    <dependencies>
+        <dependency>
+            <groupId>com.creditease.moniter</groupId>
+            <artifactId>com.creditease.uav.monitorframework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>celocaljar</groupId>
+            <artifactId>tomcat-juli</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/CompileLib/tomcat-juli.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>celocaljar</groupId>
+            <artifactId>catalina</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/CompileLib/catalina.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>celocaljar</groupId>
+            <artifactId>tomcat-coyote</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/CompileLib/tomcat-coyote.jar</systemPath>
+        </dependency>
+        <dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+    </dependencies>
+</project>

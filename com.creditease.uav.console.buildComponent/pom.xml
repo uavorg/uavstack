@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<artifactId>com.creditease.uav.console.buildComponent</artifactId>
+	<groupId>com.creditease.moniter</groupId>
+	<version>1.0</version>
+	<modelVersion>4.0.0</modelVersion>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>../com.creditease.uav.fastjson</module>
+		<module>../com.creditease.uav.helper</module>
+		<module>../com.creditease.uav.logging</module>
+		<module>../com.creditease.uav.cache.redis</module>
+		<module>../com.creditease.uav.base</module>
+		<module>../com.creditease.uav.httpasync</module>
+		<module>../com.creditease.uav.console</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<echo>Building UAV AppHub START....</echo>
+								<delete dir="target/build" />
+								<mkdir dir="target/build" />
+								<unzip src="../com.creditease.uav.console/target/com.creditease.uav.console-1.0.war" 
+									dest="target/build/test_apphub">
+								</unzip>
+								<copy todir="target/build/pro_apphub">
+									<fileset dir="target/build/test_apphub" >
+									</fileset>
+								</copy>
+								
+								<delete file="target/build/test_apphub/WEB-INF/web.xml" />
+								<copy tofile="target/build/test_apphub/WEB-INF/web.xml" >
+									<fileset file="config/web_test.xml" />
+								</copy>
+								
+								<delete file="target/build/pro_apphub/WEB-INF/web.xml" />
+								<copy tofile="target/build/pro_apphub/WEB-INF/web.xml" >
+									<fileset file="config/web_pro.xml" />
+								</copy>
+								
+								<delete file="target/build/test_apphub/uavapp_baseclassmgt/eshead/app.js" />
+								<copy tofile="target/build/test_apphub/uavapp_baseclassmgt/eshead/app.js" >
+									<fileset file="config/uavapp_baseclassmgt/eshead/app_test.js" />
+								</copy>
+								
+								<delete file="target/build/pro_apphub/uavapp_baseclassmgt/eshead/app.js" />
+								<copy tofile="target/build/pro_apphub/uavapp_baseclassmgt/eshead/app.js" >
+									<fileset file="config/uavapp_baseclassmgt/eshead/app_pro.js" />
+								</copy>
+								
+								<delete file="target/build/pro_apphub/uavapp_baseclassmgt/config.properties" />
+								<copy tofile="target/build/pro_apphub/uavapp_baseclassmgt/config.properties" >
+									<fileset file="config/uavapp_baseclassmgt/config_test.properties" />
+								</copy>
+								
+								
+								<delete file="target/build/pro_apphub/uavapp_baseclassmgt/config.properties" />
+								<copy tofile="target/build/pro_apphub/uavapp_baseclassmgt/config.properties" >
+									<fileset file="config/uavapp_baseclassmgt/config_pro.properties" />
+								</copy>
+								
+								<mkdir dir="target/build/test" />
+								<mkdir dir="target/build/pro" />
+								<zip destfile="target/build/test/apphub.war" basedir="target/build/test_apphub" />
+								<zip destfile="target/build/pro/apphub.war" basedir="target/build/pro_apphub" />
+								
+								<echo>Building UAV AppHub  END</echo>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+	</build>
+</project>

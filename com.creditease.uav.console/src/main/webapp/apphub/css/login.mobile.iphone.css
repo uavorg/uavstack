@@ -1,0 +1,76 @@
+@media
+(device-height: 480px) and (-webkit-min-device-pixel-ratio: 2), /* iphone4/4s */
+(device-height: 568px) and (-webkit-min-device-pixel-ratio: 2) /* iphone5/5s */
+{
+    .logindiv{
+        width: 70%;
+    }
+    .logoImg {
+        width: 40px;
+        height: 40px;
+    }
+    .input-group-addon {
+         width: 80px;
+         font-size: 20px;
+     }
+    .btn {
+        font-size: 20px;
+        height: 40px;
+    }
+    .form-control {
+        height: 40px;
+        font-size: 20px;
+    }
+    .input-group-addon{
+        width: 50px;
+    }
+}
+
+@media
+(device-height: 667px) and (-webkit-min-device-pixel-ratio: 2) /* iphone6/6s */
+{
+    .logindiv{
+        width: 70%;
+    }
+    .logoImg {
+        width: 40px;
+        height: 40px;
+     }
+    .input-group-addon {
+        width: 80px;
+        font-size: 20px;
+    }
+    .btn {
+        font-size: 20px;
+        height: 40px;
+    }
+    .form-control {
+        height: 40px;
+        font-size: 20px;
+    }
+}
+
+@media
+(device-height: 736px) and (-webkit-min-device-pixel-ratio: 2) /* iphone6/6s plus */
+{
+    .logindiv{
+        width: 70%;
+    }
+    .logoImg {
+        width: 40px;
+        height: 40px;
+    }
+    .input-group-addon {
+        width: 80px;
+        font-size: 20px;
+    }
+    .btn {
+        font-size: 20px;
+        height: 40px;
+    }
+    .form-control {
+        height: 40px;
+        font-size: 20px;
+    }
+}
+

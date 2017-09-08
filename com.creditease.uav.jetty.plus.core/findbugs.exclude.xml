@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<FindBugsFilter>
+<Match>
+        <Class name="com.creditease.uav.jetty.plus.interceptor.JettyPlusIT" />   		
+   		
+   </Match>
+</FindBugsFilter>

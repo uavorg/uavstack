@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>组件测试</title>
+	<meta charset="UTF-8">
+    <meta name="description" content="this is my page">
+    <meta name="content-type" content="text/html; charset=utf-8">
+    
+    <!--如果使用了 bootstrap.min.css，造成样式冲突，可以不使用v2版本，需要手动修改下css样式，功能不影响 -->
+    <link rel="stylesheet" href="../../appvendors/bootstrap/css/bootstrap.min.v2.css"/>
+    
+    <link rel="stylesheet" href="../../appvendors/bootstrap/css/bootstrap-datetimepicker.css">
+  </head>
+  
+	<script type="text/javascript"  src="../../appvendors/jquery/jquery-1.11.3.min.js"></script>
+	<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap-datetimepicker.js"></script>
+	<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap-datetimepicker.zh-CN.js"></script>
+	<script type="text/javascript" src="../../appvendors/bootstrap/js/bootstrap-datetimepicker.fr.js"></script>
+	
+
+<body>
+
+	<div class="control-group">
+		<div class="controls input-append date form_datetime"
+			data-date="2016-01-01T00:00:00Z"
+			data-date-format="yyyy-mm-dd hh:ii:ss">
+			<input size="16" type="text" placeholder="时间(带灰层)" readonly> 
+			<span class="add-on"><i class="icon-th"></i></span>
+		</div>
+	</div>
+
+	<div class="control-group">
+		<div class="controls input-append date form_datetime_start"
+			data-date="2016-01-01T00:00:00Z"
+			data-date-format="yyyy-mm-dd hh:ii:ss">
+			<input size="16" type="text" placeholder="开始时间" readonly> 
+			<span class="add-on"><i class="icon-th"></i></span>
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<div class="controls input-append date form_datetime_end"
+			data-date="2016-01-01T00:00:00Z"
+			data-date-format="yyyy-mm-dd hh:ii:ss">
+			<input size="16" type="text" placeholder="结束时间" readonly> 
+			<span class="add-on"><i class="icon-th"></i></span>
+		</div>
+	</div>
+	 
+	<button type="button" class="btn btn-default my_datetime_pick" title="选择日志搜索的时间区段\n默认时间范围是全部" onclick="">
+			Test
+	</button>
+</body>
+
+
+	<script type="text/javascript">
+	/*注意加载顺序，JS在渲染后面*/ 
+	$('.form_datetime').datetimepicker({
+		language : 'zh-CN',
+		autoclose : true,
+		minuteStep : 1,
+		todayBtn : true,
+	});
+	
+	$('.form_datetime_start').datetimepicker({
+		language : 'zh-CN',
+		autoclose : true,
+		minuteStep : 5,
+		todayBtn : true,
+	});
+	
+	$('.form_datetime_end').datetimepicker({
+		language : 'zh-CN',
+		autoclose : true,
+		minuteStep : 10,
+		todayBtn : true,
+	});
+	
+
+	 //事件绑定
+	 $(".form_datetime").on('show', function(ev){
+		/*背景灰层添加*/
+    	var hideBg = '<div id="hideBg" style="position: fixed;top: 0;right: 0;bottom: 0;left: 0;background-color: #777;width:100%;height: 100%;filter:alpha(opacity=60);opacity:0.6;display:block;z-Index: 1000;"></div>';
+    	$('body').append(hideBg);
+    	//document.body.innerHTML += hideBg;
+    	
+    });
+    $(".form_datetime").on('hide', function(ev){
+    	/*背景灰层移除*/
+    	document.getElementById("hideBg").style.display="none";
+    	var removeObj = document.getElementById("hideBg");
+    	removeObj.parentNode.removeChild(removeObj); 
+    });
+    
+    $('.my_datetime_pick').datetimepicker({
+		language : 'zh-CN',
+		autoclose : true,
+		minuteStep : 1,
+		minView: 1,
+		todayBtn : true,
+	});
+	
+	
+	</script>
+</html>

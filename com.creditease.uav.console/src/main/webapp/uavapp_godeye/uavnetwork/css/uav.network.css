@@ -1,0 +1,307 @@
+﻿/*原子布局 BEGINI*/
+html {
+	height:100%;
+}
+
+body{
+    color: white;
+    font-size: 16px;
+    font-family: "微软雅黑";
+    /*background-color: #f6f5ec;*/
+    margin-top:0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom:0px;
+    text-align: center;
+    height:100%;
+}
+
+
+/*功能框架布局*/
+.funcDiv{
+    font-size: 14px;
+    border:1px solid black;
+    background-color: rgb(51, 51, 51);
+    width: 230px;
+    position:relative;
+    vertical-align: top;
+    display:inline-block;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+    border-radius:1px;
+    box-shadow:0 0 1px 1px #888888;
+}
+
+/*详情页面布局*/
+.funcDiv2{
+    vertical-align: top;
+    white-space:normal;
+    word-break:break-all;
+}
+
+/*头部布局*/
+.topDiv{
+    text-align: left;
+    margin-left: 5px;
+}
+.topDiv div{
+    cursor: pointer;
+    float: right;
+    font-size: 1.6em;
+    margin-right: 15px;
+    margin-top: -13px;
+}
+
+.topDiv div:hover{
+    border-radius:3px;
+    box-shadow:0 0 4px 4px white;
+}
+.topDiv div:active{
+    border-radius:3px;
+    box-shadow:0 0 4px 4px white;
+}
+.hostTitle {
+	color:#218868;
+	width:180px;
+	font-weight:bold;
+	height:18px;
+	overflow:hidden;
+	display:inline-block;
+	!text-shadow: rgba(0,0,0,0.9) 0px 1px 1px;
+}
+
+.ipTitle {
+	color:gray;
+	font-weight:bold;
+}
+
+/*中间布局 BEGIN*/
+.osRate {
+   color:#FFEC8B;
+}
+.cpuTitle,.memoryTitle,.connTitle{
+    left: 5px;
+    position: absolute;
+    margin-top:2px;
+    color:#cfcfcf;
+    font-size:14px;
+    text-shadow: rgba(0,0,0,0.9) 0px 1px 2px;
+}
+.memoryTitle{
+    left: 80px;
+}
+.connTitle{
+    left: 160px;
+}
+.middleDiv{
+   /* height: 60px; */
+    height: 40px;
+    margin-bottom: 1px;
+}
+.middleDiv table{
+    width: 100%;
+    height: 100%;
+    border-collapse:collapse;
+}
+.middleDiv table td {
+    width: 30%;
+  /*  height: 60px;*/
+    height: 40px;
+    border: 1px solid #666;
+    background:#666;
+    background1:rgba(139,136,120,0.5);
+    vertical-align: bottom;
+}
+.middleDiv table td div{
+    /*background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, rgba(0, 0, 0, 0) 1px);*/
+    background-size: 1em 1em, 1.6em 2em, .8em 2em;
+    width: 100%;
+}
+
+/*中间布局 END*/
+
+/*processHolder*/
+.processButton {
+	padding-top:3px;
+	padding-bottom:3px;
+	!border: 1px solid #9f9f9f;
+	text-shadow: rgba(0,0,0,0.9) 0px 1px 2px;
+	background: #4185cf;/*#36648B;#009ACD; rgba(139,136,120,0.5);*/
+	color:#cfcfcf;	
+	margin-bottom:3px;
+	border-radius:3px;
+}
+.processButton1 {
+	padding-top:3px;
+	padding-bottom:3px;
+	!border: 1px solid #9f9f9f;
+	
+	background: rgba(0,206,209,0.7);/*rgba(139,136,120,0.5);*/
+	color:#cfcfcf;
+	text-shadow: rgba(0,0,0,0.9) 0px 1px 2px;
+	-webkit-box-shadow: rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(0,0,0,0.25) 0px 0px 0px, inset rgba(255,255,255,0.03) 0px 20px 0px, inset rgba(0,0,0,0.15) 0px -20px 20px, inset rgba(255,255,255,0.05) 0px 20px 20px;
+     -khtml-box-shadow: rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(0,0,0,0.25) 0px 0px 0px, inset rgba(255,255,255,0.03) 0px 20px 0px, inset rgba(0,0,0,0.15) 0px -20px 20px, inset rgba(255,255,255,0.05) 0px 20px 20px;
+       -moz-box-shadow: rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(0,0,0,0.25) 0px 0px 0px, inset rgba(255,255,255,0.03) 0px 20px 0px, inset rgba(0,0,0,0.15) 0px -20px 20px, inset rgba(255,255,255,0.05) 0px 20px 20px;
+         -o-box-shadow: rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(0,0,0,0.25) 0px 0px 0px, inset rgba(255,255,255,0.03) 0px 20px 0px, inset rgba(0,0,0,0.15) 0px -20px 20px, inset rgba(255,255,255,0.05) 0px 20px 20px;
+            box-shadow: rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(255,255,255,0.25) 0px 1px 0px, inset rgba(0,0,0,0.25) 0px 0px 0px, inset rgba(255,255,255,0.03) 0px 20px 0px, inset rgba(0,0,0,0.15) 0px -20px 20px, inset rgba(255,255,255,0.05) 0px 20px 20px;
+	margin-bottom:5px;
+}
+
+.processHolder {
+	display:none;
+}
+
+.process {
+	border:1px solid #bca252;
+	margin-left:1px;
+	margin-right:1px;
+	margin-top:2px;
+	background: rgba(255,193,37,0.35);
+/*	padding-left:5px;
+	text-align:left;
+	overflow:hidden; */
+	padding-left:2px;
+	text-align:left;
+	white-space:normal;
+    word-break:break-all;
+}
+
+.pid {
+	color:gray;
+	font-size:13px;
+}
+
+.processInfo {
+	width:170px;
+	display:inline-block;
+}
+
+.nodeprocess {
+	margin-left:1px;
+	margin-right:1px;
+	margin-top:2px;
+/*	padding-left:5px;
+	text-align:left;
+	overflow:hidden; */
+	padding-left:2px;
+	text-align:left;
+	white-space:normal;
+    word-break:break-all;
+}
+
+.nodeprocess.live {
+	background: rgba(118,238,0,0.5);
+	border:1px solid #A2CD5A;
+}
+
+.nodeprocess.dying {
+	background: rgba(255,0,0,0.5);
+	border:1px solid #F08080;
+}
+
+.nodeprocess.dead {
+	background: rgba(105,105,105,0.5);
+	border:1px solid #898989;	
+}
+
+
+/* 线程状态显示 */
+.proc {
+    line-height: 100%;
+    width: 16px;
+    height: 16px;
+    position: relative;
+    display: block;
+    float: right;
+    margin: 3px 2px;
+}
+
+.proc-state,
+.proc-state::before,
+.proc-state::after {
+    line-height: 100%;
+    position: relative;
+    left: 0;
+    width: 8px;
+    height: 4px;
+    background-color: #008000; /*green*/
+    /* margin: 0 4px; */
+}
+.proc-state::before,
+.proc-state::after {
+    position: absolute;
+}
+.proc-state {
+    top: 11px;
+}
+.proc-state::before {
+    content: "";
+    top: -5px;
+    display: none; 
+}
+.proc-state::after {
+    content: "";
+    top: -10px;
+    display: none; 
+}
+
+.proc-state-mid.proc-state::before {
+    display: block;
+    background-color: #FFA500; /*orange*/
+}
+.proc-state-mid.proc-state {
+    background-color: #FFA500; /*orange*/
+}
+.proc-state-high.proc-state {
+    background-color: #FF0000; /*red*/
+}
+.proc-state-high.proc-state::before,
+.proc-state-high.proc-state::after {
+    display: block;
+    background-color: #FF0000; /*red*/   
+}
+
+
+
+/*底部布局*/
+.bottomDiv{
+    margin-bottom: 2px;
+    width: 100%;
+    text-align: center;
+}
+/*原子布局END*/
+
+
+@media (min-width: 668px) and  (max-width: 949.99px){
+
+    /*详情页面布局
+    .1funcDiv2{
+        width: 90%;
+        float: right;
+        margin-right:-20px;
+    }*/
+
+}
+
+
+@media (min-width: 630px) and (max-width: 667px){
+
+    /*详情页面布局
+    .1funcDiv2{
+        width: 87%;
+        float: right;
+        margin-right:-20px;
+    }*/
+
+}
+
+@media (max-width: 630px){
+
+    /*详情页面布局
+    .1funcDiv2{
+        float: right;
+        margin-right: -40px;
+    }*/
+
+}

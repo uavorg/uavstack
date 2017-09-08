@@ -1,0 +1,614 @@
+@CHARSET "UTF-8";
+/*原子布局 BEGINI*/
+html {
+	height:100%;
+}
+
+body{
+    /*color: white;*/
+    font-size: 16px;
+    font-family: "微软雅黑";
+    /*background-color: #f6f5ec;*/
+    margin-top:0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom:0px;
+    text-align: center;
+    height:100%;
+}
+
+select{
+	width:100%;
+	color:#000;
+	padding-top:4px;
+	padding-bottom:4px;
+	margin-top:2px;
+	margin-bottom:2px;
+}
+
+/*头部布局*/
+.topDiv{
+    text-align: left;
+    margin-left: 5px;
+    font-size:14px;
+    text-shadow1: rgba(0,0,0,1) 0px 0px 1px;
+}
+
+.topDiv div{
+    cursor: pointer;
+    float: right;
+    font-size: 1.6em;
+    margin-right: 15px;
+    margin-top: -13px;
+}
+
+.topDiv div:hover{
+    border-radius:3px;
+    box-shadow:0 0 4px 4px white;
+}
+.topDiv div:active{
+    border-radius:3px;
+    box-shadow:0 0 4px 4px white;
+}
+
+.tagTitle, .tagTitleJSE {
+	height:18px;
+	display:inline-block;
+	color:#D3FF93;
+	white-space:normal;
+    word-break:break-all;
+}
+
+.tagTitleJSE {
+	color:#B0E2FF;
+}
+
+.idTitle {
+	color:#EDEDED;
+	display:inline-block;
+	white-space:normal;
+    word-break:break-all;
+}
+
+@media (max-width: 500px)
+{
+	.tagTitle, .tagTitleJSE {
+	    width:220px;
+		height: 18px;
+		display: inline-block;
+		color: #D3FF93;
+		white-space: normal;
+		word-break: break-all;
+	}
+	
+	.tagTitleJSE {
+		color:#B0E2FF;
+	}
+	
+	.idTitle {
+	    width:220px;
+		color: #EDEDED;
+		display: inline-block;
+		white-space: normal;
+		word-break: break-all;
+	}
+}
+
+.tagTitleNode, .tagTitleNodeJSE {
+	width:190px;
+	height:18px;
+	display:inline-block;
+	color:#218868;
+	font-weight:bold;
+	white-space:normal;
+    word-break:break-all;
+}
+
+.tagTitleNodeJSE {
+	color:#1E90FF;
+}
+
+.idTitleNode {
+	color:gray;
+	width:190px;
+	display:inline-block;
+	overflow:hidden;
+}
+
+.middleDiv{
+    height: 40px;
+    margin-bottom: 1px;
+}
+.middleDiv table{
+    width: 100%;
+    height: 100%;
+    border-collapse:collapse;
+}
+.middleDiv table td {
+    width: 30%;
+    height: 40px;
+    border: 1px solid #666;
+    background:#666;
+    background1:rgba(139,136,120,0.5);
+    vertical-align: bottom;
+}
+.middleDiv table td div{
+    /*background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, rgba(0, 0, 0, 0) 1px);*/
+    background-size: 1em 1em, 1.6em 2em, .8em 2em;
+    width: 100%;
+}
+.osRate {
+   color:#FFEC8B;
+}
+.cpuTitle,.memoryTitle,.connTitle{
+    left: 5px;
+    position: absolute;
+    margin-top:2px;
+    color:#cfcfcf;
+    font-size:14px;
+    text-shadow: rgba(0,0,0,0.9) 0px 1px 2px;
+}
+.memoryTitle{
+    left: 97px;
+}
+.connTitle{
+    left: 190px;
+}
+
+.appInstanceInfo {
+	width:220px;
+	display:inline-block;
+}
+
+.appInstLight {
+	display:block;
+	width:8px;	
+	position:relative;
+	float:left;
+}
+
+.appInstLight.light{
+	background: #FFD700;
+	border:1px solid #666666;	
+}
+
+.appInstLight.dark{
+	
+}
+
+.appInstance {
+	margin-left:0px;
+	margin-right:0px;
+	margin-top:2px;
+	padding-left:5px;
+	text-align:left;
+	white-space:normal;
+    word-break:break-all;
+}
+
+.appInstance.live {
+	background: rgba(118,238,0,0.4);
+	border:1px solid #A2CD5A;
+}
+
+.appInstance.liveA {
+	background: rgba(118,238,0,0.9);
+	border:1px solid #A2CD5A;
+	border-left:6px solid #FFD700;
+}
+
+.appInstance.dying {
+	background: rgba(255,0,0,0.4);
+	border:1px solid #F08080;
+}
+
+.appInstance.dyingA {
+	background: rgba(255,0,0,0.7);
+	border:1px solid #F08080;
+	border-left:6px solid #FFD700;
+}
+
+.appInstance.dead {
+	background: rgba(105,105,105,0.4);
+	border:1px solid #898989;	
+}
+
+.appInstance.deadA {
+	background: rgba(105,105,105,0.6);
+	border:1px solid #898989;
+	border-left:6px solid #FFD700;
+}
+
+/* 线程状态显示 */
+.insts {
+    line-height: 100%;
+    width: 16px;
+    height: 16px;
+    position: relative;
+    display: block;
+    float: right;
+    margin: 3px 2px;
+}
+
+.insts-state,
+.insts-state::before,
+.insts-state::after {
+    line-height: 100%;
+    position: relative;
+    left: 0;
+    width: 8px;
+    height: 4px;
+    background-color: #008000; /*green*/
+    /* margin: 0 4px; */
+}
+.insts-state::before,
+.insts-state::after {
+    position: absolute;
+}
+.insts-state {
+    top: 11px;
+}
+.insts-state::before {
+    content: "";
+    top: -5px;
+    display: none; 
+}
+.insts-state::after {
+    content: "";
+    top: -10px;
+    display: none; 
+}
+
+.insts-state-mid.insts-state::before {
+    display: block;
+    background-color: #FFA500; /*orange*/
+}
+.insts-state-mid.insts-state {
+    background-color: #FFA500; /*orange*/
+}
+.insts-state-high.insts-state {
+    background-color: #FF0000; /*red*/
+}
+.insts-state-high.insts-state::before,
+.insts-state-high.insts-state::after {
+    display: block;
+    background-color: #FF0000; /*red*/   
+}
+
+.appDetailContent{
+    vertical-align: top;
+    white-space:normal;
+    word-break:break-all;
+}
+
+.appDetailContent .Dark {
+	background:#333;
+}
+
+.shine2 {
+    display: block;
+    position: relative;
+    background: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(255,255,255,0)), color-stop(50%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)));
+    background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    background: -o-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    background: -ms-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#00ffffff',GradientType=1 );
+    background: linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%);
+    padding: 0px 12px;
+    left: -24px;
+    height: 1px;
+    -webkit-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -khtml-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -moz-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -o-box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    box-shadow: rgba(255,255,255,0.2) 0px 1px 5px;
+    -webkit-transition: all 0.3s ease-in-out;
+    -khtml-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.contentDiv{
+    text-align: left;
+    margin:2px;
+}
+
+.contentDivRelativeDiv {
+	position:relative;
+}
+
+.contentDiv .title{
+    font-size: 16px;
+    font-weight:bold;
+    color: #33CCFF;
+}
+
+.contentDiv .timeTitle{
+	font-size: 14px;
+	color: #C7C7C7;
+	margin-left:15px;
+}
+
+.contentDiv .kv span{
+    color: #bbbbbb;
+}
+
+.contentDiv .kv .kvField {
+	color:#bbbbbb;
+}
+
+.contentDiv .kv .kvSubField {
+	color:#0aaaaa;
+}
+
+.componentExpandButton {
+	display:block;
+	padding:2px;
+	background: rgba(0,229,238,0.2);
+	border:1px solid #009ad6;
+	margin:2px;
+	color:#fff;
+}
+
+.componentExpandButtonStyle0 {
+	border:1px solid #9BCD9B;
+	background: rgba(154,255,154,0.2);
+}
+
+.componentExpandButtonStyle1 {
+	border:1px solid #FFDEAD;
+	background: rgba(255,228,181,0.2);
+}
+
+.componentExpandButtonStyle2 {
+	border:1px solid #FFBBFF;
+	background: rgba(238,130,238,0.2);
+}
+
+.componentExpandButtonStyle4 {
+	padding-top:5px;
+	padding-bottom:5px;
+	border:1px solid rgba(50,205,50,0.8);
+	background: rgba(50,205,50,0.2);
+}
+
+.componentExpandButtonStyle3 {
+	padding-top:5px;
+	padding-bottom:5px;
+	border:1px solid rgba(127,255,212,1);
+	background: rgba(127,255,212,0.3);
+}
+
+.componentName {
+	color: #C0FF3E;
+}
+
+.componentTab {
+	border:1px solid gray;
+	padding-left:10px;
+	background:#444444;
+	padding:2px;
+	margin:2px;
+}
+
+.componentTabHead {
+	background: rgba(180,180,180,0.3);
+	padding:2px;
+}
+
+.componentfeature{
+	color: #bbbbbb;
+}
+
+.componentFTab {
+	color: #009ad6;
+	
+	padding-left:10px;
+	
+}
+
+.titleGray {
+	color:#bbbbbb;
+}
+
+.indexItem {
+	border:1px solid gray;
+	margin-top:1px;
+	margin-bottom:1px;
+	vertical-align:top;
+	font-size:14px;
+}
+
+.indexItemHead {
+	background: rgba(180,180,180,0.3);
+}
+
+.indexItemId {
+	color:#66CDAA;
+}
+
+.indexItemTag {
+	display:inline-block;
+	width:20px;
+	color:#fff;
+	font-weight:bold;
+	text-align:center;
+	background:#66CDAA;
+}
+
+.indexItemContent {
+	color:#bbbbbb;
+	text-align:left;
+	padding-left:20px;	
+}
+
+.logSearchBar {
+	height:44px;
+	width: calc(100%);
+	background:#999;
+	padding-top:4px;
+	text-align:center;
+}
+
+.logContentWnd {
+	height: calc(100% - 110px);
+	width: calc(100%);
+	!background:#fefefe;
+	background:#333;
+	overflow:auto;
+	font-size:14px;
+	text-align:left;
+	color:#fff;
+}
+
+.LogLineDark, .LogLineLight {
+	white-space:normal;
+    word-break:break-all;
+    word-wrap: break-word;
+}
+.LogLineDark {
+	!background:#efefef;
+}
+
+.LogLineIndex, .LogLineTimestamp {
+	color:#fff;
+	display:inline-block;
+	padding:2px;
+}
+
+.LogLineIndex {
+	background:red;
+}
+
+.LogLineTimestamp {
+	background:blue;
+}
+
+.LogHighLightKeyword {
+	background:yellow;
+	color:#333;
+}
+
+.pluginAlertNtfy {
+	width: 30px;
+	height: 30px;
+	text-align:center;
+	border: 1px solid #b0b0b0;
+	border-radius: 20px;
+	background:#333;
+	position: absolute;
+	top: 80px;
+	left: 10px;
+	z-index: 20000;
+	cursor: pointer;
+    font-size: 1.4em;
+}
+
+.pluginAlertNtfyContainer {
+	width: 250px;
+	height: calc(100% - 80px);
+	background:#333;
+	position: absolute;
+	border: 1px solid #333;
+	border-radius: 0px 20px 5px 0px;
+	top: 75px;
+	left: 0px;
+	z-index: 15000;
+	box-shadow:0px 0px 1px 1px #333;
+}
+
+.pluginAlertNtfyContainerTitle {
+	height:36px;
+}
+
+.body_row:hover{
+	background-color : #87CEFA;
+}
+
+/*新日志相关CSS*/
+.NewLogSearchBar_AppMode {
+	height: 80px;
+	text-align: left;
+	padding-top: 5px;
+	padding-left: 5px;
+	color: #000;
+}
+
+.NewLogSearchBar_GlobalMode {
+	font-size: 14px;
+	height: 107px;
+	text-align: left;
+	padding-top: 0px;
+	padding-left: 10px;
+	color: #000;
+}
+
+@media (max-width: 500px)
+{
+	.NewLogSearchBar_GlobalMode {
+		font-size: 14px;
+		height: 140px;
+		text-align: left;
+		padding-top: 0px;
+		padding-left: 10px;
+		color: #000;
+	}
+}
+
+.NewLogRollButton {
+	cursor: pointer;
+	font-size: 13px;
+	font-weight:bold;
+	color1: #333;
+	padding-top: 4px;
+	height: 28px;	
+	width:100%;
+}
+
+.NewLogRollContentCtn {
+	font-size: 12px;
+	color: black;
+	background: #fff;	'
+	overflow-y:auto;
+	overflow-x:auto;
+}
+
+.NewLogRollContentNum {
+	color:#FF7F00;
+	width:50px;
+	
+}
+
+.NewLogRollContentLog {
+	position:relative;
+	white-space:nowrap; 
+	top:-16px;
+	left:0px;
+	padding-left:50px;
+	text-align:left;
+}
+
+/*APM相关CSS*/
+.AppIVCWnd_GlobalMode{
+	font-size: 14px;
+	height: 80px;
+	text-align: left;
+	padding-top: 0px;
+	padding-left: 10px;
+	color: #000;
+}
+
+.normalclum{
+	height:20px;
+}
+
+.ivcCell{
+	word-break:break-all;
+	word-wrap:break-word;
+	white-space:normal;
+	padding-top:8px;
+	height:100%;
+	width:100%;
+}

@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+<title>全网服务流监控拓扑_样式1.0</title>
+<meta charset="UTF-8">
+    <meta name="description" content="this is my page">
+    <meta name="content-type" content="text/html; charset=utf-8">
+<script type="text/javascript"
+	src="../../appvendors/vis/js/vis-network.min.js"></script>
+<link href="../../appvendors/vis/css/vis-network.min.css"
+	rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+html {
+	height: 100%;
+}
+
+body {
+	color: white;
+	font-size: 16px;
+	font-family: "微软雅黑";
+	/*background-color: #f6f5ec;*/
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+#mynetwork {
+	width: 100%;
+	height: 600px;
+	
+}
+</style>
+</head>
+<body>
+	<div id="mynetwork"></div>
+	<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet([
+    {id: "电签-传统@http://192.168.1.73:8080/isign", label: '电签-传统：签章服务\n192.168.1.73:8080',title:'QPM:1000 响应时间:256 错误:3',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(71,107,36,1)',border:'#A2CD5A',highlight:{background:'rgba(71,107,36,1)',border:'#A2CD5A'}},shadow:false},
+    {id: "电签-传统@http://192.168.1.74:9090/isign", label: '电签-传统：签章服务\n192.168.1.74:9090',title:'QPM:23 响应时间:1189 错误:0',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(205,38,38,1)',border:'rgba(255,0,0,1)',highlight:{background:'rgba(205,38,38,1)',border:'rgba(255,0,0,1)'}},shadow:false},
+    {id: "电签-传统@http://192.168.1.59:8080/isign", label: '电签-传统：签章服务\n192.168.1.59:8080',title:'QPM:0 响应时间:9 错误:0',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(105,105,105,1)',border:'rgba(139,139,139,1)',highlight:{background:'rgba(105,105,105,1)',border:'rgba(139,139,139,1)'}},shadow:false},
+    {id: "电签-传统@http://192.168.1.99:8080/isign", label: '电签-传统：签章服务\n192.168.1.99:8080',title:'QPM:35 响应时间:2 错误:17',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(71,107,36,1)',border:'#FFA500',highlight:{background:'rgba(71,107,36,1)',border:'#FFA500'}},shadow:false},
+    {id: '电签-传统@http://192.168.1.131:8080/ccsp', label: '电签-传统：电签网关\n192.168.1.131:8080',title:'QPM:100 响应时间:157 错误:3',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(71,107,36,1)',border:'#FFA500',highlight:{background:'rgba(71,107,36,1)',border:'#FFA500'}},shadow:false},
+  	{id: '电签-传统@http://192.168.1.43:8080/ccsp',label:'电签-传统：电签网关\n192.168.1.43:8080',title:'QPM:50  响应时间:17  错误:2',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(71,107,36,1)',border:'#A2CD5A',highlight:{background:'rgba(71,107,36,1)',border:'#A2CD5A'}},shadow:false},
+    {id: '综合信贷@http://192.168.2.49:7070/cs',label:'综合信贷：咨询服务\n192.168.2.49:7070',title:'QPM:50  响应时间:17  错误:2',shape:'box',font:{face:'微软雅黑',size:12,color:'#fff',align:'left'},borderWidth:6,borderWidthSelected:8,color:{background:'rgba(71,107,36,1)',border:'#A2CD5A',highlight:{background:'rgba(71,107,36,1)',border:'#A2CD5A'}},shadow:false}
+    
+  ]);
+
+  // create an array with edges
+  var edges = new vis.DataSet([
+    {from: '电签-传统@http://192.168.1.131:8080/ccsp', to: "电签-传统@http://192.168.1.73:8080/isign",title:"HTTP异步 QPM:1000 响应时间:23 错误:0",arrows:'to',width:8,color:{color:'#A2CD5A',highlight:'#A2CD5A'}},
+    {from: '电签-传统@http://192.168.1.131:8080/ccsp', to: "电签-传统@http://192.168.1.74:9090/isign",title:"HTTP异步 QPM:20 响应时间:1112 错误:0",arrows:'to',width:1,color:{color:'rgba(205,38,38,1)',highlight:'rgba(205,38,38,1)'}},
+    {from: '电签-传统@http://192.168.1.131:8080/ccsp', to: "电签-传统@http://192.168.1.59:8080/isign",title:"HTTP异步 最近1分钟无访问",arrows:'to',dashes:true,color:{color:'rgba(139,139,139,1)',highlight:'rgba(139,139,139,1)'}},
+    {from: '电签-传统@http://192.168.1.131:8080/ccsp', to: "电签-传统@http://192.168.1.99:8080/isign",title:"HTTP异步 QPM:30 响应时间:2 错误:15",arrows:'to',width:2,color:{color:'#FFA500',highlight:'#FFA500'}},
+    {from: '电签-传统@http://192.168.1.43:8080/ccsp',to:"电签-传统@http://192.168.1.73:8080/isign",title:"HTTP异步 QPM:100 响应时间:12 错误:1",arrows:'to',width:3,color:{color:'#A2CD5A',highlight:'#A2CD5A'}},
+    {from: '综合信贷@http://192.168.2.49:7070/cs',to:"电签-传统@http://192.168.1.131:8080/ccsp",title:"HTTP异步 QPM:100 响应时间:12 错误:1",arrows:'to',width:3,color:{color:'#A2CD5A',highlight:'#A2CD5A'}},
+    {from: '综合信贷@http://192.168.2.49:7070/cs',to:"电签-传统@http://192.168.1.43:8080/ccsp",title:"HTTP异步 QPM:100 响应时间:12 错误:1",arrows:'to',width:5,color:{color:'#A2CD5A',highlight:'#A2CD5A'}}
+  ]);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+ 
+		var options = {
+				layout:{randomSeed:undefined,
+					//hierarchical: {
+					//	enable:false,
+					//	direction: 'LR',
+					//	nodeSpacing: 300,
+
+					//}	
+				},
+				"edges": {
+				    "smooth": {
+				      "forceDirection": "none"
+				    }
+				  },
+			physics : {
+				enabled:true,
+				solver:"barnesHut",
+				"barnesHut" : {
+					"gravitationalConstant" : -6000
+				},
+				"minVelocity" : 0.75,
+				"timestep" : 1
+			}
+		};
+		var network = new vis.Network(container, data, options);
+	</script>
+
+</body>
+</html>

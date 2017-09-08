@@ -1,0 +1,89 @@
+insert time : 108424
+query DSAggregatequery.json: 40700
+query DSAggregatequeryGtLt.json: 45365
+query DSAggregatequeryMKV.json: 21308
+query DSAggregatequeryRegex_GtInOR.json: 24994
+query DSAggregatequeryRegex.json: 18749
+query DSAggregatequeryRegexInOR.json: 23833
+query DSAggregatequeryRegexMKVInOR.json: 21776
+query DSfind.json: 2008
+query total: 198733
+update DSupdate.json: 18544
+
+
+--- Sharding Status --- 
+  sharding version: {
+	"_id" : 1,
+	"minCompatibleVersion" : 5,
+	"currentVersion" : 6,
+	"clusterId" : ObjectId("5718a9e06490c102df486cb9")
+}
+  shards:
+	{  "_id" : "shard1",  "host" : "shard1/localhost:10001,localhost:20001,localhost:30001" }
+	{  "_id" : "shard2",  "host" : "shard2/localhost:10002,localhost:20002,localhost:30002" }
+	{  "_id" : "shard3",  "host" : "shard3/localhost:10003,localhost:20003,localhost:30003" }
+  balancer:
+	Currently enabled:  yes
+	Currently running:  no
+	Failed balancer rounds in last 5 attempts:  0
+	Migration Results for the last 24 hours: 
+		28 : Success
+		2 : Failed with error 'chunk too big to move', from shard1 to shard2
+		1 : Failed with error 'aborted', from shard1 to shard3
+		1 : Failed with error 'aborted', from shard1 to shard2
+  databases:
+	{  "_id" : "profileDataStore",  "primary" : "shard1",  "partitioned" : true }
+		profileDataStore.uav_profile
+			shard key: { "appid" : 1, "time" : 1 }
+			chunks:
+				shard1	16
+				shard2	16
+				shard3	16
+			{ "appid" : MinKey, "time" : MinKey } -->> { "appid" : "ROOT", "time" : 1461307379057 } on : shard2 Timestamp(2, 0) 
+			{ "appid" : "ROOT", "time" : 1461307379057 } -->> { "appid" : "ROOT", "time" : 1461307393158 } on : shard2 Timestamp(4, 0) 
+			{ "appid" : "ROOT", "time" : 1461307393158 } -->> { "appid" : "ROOT", "time" : 1461307408475 } on : shard2 Timestamp(5, 0) 
+			{ "appid" : "ROOT", "time" : 1461307408475 } -->> { "appid" : "ROOT", "time" : 1461307426453 } on : shard2 Timestamp(6, 0) 
+			{ "appid" : "ROOT", "time" : 1461307426453 } -->> { "appid" : "ROOT", "time" : 1461307445887 } on : shard2 Timestamp(8, 0) 
+			{ "appid" : "ROOT", "time" : 1461307445887 } -->> { "appid" : "ROOT", "time" : 1461307466121 } on : shard3 Timestamp(8, 1) 
+			{ "appid" : "ROOT", "time" : 1461307466121 } -->> { "appid" : "docs", "time" : 1461307381069 } on : shard3 Timestamp(3, 21) 
+			{ "appid" : "docs", "time" : 1461307381069 } -->> { "appid" : "docs", "time" : 1461307395168 } on : shard3 Timestamp(3, 22) 
+			{ "appid" : "docs", "time" : 1461307395168 } -->> { "appid" : "docs", "time" : 1461307410893 } on : shard3 Timestamp(3, 23) 
+			{ "appid" : "docs", "time" : 1461307410893 } -->> { "appid" : "docs", "time" : 1461307429276 } on : shard3 Timestamp(3, 24) 
+			{ "appid" : "docs", "time" : 1461307429276 } -->> { "appid" : "docs", "time" : 1461307448079 } on : shard3 Timestamp(3, 25) 
+			{ "appid" : "docs", "time" : 1461307448079 } -->> { "appid" : "docs", "time" : 1461307468649 } on : shard3 Timestamp(3, 26) 
+			{ "appid" : "docs", "time" : 1461307468649 } -->> { "appid" : "examples", "time" : 1461307382639 } on : shard3 Timestamp(3, 27) 
+			{ "appid" : "examples", "time" : 1461307382639 } -->> { "appid" : "examples", "time" : 1461307397085 } on : shard3 Timestamp(3, 28) 
+			{ "appid" : "examples", "time" : 1461307397085 } -->> { "appid" : "examples", "time" : 1461307413300 } on : shard3 Timestamp(3, 29) 
+			{ "appid" : "examples", "time" : 1461307413300 } -->> { "appid" : "examples", "time" : 1461307432247 } on : shard3 Timestamp(3, 30) 
+			{ "appid" : "examples", "time" : 1461307432247 } -->> { "appid" : "examples", "time" : 1461307451102 } on : shard3 Timestamp(3, 31) 
+			{ "appid" : "examples", "time" : 1461307451102 } -->> { "appid" : "examples", "time" : 1461307471132 } on : shard3 Timestamp(3, 32) 
+			{ "appid" : "examples", "time" : 1461307471132 } -->> { "appid" : "host-manager", "time" : 1461307379275 } on : shard3 Timestamp(3, 33) 
+			{ "appid" : "host-manager", "time" : 1461307379275 } -->> { "appid" : "host-manager", "time" : 1461307390501 } on : shard2 Timestamp(9, 0) 
+			{ "appid" : "host-manager", "time" : 1461307390501 } -->> { "appid" : "host-manager", "time" : 1461307402712 } on : shard2 Timestamp(10, 0) 
+			{ "appid" : "host-manager", "time" : 1461307402712 } -->> { "appid" : "host-manager", "time" : 1461307416510 } on : shard2 Timestamp(11, 0) 
+			{ "appid" : "host-manager", "time" : 1461307416510 } -->> { "appid" : "host-manager", "time" : 1461307431452 } on : shard2 Timestamp(12, 0) 
+			{ "appid" : "host-manager", "time" : 1461307431452 } -->> { "appid" : "host-manager", "time" : 1461307446625 } on : shard2 Timestamp(13, 0) 
+			{ "appid" : "host-manager", "time" : 1461307446625 } -->> { "appid" : "host-manager", "time" : 1461307462488 } on : shard2 Timestamp(14, 0) 
+			{ "appid" : "host-manager", "time" : 1461307462488 } -->> { "appid" : "host-manager", "time" : 1461307478420 } on : shard2 Timestamp(15, 0) 
+			{ "appid" : "host-manager", "time" : 1461307478420 } -->> { "appid" : "manager", "time" : 1461307385311 } on : shard2 Timestamp(16, 0) 
+			{ "appid" : "manager", "time" : 1461307385311 } -->> { "appid" : "manager", "time" : 1461307397044 } on : shard2 Timestamp(17, 0) 
+			{ "appid" : "manager", "time" : 1461307397044 } -->> { "appid" : "manager", "time" : 1461307409315 } on : shard3 Timestamp(18, 0) 
+			{ "appid" : "manager", "time" : 1461307409315 } -->> { "appid" : "manager", "time" : 1461307424099 } on : shard2 Timestamp(19, 0) 
+			{ "appid" : "manager", "time" : 1461307424099 } -->> { "appid" : "manager", "time" : 1461307439892 } on : shard3 Timestamp(20, 0) 
+			{ "appid" : "manager", "time" : 1461307439892 } -->> { "appid" : "manager", "time" : 1461307455686 } on : shard1 Timestamp(20, 1) 
+			{ "appid" : "manager", "time" : 1461307455686 } -->> { "appid" : "manager", "time" : 1461307471731 } on : shard1 Timestamp(8, 15) 
+			{ "appid" : "manager", "time" : 1461307471731 } -->> { "appid" : "web1", "time" : 1461307379058 } on : shard1 Timestamp(8, 16) 
+			{ "appid" : "web1", "time" : 1461307379058 } -->> { "appid" : "web1", "time" : 1461307391131 } on : shard2 Timestamp(7, 0) 
+			{ "appid" : "web1", "time" : 1461307391131 } -->> { "appid" : "web1", "time" : 1461307404054 } on : shard1 Timestamp(3, 3) 
+			{ "appid" : "web1", "time" : 1461307404054 } -->> { "appid" : "web1", "time" : 1461307419428 } on : shard1 Timestamp(3, 4) 
+			{ "appid" : "web1", "time" : 1461307419428 } -->> { "appid" : "web1", "time" : 1461307435491 } on : shard1 Timestamp(3, 5) 
+			{ "appid" : "web1", "time" : 1461307435491 } -->> { "appid" : "web1", "time" : 1461307451937 } on : shard1 Timestamp(3, 6) 
+			{ "appid" : "web1", "time" : 1461307451937 } -->> { "appid" : "web1", "time" : 1461307469337 } on : shard1 Timestamp(3, 7) 
+			{ "appid" : "web1", "time" : 1461307469337 } -->> { "appid" : "web2", "time" : 1461307382159 } on : shard1 Timestamp(3, 8) 
+			{ "appid" : "web2", "time" : 1461307382159 } -->> { "appid" : "web2", "time" : 1461307394499 } on : shard1 Timestamp(3, 9) 
+			{ "appid" : "web2", "time" : 1461307394499 } -->> { "appid" : "web2", "time" : 1461307407816 } on : shard1 Timestamp(3, 10) 
+			{ "appid" : "web2", "time" : 1461307407816 } -->> { "appid" : "web2", "time" : 1461307423269 } on : shard1 Timestamp(3, 11) 
+			{ "appid" : "web2", "time" : 1461307423269 } -->> { "appid" : "web2", "time" : 1461307439892 } on : shard1 Timestamp(3, 12) 
+			{ "appid" : "web2", "time" : 1461307439892 } -->> { "appid" : "web2", "time" : 1461307456595 } on : shard1 Timestamp(3, 13) 
+			{ "appid" : "web2", "time" : 1461307456595 } -->> { "appid" : "web2", "time" : 1461307481594 } on : shard1 Timestamp(3, 14) 
+			{ "appid" : "web2", "time" : 1461307481594 } -->> { "appid" : MaxKey, "time" : MaxKey } on : shard1 Timestamp(3, 15) 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>ce-datamonitorsystem</artifactId>
+		<groupId>com.creditease.moniter</groupId>
+		<version>1.0</version>
+		<relativePath>../com.creditease.uav.superpom</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>com.creditease.uav.mq</artifactId>
+
+	<dependencies>		
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>com.creditease.uav.logging</artifactId>
+		</dependency>
+		<!-- <dependency> <groupId>org.apache.geronimo.specs</groupId> <artifactId>geronimo-jms_1.1_spec</artifactId> 
+			<version>1.1</version> </dependency> <dependency> <groupId>org.fusesource.stompjms</groupId> 
+			<artifactId>stompjms-client</artifactId> <version>1.18</version> </dependency> -->
+
+		<dependency>
+			<groupId>com.alibaba.rocketmq</groupId>
+			<artifactId>rocketmq-client</artifactId>
+			<version>3.2.6</version>
+		</dependency>
+
+		<!--test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

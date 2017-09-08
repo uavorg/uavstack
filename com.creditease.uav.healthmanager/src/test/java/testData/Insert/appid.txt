@@ -1,0 +1,46 @@
+insert time : 77840
+query DSAggregatequery.json: 33747
+query DSAggregatequeryGtLt.json: 15654
+query DSAggregatequeryMKV.json: 2729
+query DSAggregatequeryRegex_GtInOR.json: 6341
+query DSAggregatequeryRegex.json: 3755
+query DSAggregatequeryRegexInOR.json: 4223
+query DSAggregatequeryRegexMKVInOR.json: 4491
+query DSfind.json: 525
+query total: 71465
+update DSupdate.json: 9568
+
+--- Sharding Status --- 
+  sharding version: {
+	"_id" : 1,
+	"minCompatibleVersion" : 5,
+	"currentVersion" : 6,
+	"clusterId" : ObjectId("5718a9e06490c102df486cb9")
+}
+  shards:
+	{  "_id" : "shard1",  "host" : "shard1/localhost:10001,localhost:20001,localhost:30001" }
+	{  "_id" : "shard2",  "host" : "shard2/localhost:10002,localhost:20002,localhost:30002" }
+	{  "_id" : "shard3",  "host" : "shard3/localhost:10003,localhost:20003,localhost:30003" }
+  balancer:
+	Currently enabled:  yes
+	Currently running:  no
+	Failed balancer rounds in last 5 attempts:  0
+	Migration Results for the last 24 hours: 
+		66 : Success
+		6 : Failed with error 'chunk too big to move', from shard1 to shard2
+		2 : Failed with error 'aborted', from shard1 to shard3
+		2 : Failed with error 'aborted', from shard1 to shard2
+  databases:
+	{  "_id" : "profileDataStore",  "primary" : "shard1",  "partitioned" : true }
+		profileDataStore.uav_profile
+			shard key: { "appid" : 1 }
+			chunks:
+				shard1	4
+				shard2	1
+				shard3	1
+			{ "appid" : MinKey } -->> { "appid" : "ROOT" } on : shard2 Timestamp(2, 0) 
+			{ "appid" : "ROOT" } -->> { "appid" : "examples" } on : shard3 Timestamp(3, 0) 
+			{ "appid" : "examples" } -->> { "appid" : "host-manager" } on : shard1 Timestamp(3, 1) jumbo 
+			{ "appid" : "host-manager" } -->> { "appid" : "manager" } on : shard1 Timestamp(1, 4) jumbo 
+			{ "appid" : "manager" } -->> { "appid" : "web2" } on : shard1 Timestamp(1, 5) jumbo 
+			{ "appid" : "web2" } -->> { "appid" : MaxKey } on : shard1 Timestamp(1, 6) jumbo 

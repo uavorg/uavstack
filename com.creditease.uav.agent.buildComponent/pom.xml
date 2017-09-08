@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	
+	<artifactId>com.creditease.uav.agent.buildComponent</artifactId>
+	<groupId>com.creditease.moniter</groupId>
+	<version>1.0</version>
+	<modelVersion>4.0.0</modelVersion>
+	<packaging>pom</packaging>
+	
+	<modules>
+		<module>../com.creditease.uav.helper</module>
+		<module>../com.creditease.uav.logging</module>
+		<module>../com.creditease.uav.base</module>
+		<module>../com.creditease.uav.httpasync</module>
+		<module>../com.creditease.uav.agent</module>
+		<module>../com.creditease.uav.agent.heartbeat</module>
+		<module>../com.creditease.uav.fastjson</module>	
+		<module>../com.creditease.uav.mq</module>
+		<module>../com.creditease.uav.cache.redis</module>
+		<module>../com.creditease.uav.notifymanager</module>
+		<module>../com.creditease.uav.messaging</module>
+		<module>../com.creditease.uav.upgrade</module>
+		<module>../com.creditease.uav.collect</module>
+		<module>../com.creditease.uav.threadanalysis</module>
+	</modules>
+
+	<build>
+		<plugins>	 
+		    <plugin>
+				<groupId>org.jasig.maven</groupId>
+				<artifactId>maven-notice-plugin</artifactId>
+				<version>1.0.6.1</version>
+				<configuration>
+					<generateChildNotices>false</generateChildNotices>
+					<noticeTemplate>https://source.jasig.org/licenses/NOTICE.template</noticeTemplate>
+					<licenseMapping>
+						<param>https://source.jasig.org/licenses/license-mappings.xml</param>
+					</licenseMapping>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<echo>Building MonitorAgent START....</echo>
+								<delete dir="target/build" />
+								<mkdir dir="target/build/lib" />
+								<copy todir="target/build/lib" >
+									<fileset file="../com.creditease.uav.agent/target/com.creditease.uav.agent-1.0.jar" ></fileset>
+									<fileset file="../com.creditease.uav.agent/target/lib/*.jar" ></fileset>
+									<fileset file="../com.creditease.uav.upgrade/target/com.creditease.uav.upgrade-1.0.jar"></fileset>
+								</copy>								
+								<copy todir="target/build/config" >
+									<fileset dir="config" ></fileset>	
+									<fileset file="../com.creditease.uav.upgrade/config/*.properties"></fileset>								
+								</copy>
+								
+								<copy todir="target/build/bin" >
+									<fileset dir="bin" ></fileset>
+									<fileset file="../com.creditease.uav.base/target/com.creditease.uav.base-1.0-boot.jar" ></fileset>		
+									<fileset file="../com.creditease.uav.upgrade/bin/*.*"></fileset>							
+								</copy>
+								
+								<copy todir="target/tempbuild/uavagent" >
+									<fileset dir="target/build"></fileset>
+								</copy>
+								
+								<tstamp>  
+                                      <format property="current.date.time" pattern="yyyyMMddHHmmss"/>       
+                                </tstamp> 
+			
+                                <zip destfile="target/uavagent_${version}_${current.date.time}.zip">
+                                    <zipfileset dir="target/tempbuild"></zipfileset>
+                                </zip>
+
+								<checksum file="target/uavagent_${version}_${current.date.time}.zip" forceOverwrite="yes" algorithm="MD5" fileext=".MD5"></checksum>
+
+								<delete dir="target/tempbuild" />
+								
+								<echo>Building MonitorAgent END</echo>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.jasig.maven</groupId>
+				<artifactId>maven-notice-plugin</artifactId>
+				<version>1.0.6.1</version>
+				<configuration>
+					<generateChildNotices>false</generateChildNotices>
+					<noticeTemplate>https://source.jasig.org/licenses/NOTICE.template</noticeTemplate>
+					<licenseMapping>
+						<param>license-mappings.xml</param>
+						<param>https://source.jasig.org/licenses/license-mappings.xml</param>
+					</licenseMapping>
+				</configuration>
+			</plugin>
+		</plugins>
+
+	</build>
+</project>

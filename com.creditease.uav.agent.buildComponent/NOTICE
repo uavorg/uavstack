@@ -1,0 +1,53 @@
+Licensed to UAVStack under one or more contributor license
+agreements. See the NOTICE file distributed with this work
+for additional information regarding copyright ownership.
+Apereo licenses this file to you under the Apache License,
+Version 2.0 (the "License"); you may not use this file
+except in compliance with the License.  You may obtain a
+copy of the License at the following location:
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+
+This project includes:
+  Apache Commons Codec under The Apache Software License, Version 2.0
+  Apache Commons Logging under The Apache Software License, Version 2.0
+  Apache HttpAsyncClient under Apache License, Version 2.0
+  Apache HttpClient under Apache License, Version 2.0
+  Apache HttpCore under Apache License, Version 2.0
+  Apache HttpCore NIO under Apache License, Version 2.0
+  aredis-api under Apache 2.0
+  com.creditease.uav.agent under Apache License, Version 2.0
+  com.creditease.uav.agent.buildComponent under Apache 2.0
+  com.creditease.uav.agent.heartbeat under Apache License, Version 2.0
+  com.creditease.uav.base under Apache License, Version 2.0
+  com.creditease.uav.cache.redis under Apache License, Version 2.0
+  com.creditease.uav.collect under Apache License, Version 2.0
+  com.creditease.uav.elasticsearch.client under Apache 2.0
+  com.creditease.uav.fastjson under Apache License, Version 2.0
+  com.creditease.uav.helper under Apache License, Version 2.0
+  com.creditease.uav.httpasync under Apache License, Version 2.0
+  com.creditease.uav.logging under Apache License, Version 2.0
+  com.creditease.uav.messaging under Apache License, Version 2.0
+  com.creditease.uav.mq under Apache License, Version 2.0
+  com.creditease.uav.notifymanager under Apache License, Version 2.0
+  com.creditease.uav.threadanalysis under Apache License, Version 2.0
+  com.creditease.uav.upgrade under Apache License, Version 2.0
+  fastjson under Apache 2
+  FindBugs-jsr305 under The Apache Software License, Version 2.0
+  Guava: Google Core Libraries for Java under The Apache Software License, Version 2.0
+  Hamcrest Core under New BSD License
+  Java Servlet API under CDDL + GPLv2 with classpath exception
+  JUnit under Eclipse Public License 1.0
+  Netty/All-in-One under Apache License, Version 2.0
+  rocketmq-client 3.2.6 under Apache License, Version 2.0
+  rocketmq-common 3.2.6 under Apache License, Version 2.0
+  rocketmq-remoting 3.2.6 under Apache License, Version 2.0
+  SLF4J API Module under MIT License
+

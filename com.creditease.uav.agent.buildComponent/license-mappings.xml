@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<license-lookup xmlns="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup https://source.jasig.org/schemas/maven-notice-plugin/license-lookup/license-lookup-v1.0.xsd">
+    <artifact>
+        <groupId>aredis.sourceforge.net</groupId>
+        <artifactId>aredis-api</artifactId>
+        <version>1.4</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>com.creditease.moniter</groupId>
+        <artifactId>com.creditease.uav.agent.buildComponent</artifactId>
+        <version>1.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+    <artifact>
+        <groupId>com.creditease.moniter</groupId>
+        <artifactId>com.creditease.uav.elasticsearch.client</artifactId>
+        <version>1.0</version>
+        <license>Apache 2.0</license>
+    </artifact>
+</license-lookup>

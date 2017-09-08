@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+<Match>
+        <Class name="org.slf4j.LoggerFactory" />   		
+   		<Bug pattern="MS_SHOULD_BE_FINAL" />
+   </Match>
+</FindBugsFilter>
