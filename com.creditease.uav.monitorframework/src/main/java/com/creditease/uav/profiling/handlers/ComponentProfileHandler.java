@@ -1943,11 +1943,21 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
          */
         Map<String, Object> classAnno = (Map<String, Object>) anno.get(classPathAnnoClass);
 
-        if (classAnno == null) {
+        Object value;
+
+        if (classAnno != null) {
+
+            value = classAnno.get(classPathAnnoAttrName);
+        }
+        else if (classPathAnnoClass.equals("org.springframework.web.bind.annotation.RequestMapping")) {
+            /**
+             * for springmvc controller, if without RequestMapping is declared, the default classPath is "/";
+             */
+            value = "/";
+        }
+        else {
             return;
         }
-
-        Object value = classAnno.get(classPathAnnoAttrName);
 
         Collection<String> classPaths = new ArrayList<String>();
 
