@@ -62,15 +62,62 @@ uavstack是UAVStack的All in One源代码仓库。
 * 服务授权（代码整理中，陆续更新...）
 
 # 如何构建
-* 中间件增强框架（MOF探针）
-> mvn install com.creditease.uav.monitorframework.buildComponent/pom.xml
-* 监控代理程序
-> mvn install com.creditease.uav.agent.buildComponent/pom.xml
-* 健康管理服务
-> mvn install com.creditease.uav.healthmanager.buildComponent/pom.xml
-* AppHub
-> mvn install com.creditease.uav.apphub.buildComponent/pom.xml
+1. build com.creditease.uav.superpom
+> cd com.creditease.uav.superpom
 
+> mvn clean install -Dmaven.test.skip=true
+
+2. build 中间件增强框架（MOF探针）
+> cd com.creditease.uav.monitorframework.buildComponent
+
+> mvn clean install -Dmaven.test.skip=true
+
+成功后，可见如下目录
+   ```
+  com.creditease.uav.monitorframework.buildComponent
+  - target
+    - build
+    - uavmof_1.0_xxxxxxxxxxxxx.zip
+    - uavmof_1.0_xxxxxxxxxxxxx.zip.md5
+   ```
+
+3. build 监控代理程序(MA)
+> cd com.creditease.uav.agent.buildComponent
+
+> mvn clean install -Dmaven.test.skip=true
+
+成功后，可见如下目录
+   ```
+  com.creditease.uav.agent.buildComponent
+  - target
+    - build
+    - uavagent_1.0_xxxxxxxxxxxxx.zip
+    - uavagent_1.0_xxxxxxxxxxxxx.zip.md5
+   ```
+4. build 健康管理服务(HM)
+> cd com.creditease.uav.healthmanager.buildComponent
+
+> mvn clean install -Dmaven.test.skip=true
+
+成功后，可见如下目录
+   ```
+  com.creditease.uav.healthmanager.buildComponent
+  - target
+    - build
+    - uavhm_1.0_xxxxxxxxxxxxx.zip
+    - uavhm_1.0_xxxxxxxxxxxxx.zip.md5
+   ```
+5. build AppHub
+> cd com.creditease.uav.console
+
+> mvn clean install -Dmaven.test.skip=true
+
+成功后，可见如下目录
+   ```
+  com.creditease.uav.console
+  - target
+    - com.creditease.uav.console-1.0.war
+   ```
 # 文档中心
 ## 全维监控UAV.Monitor+APM
 * [用户指南](https://uavorg.github.io/main/uavdoc_useroperation/index.html)
