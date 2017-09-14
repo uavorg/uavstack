@@ -25,6 +25,7 @@
 		<module>../com.creditease.uav.upgrade</module>
 		<module>../com.creditease.uav.collect</module>
 		<module>../com.creditease.uav.invokechain</module>
+		<module>../com.creditease.uav.elasticsearch.client</module>
 		<module>../com.creditease.uav.threadanalysis</module>
 	</modules>
 

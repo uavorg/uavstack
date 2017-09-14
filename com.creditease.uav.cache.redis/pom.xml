@@ -24,6 +24,8 @@
 			<groupId>aredis.sourceforge.net</groupId>
 			<artifactId>aredis-api</artifactId>
 			<version>1.4</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/lib/aredis-api-1.4.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

@@ -53,7 +53,17 @@
 			<artifactId>proxool</artifactId>
 			<version>0.9.1</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion><groupId>avalon-framework</groupId>
+				<artifactId>avalon-framework-api</artifactId></exclusion>
+			</exclusions>
 		</dependency>
+		<dependency>
+    <groupId>avalon-framework</groupId>
+    <artifactId>avalon-framework-api</artifactId>
+    <version>4.3</version>
+	<scope>provided</scope>
+</dependency>
 		<!-- https://mvnrepository.com/artifact/commons-dbcp/commons-dbcp -->
 		<dependency>
 			<groupId>commons-dbcp</groupId>
