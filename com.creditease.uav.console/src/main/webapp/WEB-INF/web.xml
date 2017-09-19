@@ -173,6 +173,10 @@
         <param-name>@url:uav.app.apm.ivc.http.addr</param-name> 
         <param-value>http://localhost:7799</param-value>
     </context-param> 
+    <context-param> 
+        <param-name>@url:uav.app.apm.jta.http.addr</param-name> 
+        <param-value>http://localhost:5566</param-value>
+    </context-param>      
     <context-param>
     	<param-name>@url:uav.app.hm.newlog.http.addr</param-name>
     	<param-value>http://localhost:7899</param-value>
