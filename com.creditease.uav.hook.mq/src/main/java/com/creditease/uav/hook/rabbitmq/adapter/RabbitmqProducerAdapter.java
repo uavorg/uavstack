@@ -66,7 +66,9 @@ public class RabbitmqProducerAdapter extends InvokeChainAdapter {
             props = new AMQP.BasicProperties.Builder().headers(header).build();
         }
         else {
-            header.putAll(props.getHeaders());
+            if (props.getHeaders() != null) {
+                header.putAll(props.getHeaders());
+            }
             props = new AMQP.BasicProperties.Builder().appId(props.getAppId()).clusterId(props.getClusterId())
                     .contentEncoding(props.getContentEncoding()).contentType(props.getContentType())
                     .correlationId(props.getCorrelationId()).deliveryMode(props.getDeliveryMode())

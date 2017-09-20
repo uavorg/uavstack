@@ -90,7 +90,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
         String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
-        context.put(InterceptConstants.CONTEXTPATH, (contextPath.length() > 0) ? contextPath : "/");
+        context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
         context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
 

@@ -230,13 +230,13 @@ public class HookFactory {
                     ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL",
                             new Class<?>[] { URL.class },
                             new Object[] {
-                                    new URL("file:///" + this.mofRoot + "/com.creditease.uav.appfrk/" + support) },
+                                    new URL("file:" + this.mofRoot + "/com.creditease.uav.appfrk/" + support) },
                             this.getClass().getClassLoader());
                 }
             }
 
             ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
-                    new Object[] { new URL("file:///" + loaderPath) }, this.getClass().getClassLoader());
+                    new Object[] { new URL("file:" + loaderPath) }, this.getClass().getClassLoader());
         }
         catch (Exception e) {
             log.error("loader.addRepository fails, loaderPath=" + loaderPath, e);

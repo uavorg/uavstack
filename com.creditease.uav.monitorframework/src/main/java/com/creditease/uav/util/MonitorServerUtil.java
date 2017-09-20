@@ -306,10 +306,24 @@ public class MonitorServerUtil {
 
         if ("".equals(contextroot)) {
 
-            String tmp = basePath.replace("\\", "/");
-            int index = tmp.lastIndexOf("/");
+			/*
+             * NOTE: springboot's basePath is a random temp directory,so we use main(usually the jar name) as the appid
+             */
+            if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
+                    .equals(UAVServer.ServerVendor.SPRINGBOOT)) {
 
-            appid = tmp.substring(index + 1);
+                String javaCommand = System.getProperty("sun.java.command");
+
+                appid = javaCommand.split(" ")[0];
+
+            }
+            else {
+                String tmp = basePath.replace("\\", "/");
+                int index = tmp.lastIndexOf("/");
+
+                appid = tmp.substring(index + 1);
+            }
+            
         }
         else {
             appid = contextroot;
