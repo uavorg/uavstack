@@ -148,6 +148,8 @@ build结果
 开发演示版的健康管理服务(HM)仅适合开发环境，演示环境，小规模测试环境。
 生产环境推荐使用[分布式部署](https://uavorg.github.io/main/uavdoc_deploydocs/healmanagerInstall/healmanagerInstall/microservice.html)
 
+The health management service (HM) in AllInOne Install Package is only suitable for development environments, demos, and small scale testing environments. [A distributed deployment](https://uavorg.github.io/main/uavdoc_deploydocs/healmanagerInstall/healmanagerInstall/microservice.html) is recommended for the production environment
+
 * [Windows64位](http://pan.baidu.com/s/1boA9p75)
 * [Mac](http://pan.baidu.com/s/1boOMZ2f)
 * [Linux(CentOS)](http://pan.baidu.com/s/1qYSG5QW)
