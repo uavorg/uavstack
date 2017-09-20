@@ -2098,10 +2098,16 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         Map<String, Object> anno = (Map<String, Object>) servlerInfoMap.get("anno");
 
         if (anno != null) {
-            List<String> urls = (List<String>) anno.get("urlPatterns");
             Collection<String> turls = new ArrayList<String>();
-            for (String url : urls) {
-                turls.add(formatRelativePath(url, false));
+            // 遍历所有注解，寻找拥有urlPatterns属性的注解
+            for (Entry<String, Object> entry : anno.entrySet()) {
+                Map<String, Object> annoInfo = (Map<String, Object>) entry.getValue();
+                List<String> urls = (List<String>) annoInfo.get("urlPatterns");
+                if (urls != null) {
+                    for (String url : urls) {
+                        turls.add(formatRelativePath(url, false));
+                    }
+                }
             }
             return turls;
         }
@@ -2150,10 +2156,14 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             Map<String, Object> anno = (Map<String, Object>) servlerInfoMap.get("anno");
 
             if (anno != null) {
-                List<String> urls = (List<String>) anno.get("urlPatterns");
-                if (urls != null) {
-                    for (String url : urls) {
-                        murls.add(formatRelativePath(url, true));
+                // 遍历所有注解，寻找拥有urlPatterns属性的注解
+                for (Entry<String, Object> entry : anno.entrySet()) {
+                    Map<String, Object> annoInfo = (Map<String, Object>) entry.getValue();
+                    List<String> urls = (List<String>) annoInfo.get("urlPatterns");
+                    if (urls != null) {
+                        for (String url : urls) {
+                            murls.add(formatRelativePath(url, true));
+                        }
                     }
                 }
                 continue;
