@@ -298,7 +298,7 @@ public class JdbcDriverIT extends BaseComponent {
                 // 不为空则往最后一位追加参数
                 else {
                     Map<Integer, String> paraMap = this.parameters.get(this.parameters.size() - 1);
-                    paraMap.put((Integer) args[0], args[1].toString());
+                    paraMap.put((Integer) args[0], args[1] != null ? args[1].toString() : "null");
                 }
             }
             // batch操作则在末尾追加map

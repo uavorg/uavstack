@@ -58,6 +58,22 @@ function jumpUrl(url,desc){
 }
 
 function jumpUrlCallBack(url){
+	/**
+	* 每次重新创建，避免缓存 begin
+	*/
+	var oldIfm= document.getElementById("appContent");
+	if(oldIfm){ 
+		document.body.removeChild(oldIfm);
+	}
+
+	var newIfm = document.createElement("iframe");
+	newIfm.id="appContent";
+	newIfm.className="appContent";
+	document.body.appendChild(newIfm);
+	/**
+	* 每次重新创建，避免缓存 end
+	*/
+
 	setContentHeight();
 	if(url.indexOf("?")==-1) {
 		url += "?r="+uavRandom(9999,1); /*刷新，处理缓存*/
@@ -65,6 +81,13 @@ function jumpUrlCallBack(url){
 	else {
 		url +="&r="+uavRandom(9999,1); /*刷新，处理缓存*/
 	}
+	
+	console.log(document.getElementById("appContent").contentWindow.document.body.innerText);
+	
+	document.getElementById("appContent").contentWindow.document.body.innerText = "";
+	
+	console.log(document.getElementById("appContent").contentWindow.document.body.innerText);
+	
 	$("#appContent").attr("src",url);
 	$("#navbar").removeClass("in");
 	
