@@ -13,6 +13,20 @@ UAVStack Open Source series includes UAV.Monitor, UAV.APM, UAV.ServiceGovern, UA
 
 ![Uavstack开源系列](https://uavorg.github.io/main/index/img/support/openSource.png)
 
+# 更新公告 Project Updating Principle
+* 开源系列源代码Issue更新，将与内部版本完全同步，最低频率每周一次
+* 开源系列源代码相关的功能优化，将与内部版本完全同步，最低频率每周一次
+* 开源系列源代码相关的新功能开放，会提前一周预告，并于下周内发布
+* 标准部署包下载会与源代码更新同步，最低频率每周一次
+* AllInOne开发演示版原则上每月更新一次（打包上传比较耗时），中间更新请下载标准部署包替换
+---
+* The open source series updating is fully synchronized with the internal version, with the lowest frequency once a week
+* The open source series related functional optimizations is fully synchronized with the internal version, with the lowest frequency once a week
+* The open source series related new features will be announced a week ahead of schedule, and released next week
+* The standard deployment pack download is synchronized with source code updates, with the lowest frequency once a week
+* AllInOne pack are updated once a month (packaged, uploaded, and time-consuming) in principle, and you can download the standard deployment package instead
+
+
 # 工程说明 Source Code Project Description
 uavstack是UAVStack的All in One源代码仓库。
 
