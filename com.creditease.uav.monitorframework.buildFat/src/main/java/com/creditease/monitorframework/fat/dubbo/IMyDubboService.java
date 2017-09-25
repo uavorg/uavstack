@@ -20,8 +20,13 @@
 
 package com.creditease.monitorframework.fat.dubbo;
 
+import java.io.IOException;
 
 public interface IMyDubboService {
 
     String sayHello(String name);
+
+    String sayException(String name) throws IOException;
+
+    String sayUncatchException(String name);
 }
