@@ -19,7 +19,7 @@ UAVStack Open Source series includes UAV.Monitor, UAV.APM, UAV.ServiceGovern, UA
 * 开源系列源代码相关的新功能开放，会提前一周预告，并于下周内发布
 * 标准部署包下载会与源代码更新同步，最低频率每周一次
 * AllInOne开发演示版原则上每月更新一次（打包上传比较耗时），中间更新请下载标准部署包替换
-
+---
 * The open source series updating is fully synchronized with the internal version, with the lowest frequency once a week
 * The open source series related functional optimizations is fully synchronized with the internal version, with the lowest frequency once a week
 * The open source series related new features will be announced a week ahead of schedule, and released next week
