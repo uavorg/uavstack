@@ -112,9 +112,10 @@ public class DubboHookProxy extends HookProxy {
                         if ("invoke".equals(m.getName())) {
 
                             dpInstall.defineLocalVal(m, "mObj", DubboIT.class);
-                            m.insertBefore("{DubboIT.doMonitorStart(\"" + appid + "\",new Object[]{$1,$2},false,null);}");
-                            m.insertAfter("{DubboIT.doMonitorEnd(new Object[]{$1,$2},true,null);}");
-                            dpInstall.addCatch(m,"{DubboIT.doMonitorEnd(new Object[]{$1,$2},true,$e);throw $e;}");
+                            m.insertBefore(
+                                    "{DubboIT.doMonitorStart(\"" + appid + "\",new Object[]{$1,$2},false,null);}");
+                            m.insertAfter("{DubboIT.doMonitorEnd(new Object[]{$1,$2,$_},true,null);}");
+                            dpInstall.addCatch(m, "{DubboIT.doMonitorEnd(new Object[]{$1,$2},true,$e);throw $e;}");
 
                         }
                     }

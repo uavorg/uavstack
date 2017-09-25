@@ -78,6 +78,12 @@ public class SlowOperSupporter extends Supporter {
 
         // register 处理method类型的handler
         handlerMap.put(SlowOperConstants.SLOW_OPER_METHOD, new MethodSlowOperHandler());
+
+        // register 处理dubbo consumer类型的handler
+        handlerMap.put(SlowOperConstants.SLOW_OPER_DUBBO_CONSUMER, new MethodSlowOperHandler());
+
+        // register 处理dubbo provider类型的handler
+        handlerMap.put(SlowOperConstants.SLOW_OPER_DUBBO_PROVIDER, new MethodSlowOperHandler());
     }
 
     @Override

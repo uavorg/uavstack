@@ -30,6 +30,7 @@ import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
+import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.support.RpcUtils;
 import com.creditease.agent.helpers.NetworkHelper;
@@ -42,6 +43,7 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.hook.dubbo.invokeChain.DubboConsumerAdapter;
+import com.creditease.uav.hook.dubbo.invokeChain.DubboProviderAdapter;
 import com.creditease.uav.profiling.handlers.dubbo.DubboServiceProfileInfo;
 
 public class DubboIT {
@@ -108,14 +110,18 @@ public class DubboIT {
 
         Invoker<?> invoker = (Invoker<?>) args[0];
         Invocation invocation = (Invocation) args[1];
+        Result result = null;
+        if (isDoCap && args.length == 3) {
+            result = (Result) args[2];
+        }
 
         // consumer
         if (Constants.CONSUMER_SIDE.equals(invoker.getUrl().getParameter(Constants.SIDE_KEY))) {
-            consumerCap(isDoCap, e, invoker, invocation);
+            consumerCap(isDoCap, e, invoker, invocation, result);
         }
         // provider
         else {
-            providerCap(isDoCap, e, invoker, invocation);
+            providerCap(isDoCap, e, invoker, invocation, result);
         }
     }
 
@@ -128,7 +134,7 @@ public class DubboIT {
      * @param invocation
      */
     @SuppressWarnings("unchecked")
-    private void consumerCap(boolean isDoCap, Throwable e, Invoker<?> invoker, Invocation invocation) {
+    private void consumerCap(boolean isDoCap, Throwable e, Invoker<?> invoker, Invocation invocation, Result result) {
 
         if (isDoCap == false) {
 
@@ -155,14 +161,15 @@ public class DubboIT {
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter",
                     "registerAdapter", DubboConsumerAdapter.class);
 
+            Object[] args = { invoker, invocation, result };
             ivcContextParams = (Map<String, Object>) UAVServer.instance().runSupporter(
                     "com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
                     InvokeChainConstants.CHAIN_APP_CLIENT, InvokeChainConstants.CapturePhase.PRECAP, params,
-                    DubboConsumerAdapter.class, null);
+                    DubboConsumerAdapter.class, args);
         }
         else {
             int respCode = 1;
-            if (e != null) {
+            if (e != null || (result != null && result.getException() != null)) {
                 respCode = -1;
             }
             Map<String, Object> params = new HashMap<String, Object>();
@@ -173,15 +180,24 @@ public class DubboIT {
                     Monitor.CapturePhase.DOCAP, params);
 
             if (respCode == -1) {
-                params.put(CaptureConstants.INFO_CLIENT_RESPONSESTATE, e.toString());
+                String exceptionStr = "";
+                if (e == null) {
+                    exceptionStr = result.getException().toString();
+                }
+                else {
+                    exceptionStr = e.toString();
+                }
+                params.put(CaptureConstants.INFO_CLIENT_RESPONSESTATE, exceptionStr);
             }
             if (ivcContextParams != null) {
                 ivcContextParams.putAll(params);
             }
 
+            Object[] args = { invoker, invocation, result };
+
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
                     InvokeChainConstants.CHAIN_APP_CLIENT, InvokeChainConstants.CapturePhase.DOCAP, ivcContextParams,
-                    DubboConsumerAdapter.class, null);
+                    DubboConsumerAdapter.class, args);
         }
     }
 
@@ -193,7 +209,7 @@ public class DubboIT {
      * @param invoker
      * @param invocation
      */
-    private void providerCap(boolean isDoCap, Throwable e, Invoker<?> invoker, Invocation invocation) {
+    private void providerCap(boolean isDoCap, Throwable e, Invoker<?> invoker, Invocation invocation, Result result) {
 
         // on service start pre-cap
         if (isDoCap == false) {
@@ -215,8 +231,14 @@ public class DubboIT {
             params.put(InvokeChainConstants.PARAM_REMOTE_SRC_INFO,
                     RpcContext.getContext().getLocalAddress().getHostString());
 
+            // register adapter
+            UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter",
+                    "registerAdapter", DubboProviderAdapter.class);
+
+            Object[] args = { invoker, invocation, result };
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
-                    InvokeChainConstants.CHAIN_APP_SERVICE, InvokeChainConstants.CapturePhase.PRECAP, params);
+                    InvokeChainConstants.CHAIN_APP_SERVICE, InvokeChainConstants.CapturePhase.PRECAP, params,
+                    DubboProviderAdapter.class, args);
         }
         // on service start do-cap
         else {
@@ -233,7 +255,7 @@ public class DubboIT {
             params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, requestURL);
             params.put(CaptureConstants.INFO_APPSERVER_APPID, this.appId);
             int respCode = 1;
-            if (e != null) {
+            if (e != null || (result != null && result.getException() != null)) {
                 respCode = -1;
             }
             params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSECODE, String.valueOf(respCode));
@@ -242,12 +264,22 @@ public class DubboIT {
                     Monitor.CapturePhase.DOCAP, params);
 
             if (respCode == -1) {
-                params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSESTATE, e.toString());
+                String exceptionStr = "";
+                if (e == null) {
+                    exceptionStr = result.getException().toString();
+                }
+                else {
+                    exceptionStr = e.toString();
+                }
+                params.put(CaptureConstants.INFO_CLIENT_RESPONSESTATE, exceptionStr);
             }
             params.put(InvokeChainConstants.CLIENT_IT_CLASS, service);
             params.put(InvokeChainConstants.CLIENT_IT_METHOD, method);
+
+            Object[] args = { invoker, invocation, result };
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
-                    InvokeChainConstants.CHAIN_APP_SERVICE, InvokeChainConstants.CapturePhase.DOCAP, params);
+                    InvokeChainConstants.CHAIN_APP_SERVICE, InvokeChainConstants.CapturePhase.DOCAP, params,
+                    DubboProviderAdapter.class, args);
         }
     }
 

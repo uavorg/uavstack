@@ -719,7 +719,7 @@ function APMTool(app) {
 			var errMsg = "数据处理中，请刷新重试";
 			var epinfo = sObj["epinfo"].split(",")[0];
 			//当前支持的类型
-			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method"];
+			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer"];
 			if($.inArray(epinfo, epinfos)==-1){
 				errMsg = "不支持的数据类型，努力更新中...";
 			}

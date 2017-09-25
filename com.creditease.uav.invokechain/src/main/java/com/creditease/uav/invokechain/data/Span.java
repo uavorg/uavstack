@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.creditease.agent.helpers.DataConvertHelper;
+import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.agent.helpers.StringHelper;
 
 public class Span {
@@ -113,7 +114,7 @@ public class Span {
         this.className = info[9];
         this.methodName = info[10];
         this.url = info[11];
-        this.state = info[12];
+        this.state = EncodeHelper.urlDecode(info[12]);
 
     }
 

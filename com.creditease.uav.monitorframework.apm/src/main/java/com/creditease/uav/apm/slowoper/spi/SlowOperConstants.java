@@ -38,6 +38,8 @@ public class SlowOperConstants {
     public static final String SLOW_OPER_MQ_RABBIT_PRODUCER = "rabbitmq.client";
     public static final String SLOW_OPER_JDBC_CLIENT = "jdbc.client";
     public static final String SLOW_OPER_METHOD = "method";
+    public static final String SLOW_OPER_DUBBO_CONSUMER = "dubbo.consumer";
+    public static final String SLOW_OPER_DUBBO_PROVIDER = "dubbo.provider";
 
     // 重调用链处理各种协议关键字
     public static final String PROTOCOL_HTTP_HEADER = "protocol.http.header";
