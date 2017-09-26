@@ -33,8 +33,15 @@ import com.creditease.uav.invokechain.data.MethodSlowOperSpan;
  */
 public class SlowOperMethodAction extends AbstractSlowOperProtocolAction {
 
+    private String protocolType = "method";
+
     public SlowOperMethodAction(String cName, String feature, IActionEngine engine) {
         super(cName, feature, engine);
+    }
+
+    public SlowOperMethodAction(String cName, String feature, IActionEngine engine, String protocolType) {
+        super(cName, feature, engine);
+        this.protocolType = protocolType;
     }
 
     @Override
@@ -80,7 +87,7 @@ public class SlowOperMethodAction extends AbstractSlowOperProtocolAction {
     @Override
     public String getProtocolType() {
 
-        return "method";
+        return this.protocolType;
     }
 
 }

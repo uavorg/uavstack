@@ -67,6 +67,8 @@ public class SlowOperDataCollectHandler extends AbstractCollectDataHandler {
         new SlowOperMQProducerAction("rabbitmq.client", feature, engine);
         new SlowOperMethodAction("method", feature, engine);
         new SlowOperJdbcAction("jdbc.client", feature, engine);
+        new SlowOperMethodAction("dubbo.provider", feature, engine, "dubbo");
+        new SlowOperMethodAction("dubbo.consumer", feature, engine, "dubbo");
     }
 
     @Override

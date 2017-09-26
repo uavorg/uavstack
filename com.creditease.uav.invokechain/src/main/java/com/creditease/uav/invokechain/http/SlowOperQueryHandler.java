@@ -66,11 +66,14 @@ public class SlowOperQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
         typeMap.put("rabbitmq.client", "mq");
         typeMap.put("jdbc.client", "jdbc");
         typeMap.put("method", "method");
+        typeMap.put("dubbo.provider", "dubbo");
+        typeMap.put("dubbo.consumer", "dubbo");
 
         typeBodyMap.put("rpc", new String[] { "rpc_req_body", "rpc_rsp_body", "rpc_rsp_exception" });
         typeBodyMap.put("mq", new String[] { "mq_body" });
         typeBodyMap.put("method", new String[] { "method_req", "method_ret" });
         typeBodyMap.put("jdbc", new String[] { "sql_req", "sql_ret" });
+        typeBodyMap.put("dubbo", new String[] { "method_req", "method_ret" });
     }
 
     public SlowOperQueryHandler(String cName, String feature) {
