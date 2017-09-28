@@ -71,9 +71,14 @@
 									<fileset file="../com.creditease.uav.base/target/com.creditease.uav.base-1.0-boot.jar" ></fileset>		
 									<fileset file="../com.creditease.uav.upgrade/bin/*.*"></fileset>							
 								</copy>
-								
+																								
 								<copy todir="target/tempbuild/uavagent" >
 									<fileset dir="target/build"></fileset>
+								</copy>
+								
+								<!-- additional feature jar -->
+								<copy todir="target/build/lib" >
+									<fileset file="../com.creditease.uav.threadanalysis/target/com.creditease.uav.threadanalysis-1.0.jar" ></fileset>											
 								</copy>
 								
 								<tstamp>  
