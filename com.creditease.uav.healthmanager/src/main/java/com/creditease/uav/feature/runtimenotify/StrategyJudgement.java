@@ -160,6 +160,13 @@ public class StrategyJudgement extends AbstractComponent {
                 continue;
             }
 
+            if (targetArgs.size() > 1) {
+                showActualValue += exprArg + oper + actualValue;
+            }
+            else {
+                showActualValue = actualValue.toString();
+            }
+
             /**
              * 2.4 check if match the expression
              */
@@ -167,12 +174,6 @@ public class StrategyJudgement extends AbstractComponent {
                 continue;
             }
 
-            if (targetArgs.size() > 1) {
-                showActualValue += exprArg + oper + actualValue;
-            }
-            else {
-                showActualValue = actualValue.toString();
-            }
             fire = true;
         }
 
