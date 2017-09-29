@@ -34,6 +34,7 @@ public class TailFilesMutiJobs extends AbstractParallelJob {
     
     public TailFilesMutiJobs(ISystemLogger logger) {
         super(logger);
+        this.logger = logger;
     }
 
     @Override
@@ -46,7 +47,7 @@ public class TailFilesMutiJobs extends AbstractParallelJob {
 
         for (long inode : existingInodes) {
 
-            AbstractPartitionJob job = new TailFileTaskJob();
+            AbstractPartitionJob job = new TailFileTaskJob(logger);
 
             TailFile tf = reader.getTailFiles().get(inode);
 

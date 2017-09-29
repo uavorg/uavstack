@@ -60,7 +60,10 @@
 									<fileset file="../com.creditease.uav.agent/target/com.creditease.uav.agent-1.0.jar" ></fileset>
 									<fileset file="../com.creditease.uav.agent/target/lib/*.jar" ></fileset>
 									<fileset file="../com.creditease.uav.upgrade/target/com.creditease.uav.upgrade-1.0.jar"></fileset>
-								</copy>								
+									<!-- additional feature jar -->
+									<fileset file="../com.creditease.uav.threadanalysis/target/com.creditease.uav.threadanalysis-1.0.jar" ></fileset>
+								</copy>
+
 								<copy todir="target/build/config" >
 									<fileset dir="config" ></fileset>	
 									<fileset file="../com.creditease.uav.upgrade/config/*.properties"></fileset>								
@@ -74,11 +77,6 @@
 																								
 								<copy todir="target/tempbuild/uavagent" >
 									<fileset dir="target/build"></fileset>
-								</copy>
-								
-								<!-- additional feature jar -->
-								<copy todir="target/build/lib" >
-									<fileset file="../com.creditease.uav.threadanalysis/target/com.creditease.uav.threadanalysis-1.0.jar" ></fileset>											
 								</copy>
 								
 								<tstamp>  
