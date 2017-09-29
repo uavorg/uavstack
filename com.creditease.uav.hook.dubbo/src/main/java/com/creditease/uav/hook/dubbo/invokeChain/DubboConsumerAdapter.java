@@ -20,12 +20,19 @@
 
 package com.creditease.uav.hook.dubbo.invokeChain;
 
+import com.alibaba.dubbo.rpc.Invocation;
+import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.creditease.agent.helpers.DataConvertHelper;
+import com.creditease.agent.helpers.EncodeHelper;
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.uav.apm.invokechain.span.Span;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainAdapter;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
+import com.creditease.uav.apm.slowoper.spi.SlowOperConstants;
+import com.creditease.uav.apm.slowoper.spi.SlowOperContext;
 
 public class DubboConsumerAdapter extends InvokeChainAdapter {
 
@@ -48,6 +55,16 @@ public class DubboConsumerAdapter extends InvokeChainAdapter {
 
         String spanMeta = this.spanFactory.getSpanMeta(span);
         RpcContext.getContext().setAttachment(InvokeChainConstants.PARAM_RPCHEAD_SPANINFO, spanMeta);
+        if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.SlowOperSupporter")) {
+            SlowOperContext slowOperContext = new SlowOperContext();
+            // dubbo虽属于rpc，但从其使用方式上属于方法级
+            Invocation invocation = (Invocation) args[1];
+            slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_PARAMS, parseParams(invocation.getArguments()));
+
+            Object params[] = { span, slowOperContext };
+            UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
+                    span.getEndpointInfo().split(",")[0], InvokeChainConstants.CapturePhase.PRECAP, context, params);
+        }
     }
 
     @Override
@@ -58,6 +75,87 @@ public class DubboConsumerAdapter extends InvokeChainAdapter {
     @Override
     public void afterDoCap(InvokeChainContext context, Object[] args) {
 
+        if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.SlowOperSupporter")) {
+
+            Span span = (Span) context.get(InvokeChainConstants.PARAM_SPAN_KEY);
+
+            if (span == null) {
+                return;
+            }
+
+            SlowOperContext slowOperContext = new SlowOperContext();
+            // 根据返回码确定当前是否有异常(由于IT位置已经解析过，此处直接使用)
+            int respCode = (Integer) context.get(CaptureConstants.INFO_CLIENT_RESPONSECODE);
+            if (respCode == -1) {
+
+                slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_RETURN,
+                        parseReturn(context.get(CaptureConstants.INFO_CLIENT_RESPONSESTATE)));
+            }
+            else {
+                Result result = (Result) args[2];
+                slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_RETURN, parseReturn(result.getValue()));
+            }
+
+            Object params[] = { span, slowOperContext };
+            UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
+                    span.getEndpointInfo().split(",")[0], InvokeChainConstants.CapturePhase.DOCAP, context, params);
+        }
     }
 
+    /**
+     * 解析入参
+     * 
+     * @param args
+     * @return
+     */
+    private String parseParams(Object[] args) {
+
+        if (args == null) {
+            return "";
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Object temp : args) {
+            if (temp == null) {
+                temp = "null";
+            }
+            String tempStr = temp.toString();
+            // 限定采集的协议体的大小 当length为小于0时不限制长度，为0时则直接为空（不去获取）
+            int methodParamsLength = DataConvertHelper.toInt(System.getProperty("com.creditease.uav.ivcdat.method.req"),
+                    2000);
+            if (tempStr.toString().length() > methodParamsLength && methodParamsLength > 0) {
+                tempStr = tempStr.substring(0, methodParamsLength);
+            }
+            else if (methodParamsLength == 0) {
+                tempStr = "";
+            }
+            tempStr = EncodeHelper.urlEncode(tempStr);
+            stringBuilder.append(tempStr.length() + ";" + tempStr.toString() + ";");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 1);
+    }
+
+    /**
+     * 解析出参
+     * 
+     * @param arg
+     * @return
+     */
+    private String parseReturn(Object result) {
+
+        Object temp = result;
+        if (temp == null) {
+            temp = "null";
+        }
+        String tempStr = temp.toString();
+        // 限定采集的协议体的大小 当length为小于0时不限制长度，为0时则直接为空（不去获取）
+        int methodReturnLength = DataConvertHelper.toInt(System.getProperty("com.creditease.uav.ivcdat.method.ret"),
+                2000);
+        if (tempStr.toString().length() > methodReturnLength && methodReturnLength > 0) {
+            tempStr = tempStr.substring(0, methodReturnLength);
+        }
+        else if (methodReturnLength == 0) {
+            tempStr = "";
+        }
+        return EncodeHelper.urlEncode(tempStr);
+    }
 }

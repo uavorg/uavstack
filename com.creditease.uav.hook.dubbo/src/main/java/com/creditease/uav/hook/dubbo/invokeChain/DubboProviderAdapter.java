@@ -18,11 +18,14 @@
  * >>
  */
 
-package com.creditease.uav.apm.slowoper.adapter;
+package com.creditease.uav.hook.dubbo.invokeChain;
 
+import com.alibaba.dubbo.rpc.Invocation;
+import com.alibaba.dubbo.rpc.Result;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.uav.apm.invokechain.span.Span;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainAdapter;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
@@ -30,36 +33,33 @@ import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
 import com.creditease.uav.apm.slowoper.spi.SlowOperConstants;
 import com.creditease.uav.apm.slowoper.spi.SlowOperContext;
 
-public class MethodSpanAdapter extends InvokeChainAdapter {
+public class DubboProviderAdapter extends InvokeChainAdapter {
 
     @Override
-    public void beforePreCap(InvokeChainContext context, Object[] args) {
+    public void beforePreCap(InvokeChainContext params, Object[] args) {
 
-        // do noting
     }
 
     @Override
     public void afterPreCap(InvokeChainContext context, Object[] args) {
 
+        String url = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL);
+        Span span = this.spanFactory.getSpanFromContext(url);
         if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.SlowOperSupporter")) {
-
-            String storekey = (String) context.get(InvokeChainConstants.METHOD_SPAN_STOREKEY);
-            Span span = (Span) context.get(storekey);
-
             SlowOperContext slowOperContext = new SlowOperContext();
-            slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_PARAMS, parseParams(args));
+            // dubbo虽属于rpc，但从其使用方式上属于方法级
+            Invocation invocation = (Invocation) args[1];
+            slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_PARAMS, parseParams(invocation.getArguments()));
 
             Object params[] = { span, slowOperContext };
-            // 由于使用Endpoint Info不能区分方法级，故此处使用常量
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
-                    SlowOperConstants.SLOW_OPER_METHOD, InvokeChainConstants.CapturePhase.PRECAP, context, params);
+                    span.getEndpointInfo().split(",")[0], InvokeChainConstants.CapturePhase.PRECAP, context, params);
         }
     }
 
     @Override
     public void beforeDoCap(InvokeChainContext context, Object[] args) {
 
-        // do nothing
     }
 
     @Override
@@ -67,24 +67,29 @@ public class MethodSpanAdapter extends InvokeChainAdapter {
 
         if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.SlowOperSupporter")) {
 
-            String storekey = (String) context.get(InvokeChainConstants.METHOD_SPAN_STOREKEY);
-
-            if (storekey == null) {
-                return;
-            }
-
-            Span span = (Span) context.get(storekey);
+            String url = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL);
+            Span span = this.spanFactory.getRemoveSpanFromContext(url);
 
             if (span == null) {
                 return;
             }
 
             SlowOperContext slowOperContext = new SlowOperContext();
-            slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_RETURN, parseReturn(args));
+            // 根据返回码确定当前是否有异常(由于IT位置已经解析过，此处直接使用)
+            String respCode = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSECODE);
+            if (respCode.equals("-1")) {
+
+                slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_RETURN,
+                        parseReturn(context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSESTATE)));
+            }
+            else {
+                Result result = (Result) args[2];
+                slowOperContext.put(SlowOperConstants.PROTOCOL_METHOD_RETURN, parseReturn(result.getValue()));
+            }
 
             Object params[] = { span, slowOperContext };
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
-                    SlowOperConstants.SLOW_OPER_METHOD, InvokeChainConstants.CapturePhase.DOCAP, context, params);
+                    span.getEndpointInfo().split(",")[0], InvokeChainConstants.CapturePhase.DOCAP, context, params);
         }
     }
 
@@ -126,9 +131,9 @@ public class MethodSpanAdapter extends InvokeChainAdapter {
      * @param arg
      * @return
      */
-    private String parseReturn(Object[] args) {
+    private String parseReturn(Object result) {
 
-        Object temp = args[0];
+        Object temp = result;
         if (temp == null) {
             temp = "null";
         }

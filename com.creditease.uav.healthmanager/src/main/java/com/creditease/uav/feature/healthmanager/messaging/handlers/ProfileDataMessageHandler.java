@@ -30,7 +30,6 @@ import java.util.Set;
 
 import com.creditease.agent.ConfigurationManager;
 import com.creditease.agent.helpers.JSONHelper;
-import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.uav.cache.api.CacheManager;
@@ -360,6 +359,8 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
 
         Map<String, Object> comps = mdf.getElemInstValues(appid, "cpt", "com.alibaba.dubbo.config.spring.ServiceBean");
 
+        // 获取dubbo provider的ip
+        String ip = mdf.getIP();
         if (comps == null || comps.size() == 0) {
             return;
         }
@@ -404,7 +405,7 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
 
                     path = (StringHelper.isEmpty(path)) ? servcls : path;
 
-                    String url = getDubboURL(group, version, method, port, protocol, path);
+                    String url = getDubboURL(ip, group, version, method, port, protocol, path);
 
                     compServicesURLs.add(url);
                 }
@@ -412,12 +413,12 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
         }
     }
 
-    private String getDubboURL(String group, String version, String method, Integer localPort, String protocol,
-            String path) {
+    private String getDubboURL(String ip, String group, String version, String method, Integer localPort,
+            String protocol, String path) {
 
         StringBuilder requestURL = new StringBuilder();
 
-        requestURL.append(protocol).append("://").append(NetworkHelper.getLocalIP()).append(":").append(localPort);
+        requestURL.append(protocol).append("://").append(ip).append(":").append(localPort);
 
         if (group != null) {
             requestURL.append(":").append(group);

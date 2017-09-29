@@ -22,6 +22,7 @@ package com.creditease.uav.apm.invokechain.span;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.agent.helpers.StringHelper;
 
 public class Span implements Cloneable {
@@ -227,6 +228,7 @@ public class Span implements Cloneable {
         else {
             this.state = rc + "?" + state;
         }
+        this.state = EncodeHelper.urlEncode(this.state);
     }
 
     @Override

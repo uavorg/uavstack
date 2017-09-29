@@ -449,7 +449,7 @@ public class TestRestService {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername("guest");
         factory.setPassword("guest");
-        factory.setHost("127.0.0.1");
+        factory.setHost("10.100.66.81");
         factory.setPort(5672);
         try {
             com.rabbitmq.client.Connection conn = factory.newConnection();
@@ -495,7 +495,7 @@ public class TestRestService {
     public void testRocketmq(String jsonString) {
 
         DefaultMQProducer producer = new DefaultMQProducer("hookTest");
-        producer.setNamesrvAddr("127.0.0.1:9876");
+        producer.setNamesrvAddr("10.100.33.135:9876");
         Message msg = new Message("SELF_TEST_TOPIC", "test".getBytes());
         try {
             producer.start();
@@ -517,7 +517,7 @@ public class TestRestService {
             e.printStackTrace();
         }
         DefaultMQPushConsumer pushConsumer = new DefaultMQPushConsumer("hookTest");
-        pushConsumer.setNamesrvAddr("127.0.0.1:9876");
+        pushConsumer.setNamesrvAddr("10.100.33.135:9876");
         pushConsumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         pushConsumer.registerMessageListener(new MessageListenerOrderly() {
 
@@ -568,6 +568,28 @@ public class TestRestService {
         IMyDubboService mds = (IMyDubboService) wac.getBean("myDubboServiceC");
 
         return mds.sayHello("zz");
+    }
+
+    @POST
+    @Path("testDubboExceptin")
+    public String testDubboExceptin() throws IOException {
+
+        WebApplicationContext wac = WebApplicationContextUtils.getWebApplicationContext(sc);
+
+        IMyDubboService mds = (IMyDubboService) wac.getBean("myDubboServiceC");
+
+        return mds.sayException("exception");
+    }
+
+    @POST
+    @Path("testDubboUncatchException")
+    public String testDubboUncatchException() {
+
+        WebApplicationContext wac = WebApplicationContextUtils.getWebApplicationContext(sc);
+
+        IMyDubboService mds = (IMyDubboService) wac.getBean("myDubboServiceC");
+
+        return mds.sayUncatchException("UncatchException");
     }
 
     DAOFactory factory;

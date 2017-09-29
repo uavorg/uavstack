@@ -20,6 +20,7 @@
 
 package com.creditease.monitorframework.fat.dubbo;
 
+import java.io.IOException;
 
 public class MyDubboService implements IMyDubboService {
 
@@ -28,6 +29,20 @@ public class MyDubboService implements IMyDubboService {
 
         // TODO Auto-generated method stub
         return name;
+    }
+
+    @Override
+    public String sayException(String name) throws IOException {
+
+        throw new IOException("专门测试用的异常");
+    }
+
+    @Override
+    public String sayUncatchException(String name) {
+
+        String exceptionInt = "test";
+        int num = Integer.parseInt(exceptionInt);
+        return name + num;
     }
 
 }
