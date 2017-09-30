@@ -291,28 +291,22 @@ public class HBClientDefaultHandler extends AbstractHBClientHandler {
         if (JVMToolHelper.isWindows()) {
             File[] roots = File.listRoots();
 
-            StringBuilder sb = new StringBuilder("{");
-
+            Map<String, Map<String, String>> resultMap = new HashMap<String, Map<String, String>>();
             for (int i = 0; i < roots.length; i++) {
                 File file = roots[i];
-                sb.append("\"" + file.getPath() + "\":{")
-                        .append("\"free\":\"" + Math.round((double) (file.getFreeSpace() / 1024)) + "\",")// 空闲空间
-                        .append("\"total\":\"" + +Math.round((double) (file.getTotalSpace() / 1024)) + "\",")// 总空间
-                        .append("\"use\":\""
-                                + +Math.round((double) ((file.getTotalSpace() - file.getFreeSpace()) / 1024)) + "\",")// 已使用空间
-                        .append("\"useRate\":\""
-                                + ((file.getTotalSpace() == 0) ? "0"
-                                        : (file.getTotalSpace() - file.getFreeSpace()) * 100 / file.getTotalSpace())
-                                + "%\"")// 空间占用率
-                        .append("}");
-
-                if (i < roots.length - 1) {
-                    sb.append(",");
-                }
+                Map<String, String> temp = new HashMap<String, String>();
+                temp.put("free", String.valueOf(Math.round((double) (file.getFreeSpace() / 1024))));
+                temp.put("total", String.valueOf(Math.round((double) (file.getTotalSpace() / 1024))));
+                temp.put("use",
+                        String.valueOf(Math.round((double) ((file.getTotalSpace() - file.getFreeSpace()) / 1024))));
+                temp.put("useRate", ((file.getTotalSpace() == 0) ? 0
+                        : (file.getTotalSpace() - file.getFreeSpace()) * 100 / file.getTotalSpace()) + "%");
+                resultMap.put(file.getPath().substring(0, file.getPath().length() - 1), temp);
             }
 
-            sb.append("}");
-            return sb.toString();
+            dioc.collectWin(resultMap);
+
+            return JSON.toJSONString(resultMap);
         }
         else {
             Map<String, Map<String, String>> resultMap = new HashMap<String, Map<String, String>>();
