@@ -591,9 +591,17 @@ select{
 }
 
 /*APM相关CSS*/
+.AppIVCWnd_AppMode {
+	height: 80px;
+	text-align: left;
+	padding-top: 5px;
+	padding-left: 5px;
+	color: #000;
+}
+
 .AppIVCWnd_GlobalMode{
 	font-size: 14px;
-	height: 80px;
+	height: 105px;
 	text-align: left;
 	padding-top: 0px;
 	padding-left: 10px;
