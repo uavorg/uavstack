@@ -201,7 +201,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         return pinfos;
     }
 
-    // -------------------------------------------Deployment Descriptor Processor------------------------------------
+    // -------------------------------------------Deployment Descriptor
+    // Processor------------------------------------
     /**
      * DescriptorProcessor is the basic class to handle the deployment descriptor file such as
      * web.xml,spring-context.xml...
@@ -805,7 +806,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                             try {
                                 Class<?> c = cl.loadClass(sClass);
 
-                                // step 1.1: we need see serviceBean|implementor if is interface
+                                // step 1.1: we need see serviceBean|implementor
+                                // if is interface
                                 if (c.isInterface() == true) {
                                     if (logger.isDebugable()) {
                                         logger.debug(
@@ -814,14 +816,16 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                                                 null);
                                     }
                                 }
-                                // step 1.2: if this class is not interface, we assume it is the impl class, because
+                                // step 1.2: if this class is not interface, we
+                                // assume it is the impl class, because
                                 // maybe this is a wrong class
                                 else {
                                     return sClass;
                                 }
                             }
                             catch (ClassNotFoundException e) {
-                                // step 1.3: that means this is a unknown class, we need see serviceBean|implementor
+                                // step 1.3: that means this is a unknown class,
+                                // we need see serviceBean|implementor
                                 if (logger.isDebugable()) {
                                     logger.debug("LOAD JAXWS Impl class[" + sClass
                                             + "] FAIL from SPRING ConfigXml Element Attribute[" + serviceClass + "].",
@@ -1044,7 +1048,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                     @Override
                     public void loadInfo(String sKey, String sKeyRawValue, Map<String, Object> sInfo) {
 
-                        // doing nothing as no thing need being collected for listeners
+                        // doing nothing as no thing need being collected for
+                        // listeners
                     }
                 };
             }
@@ -1057,7 +1062,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                     @Override
                     public void loadInfo(String sKey, String sKeyRawValue, Map<String, Object> sInfo) {
 
-                        // doing nothing as no thing need being collected for display-name
+                        // doing nothing as no thing need being collected for
+                        // display-name
                     }
                 };
             }
@@ -1371,7 +1377,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
          * 将类似下面的注解信息中的带转义引号(\")替换为单引号
          * 
          * @Action(value = "downloadModel", results = { @Result(type = "stream", params = {"inputName", "inputStream",
-         *               "contentDisposition", "attachment;filename=\"${downloadFileName}\"","bufferSize", "512" }) })
+         *               "contentDisposition", "attachment;filename=\"${downloadFileName}\"", "bufferSize", "512" }) })
          * 
          * @param annoInfo
          * @return
@@ -2107,7 +2113,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             // try to load componentsByDescriptor
             loadComponentsByDescriptor(dpInstances, webAppRoot, context, componentClassName, inst);
 
-            // try to load componentsByDynamic Creation, currently is for servlet 3.x and webservice
+            // try to load componentsByDynamic Creation, currently is for
+            // servlet 3.x and webservice
             loadComponentsByDynamic(itContext, componentClassName, inst, context, annoAvailableClasses, fcs);
 
             /**
@@ -2521,7 +2528,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 for (String methodPath : methodPaths) {
 
                     /**
-                     * NOTE：支持方法级的模糊匹配，只要有一个方法的URL是带*的，该方法所有url都支持模糊匹配（有点小limitation）
+                     * NOTE：支持方法级的模糊匹配，只要有一个方法的URL是带*的，该方法所有url都支持模糊匹配（ 有点小limitation）
                      */
                     /**
                      * option 1: /aaa/*
@@ -2843,7 +2850,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     //
     // // add metricName to customizedMetrics
     // if (metricsArray.length == 3) {
-    // metrics.put(metricsArray[1], JSONHelper.toObject(metricsArray[2], Map.class));
+    // metrics.put(metricsArray[1], JSONHelper.toObject(metricsArray[2],
+    // Map.class));
     // }
     // else {
     // metrics.put(metricsArray[1], Collections.emptyMap());
@@ -2930,7 +2938,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 dpInst = dpInstances.get(dpClass.getName());
             }
 
-            // load componentsByDescriptor then the descriptors have a chance to override the anno, this is match the
+            // load componentsByDescriptor then the descriptors have a chance to
+            // override the anno, this is match the
             // JEE
             // SPEC or Common Sense
             if (dpInst != null) {
