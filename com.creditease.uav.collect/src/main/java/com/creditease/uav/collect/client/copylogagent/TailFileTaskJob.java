@@ -35,6 +35,10 @@ public class TailFileTaskJob extends AbstractPartitionJob {
 
     private static ThreadLocal<CopyOfProcessOfLogagent> cpy = new ThreadLocal<>();
 
+    public TailFileTaskJob(ISystemLogger logger) {
+        this.log = logger;
+    }
+
     public void setCurrenttfref(CopyOfProcessOfLogagent c) {
 
         cpy.set(c);
@@ -76,8 +80,6 @@ public class TailFileTaskJob extends AbstractPartitionJob {
             log.err(this, "Unable to tail files.", t);
         }
         finally {
-            log.err(this, "finally invoked...");
-
             if (null != serverlogs) {
                 serverlogs.clear();
             }

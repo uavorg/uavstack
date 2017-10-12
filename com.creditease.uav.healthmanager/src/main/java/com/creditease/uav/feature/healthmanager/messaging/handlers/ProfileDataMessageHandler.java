@@ -21,8 +21,10 @@
 package com.creditease.uav.feature.healthmanager.messaging.handlers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,6 @@ import java.util.Set;
 
 import com.creditease.agent.ConfigurationManager;
 import com.creditease.agent.helpers.JSONHelper;
-import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.uav.cache.api.CacheManager;
@@ -360,6 +361,8 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
 
         Map<String, Object> comps = mdf.getElemInstValues(appid, "cpt", "com.alibaba.dubbo.config.spring.ServiceBean");
 
+        // 获取dubbo provider的ip
+        String ip = mdf.getIP();
         if (comps == null || comps.size() == 0) {
             return;
         }
@@ -404,7 +407,7 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
 
                     path = (StringHelper.isEmpty(path)) ? servcls : path;
 
-                    String url = getDubboURL(group, version, method, port, protocol, path);
+                    String url = getDubboURL(ip, group, version, method, port, protocol, path);
 
                     compServicesURLs.add(url);
                 }
@@ -412,12 +415,12 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
         }
     }
 
-    private String getDubboURL(String group, String version, String method, Integer localPort, String protocol,
-            String path) {
+    private String getDubboURL(String ip, String group, String version, String method, Integer localPort,
+            String protocol, String path) {
 
         StringBuilder requestURL = new StringBuilder();
 
-        requestURL.append(protocol).append("://").append(NetworkHelper.getLocalIP()).append(":").append(localPort);
+        requestURL.append(protocol).append("://").append(ip).append(":").append(localPort);
 
         if (group != null) {
             requestURL.append(":").append(group);
@@ -552,13 +555,228 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler {
 
         getSpringMVCURLs(springmvcBaseURL, compServices, springMVCRest);
 
-        pi.put("cpt.servlets", JSONHelper.toString(servlets));
+        // get struts2 urls
+        Map<String, Object> strutsAction = mdf.getElemInstValues(appid, "cpt", "com.opensymphony.xwork2.Action");
+        getStruts2URLs(appurl, compServices, strutsAction);
 
+        pi.put("cpt.servlets", JSONHelper.toString(servlets));
         pi.put("cpt.jaxws", JSONHelper.toString(jaxws));
         pi.put("cpt.jaxwsP", JSONHelper.toString(jaxwsProviders));
         pi.put("cpt.jaxrs", JSONHelper.toString(jaxrs));
         pi.put("cpt.springmvc", JSONHelper.toString(springMVC));
         pi.put("cpt.springmvcRest", JSONHelper.toString(springMVCRest));
+        pi.put("cpt.struts2", JSONHelper.toString(strutsAction));
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private void getStruts2URLsByAnno(String appurl, Map<String, Set<String>> compServices,
+            Map<String, Object> strutsAction, String key, Set<String> extSet) {
+
+        Set<String> compServicesURLs = compServices.get(key);
+        if (compServicesURLs == null) {
+            compServicesURLs = new HashSet<String>();
+            compServices.put(key, compServicesURLs);
+        }
+
+        Map<String, Object> valueMap = (Map<String, Object>) strutsAction.get(key);
+
+        Map<String, Object> methodsMap = (Map<String, Object>) valueMap.get("methods");
+        Map<String, Object> classAnnoMap = (Map<String, Object>) valueMap.get("anno");
+
+        // get namespaces
+        Set<String> namespaces = new HashSet<String>();
+
+        if (classAnnoMap != null && classAnnoMap.size() > 0) {
+            for (Map.Entry<String, Object> classAnno : classAnnoMap.entrySet()) {
+
+                String annoKey = classAnno.getKey();
+                Object annoValue = classAnno.getValue();
+
+                if ("org.apache.struts2.convention.annotation.Namespace".equals(annoKey)) {
+                    namespaces.add((String) ((Map) annoValue).get("value"));
+                }
+
+                if ("org.apache.struts2.convention.annotation.Namespaces".equals(annoKey)) {
+
+                    List aList = (List) ((Map) annoValue).get("value");
+
+                    for (Object obj : aList) {
+                        namespaces.add((String) ((Map) obj).get("value"));
+                    }
+                }
+
+            }
+        }
+        else {
+            namespaces.add("/");
+        }
+
+        // get actions
+        Set<String> actionNames = new HashSet<String>();
+        if (methodsMap != null) {
+            for (Map.Entry<String, Object> method : methodsMap.entrySet()) {
+
+                Map<String, Object> map = (Map<String, Object>) method.getValue();
+                if (map.get("anno") == null) {
+                    continue;
+                }
+
+                Map<String, Object> methodAnnoMap = (Map<String, Object>) map.get("anno");
+
+                for (Map.Entry<String, Object> methodAnno : methodAnnoMap.entrySet()) {
+
+                    String annoKey = methodAnno.getKey();
+                    Object annoValue = methodAnno.getValue();
+
+                    // if have Actions annotation ignore Action annotation
+                    if ("org.apache.struts2.convention.annotation.Actions".equals(annoKey)) {
+
+                        List aList = (List) ((Map) annoValue).get("value");
+
+                        for (Object obj : aList) {
+                            actionNames.add((String) ((Map) obj).get("value"));
+                        }
+
+                        continue;
+                    }
+
+                    if ("org.apache.struts2.convention.annotation.Action".equals(annoKey)
+                            && !methodAnnoMap.containsKey("org.apache.struts2.convention.annotation.Actions")) {
+                        actionNames.add((String) ((Map) annoValue).get("value"));
+                    }
+                }
+            }
+        }
+
+        Iterator<String> nsIterator = namespaces.iterator();
+        while (nsIterator.hasNext()) {
+            String ns = nsIterator.next();
+
+            if (!"/".equals(ns)) {
+                ns = ns + "/";
+            }
+
+            Iterator<String> actionNamesIterator = actionNames.iterator();
+            while (actionNamesIterator.hasNext()) {
+                String actionName = actionNamesIterator.next();
+
+                Iterator<String> extIterator = extSet.iterator();
+                while (extIterator.hasNext()) {
+                    String ext = extIterator.next();
+                    if (!"".equals(ext)) {
+                        ext = "." + ext;
+                    }
+                    compServicesURLs.add(appurl.substring(0, appurl.length() - 1) + ns + actionName + ext);
+                }
+
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void getStruts2URLsByDes(String appurl, Map<String, Set<String>> compServices,
+            Map<String, Object> strutsAction, String key, Set<String> extSet) {
+
+        Set<String> compServicesURLs = compServices.get(key);
+        if (compServicesURLs == null) {
+            compServicesURLs = new HashSet<String>();
+            compServices.put(key, compServicesURLs);
+        }
+
+        Map<String, Object> valueMap = (Map<String, Object>) strutsAction.get(key);
+
+        // get action urls by des
+        List<Object> desList = (List<Object>) (valueMap.get("des"));
+        if (desList == null || desList.size() <= 0) {
+            return;
+        }
+
+        Iterator<String> extIterator = extSet.iterator();
+        while (extIterator.hasNext()) {
+            String ext = extIterator.next();
+            if (!"".equals(ext)) {
+                ext = "." + ext;
+            }
+
+            for (Object desObj : desList) {
+                Map<String, Object> aMap = (Map<String, Object>) desObj;
+
+                String ns = (String) aMap.get("namespace");
+
+                if (!"/".equals(ns)) {
+                    ns = ns + "/";
+                }
+
+                compServicesURLs.add(appurl.substring(0, appurl.length() - 1) + ns + aMap.get("name") + ext);
+            }
+        }
+    }
+
+    private void getStruts2URLs(String appurl, Map<String, Set<String>> compServices,
+            Map<String, Object> strutsAction) {
+
+        for (Map.Entry<String, Object> entry : strutsAction.entrySet()) {
+
+            String key = entry.getKey();
+
+            if ("com.opensymphony.xwork2.ActionSupport".equals(key)) {
+                continue;
+            }
+
+            Set<String> extSet = getStruts2URLExtension(strutsAction);
+            getStruts2URLsByAnno(appurl, compServices, strutsAction, key, extSet);
+            getStruts2URLsByDes(appurl, compServices, strutsAction, key, extSet);
+
+        }
+
+        // ignore com.opensymphony.xwork2.ActionSupport
+        strutsAction.remove("com.opensymphony.xwork2.ActionSupport");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getStruts2URLExtension(Map<String, Object> strutsAction) {
+
+        Set<String> extSet = new HashSet<String>();
+
+        for (Map.Entry<String, Object> entry : strutsAction.entrySet()) {
+
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if ("com.opensymphony.xwork2.ActionSupport".equals(key)) {
+                continue;
+            }
+
+            Map<String, Object> valueMap = (Map<String, Object>) value;
+
+            List<Object> desList = (List<Object>) valueMap.get("des");
+
+            if (desList == null) {
+                continue;
+            }
+
+            for (Object desObj : desList) {
+                Map<String, Object> aMap = (Map<String, Object>) desObj;
+                Object extObj = aMap.get("extension");
+                if (extObj == null) {
+                    continue;
+                }
+
+                String[] extArr = ((String) extObj).split(",");
+
+                List<String> extList = Arrays.asList(extArr);
+
+                extSet.addAll(extList);
+
+                return extSet;
+            }
+        }
+
+        if (extSet.size() <= 0) {
+            extSet.add("action");
+        }
+
+        return extSet;
     }
 
     /**

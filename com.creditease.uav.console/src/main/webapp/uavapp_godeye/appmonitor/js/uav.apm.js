@@ -303,25 +303,25 @@ function APMTool(app) {
 				case 11:
 					return "<span style='display:none'>"+value+"</span>";
 				case 1:
-					return "<div class=\"ivcCell\" style='color:#009ad6;display:inline-block;' onclick=\"javascript:jumpAppIVCDataWnd(this)\">"+TimeHelper.getTime(value,"FMSN")+"</div>";
+					return "<div class=\"ivcCell\" style='color:#009ad6;display:inline-block;' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\">"+TimeHelper.getTime(value,"FMSN")+"</div>";
 				case 2:
-					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 3:
-					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 4:
-					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 5:
-					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 6:
-					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div class=\"ivcCell\" style='color:#444;font-size:10px;' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 7:				
-					return "<div class=\"ivcCell\" onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div class=\"ivcCell\" onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 8:
 					var color="";
 					if (value.indexOf(_this.appInfo["appid"])>-1) {
 						color="font-weight:bold;color:#36648B;";
 					}
-					return "<div style='word-break:break-all;word-wrap:break-word;white-space:normal;"+color+"' onclick=\"javascript:jumpAppIVCDataWnd(this)\" >"+value+"</div>";
+					return "<div style='word-break:break-all;word-wrap:break-word;white-space:normal;"+color+"' onclick=\"javascript:appAPM.jumpAppIVCDataWnd(this)\" >"+value+"</div>";
 				case 9:
 					return _this.UI_list_state(value,true);
 				case 10:
@@ -465,6 +465,8 @@ function APMTool(app) {
 	        "<span class=\"idTitle\" >"+this.appInfo["appurl"]+"</span>" +
 	        "<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCWnd','destroyAppIVCWnd','AppInstChartWnd')\"></div>" +
 	        "</div></div>";
+			
+			html+="<div class=\"AppHubMVCSearchBar AppIVCWnd_AppMode\" align='left' style='background:#eee;'>";
 		}
 		//全局模式
 		else {
@@ -472,13 +474,27 @@ function APMTool(app) {
 			html+= "<div id=\"AppIVCWnd_Selectors\">应用实例 </div>";
 		}
 		
-		html+="<div class=\"AppHubMVCSearchBar\" align='left' style='background:#eee;'>" +
-				"&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看最近1分钟内的服务请求\" onclick='appAPM.callIVCQuery(\"lst1min\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L1min</button>"+
+		html+="<div class=\"\">时间 <div class=\"\" style='display:inline-block;'>" 
+    		+	"<input id='AppIVCWnd_TimeRange' type=\"text\" class=\"form_datetime\" style=\"width:100px;font-size:11px;height:27px;\" readonly placeholder='全部' title=\"选择时间区段\" />"
+    		+ "<span id='AppIVCWnd_TimeRangeSelectorCtn'></span>"
+    		+ "<button type=\"button\" class=\"btn btn-default\" title=\"清除时间段，代表全部时间\" onclick='appAPM.cleanTimeRange()'>"
+			+ "<span class=\"glyphicon glyphicon-remove\"></span>"
+			+ "</button>"
+			
+			+ "<button id=\"searchbtn\" type=\"button\" class=\"btn btn-default\" title=\"快速搜索\n不输入时间范围，则默认搜索最近1分钟调用链\" onclick='appAPM.callIVCQuery(\"qsearch\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"});'>"
+			+ "<span class=\"glyphicon glyphicon-search\"></span>"
+			+ "</button>"
+			
+            + "</div></div>";
+    	
+//    	    + "<div>搜索 <input id=\"AppIVCWnd_KeyWord\" class=\"form-control AppHubMVCSearchBarInputText\""
+//			+ " type=\"text\" title=\"1. 可输入多个关键字，用空格分隔，代表或连接，即任一关键字匹配\n2.多个关键字用+号连接，代表所有关键字匹配\n3.空格和+号可同时使用，或连接优先\n4. 可在关键字两头加*，代表启用模糊匹配，例如*com.creditease*，则所有包含com.creditease字符串都会被匹配\" placeholder=\"关键字\" value=\"\"></input>"
+
+		html+="&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看最近1分钟内的服务请求\" onclick='appAPM.callIVCQuery(\"lst1min\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L1min</button>"+
 				"&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看1小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100in1hr\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100in1hr</button>" +
 		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最近100条的服务请求\"  onclick='appAPM.callIVCQuery(\"lst100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L100</button>" +
-		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100</button>" +
-		        
-				"</div>";
+		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100</button>" ;
+		
 		html+="<div  id='AppIVCWnd_TContainer' style='font-size:12px;color:black;'></div>";
 		
 		return html;
@@ -522,7 +538,42 @@ function APMTool(app) {
 		this.mainList.cellClickUser = function(id,pNode) {
 			app.controller.showWindow({traceid:id},"AppIVCTraceWnd","buildAppIVCTraceWnd","runAppIVCTraceWnd");
 		};
+		
+		//init datetime picker		
+		 $('.form_datetime').datetimepicker({
+				language : 'zh-CN',
+				autoclose : true,
+				minuteStep : 1,
+				minView: 1,
+				format:"yyyy-mm-dd hh",
+				todayBtn : true
+			});
+		
+		 //init timetrange selector
+		 this.timeRangeSelector=new AppHubSelector({
+				id:"AppIVCWnd_TimeRangeSelector",
+				cid:"AppIVCWnd_TimeRangeSelectorCtn",
+				title:"时间单位",
+				style:"font-size:12px;width:50px",
+				events:{
+					onchange:"appAPM.onChangeTimeRangeSelector()"
+				}
+			});
+		 this.timeRangeSelector.init();
+		 this.timeRangeSelector.load([{title:"日期",value:"D"},{title:"小时",value:"H",select:true},{title:"分钟",value:"M"}]);
+		 
+		 //init time sort selector
+		 this.timeSortSelector=new AppHubSelector({
+				id:"AppIVCWnd_TimeSortSelector",
+				cid:"AppIVCWnd_TimeRangeSelectorCtn",
+				title:"时间排序方式",
+				style:"font-size:12px;width:50px"
+			});
+		 this.timeSortSelector.init();
+		 this.timeSortSelector.load([{title:"降序",value:"DESC", select:true},{title:"升序",value:"ASC"}]);
 	};
+	
+
 	
 	/**
 	 * 调用链Trace窗口UI
@@ -554,7 +605,7 @@ function APMTool(app) {
 	/**
 	 * 跳转到重调用链明细页
 	 */
-	jumpAppIVCDataWnd = function(sObj){
+	this.jumpAppIVCDataWnd = function(sObj){
 		var pNode = sObj.parentNode.parentNode;
 		var spanid = pNode.getElementsByTagName("td")[0].id;
 		var stime = pNode.getElementsByTagName("td")[1].id;
@@ -569,7 +620,8 @@ function APMTool(app) {
 		var parentid = $(pNode).attr("data-tt-parent-id");
 		
 		app.controller.showWindow({traceid:traceid,stime:stime,url:url,epinfo:epinfo,clazz:clazz,method:method,ipport:ipport,appid:appid,state:state,spanid:spanid,parentid:parentid},"AppIVCDataWnd","buildAppIVCDataWnd","runAppIVCDataWnd");
-	}
+	};
+	
 	/**
 	 * 重调用链窗口UI
 	 */
@@ -584,7 +636,7 @@ function APMTool(app) {
         "</div></div>";
 		
 		var sb=new StringBuffer();
-		sb.append("       <div id=\"AppIVCDataWnd_TContainer_ContentDiv\" class=\"contentDiv\"><div class=\"shine2\"></div>" +
+		sb.append("<div class=\"contentDiv\"><div class=\"shine2\"></div>" +
         "                <div class=\"kv\">" +
         "                    <span class=\"kvField\">时间</span><span>：</span>"+ TimeHelper.getTime(Number(sObj["stime"]),"FMS") +"</span>"+
         "                </div>" +
@@ -609,8 +661,8 @@ function APMTool(app) {
         "                <div class=\"kv\">" +
         "                    <span class=\"kvField\">状态</span><span>：</span>"+ _this.UI_list_state(sObj["state"],false) +"</span>"+
         "                </div>" +
-        "				 <span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+"metadata"+"')\">元数据</span>" +
-        "				 <div id='metadata' class='componentFTab' style='display:none;'>" +
+        "				 <span class=\"componentExpandButton\" onclick=\"app.controller.openClose('AppIVCDataWnd_TraceMetaData')\">元数据</span>" +
+        "				 <div id='AppIVCDataWnd_TraceMetaData' class='componentFTab' style='display:none;'>" +
         "                	<div class=\"kv\">" +
         "                    	<span class=\"kvField\">spanId</span><span>：</span>"+ sObj["spanid"] +"</span>"+
         "                	</div>"
@@ -624,6 +676,9 @@ function APMTool(app) {
 		"                	</div>" +
 		"				 </div>"
 				);
+		
+		//IVCData Container
+		sb.append("<div id='AppIVCDataWnd_TContainer_ContentDiv'></div></div>");
 		
 		html+="<div  id='AppIVCDataWnd_TContainer' style='font-size:16px;color:#efefef;'>"+sb.toString()+"</div>";
 		return html;
@@ -716,16 +771,16 @@ function APMTool(app) {
 		}
 		
 		if(isEmpty){
-			var errMsg = "数据处理中，请刷新重试";
+			var errMsg = "无数据，请刷新重试";
 			var epinfo = sObj["epinfo"].split(",")[0];
 			//当前支持的类型
 			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer"];
 			if($.inArray(epinfo, epinfos)==-1){
-				errMsg = "不支持的数据类型，努力更新中...";
+				errMsg = "不支持的数据类型";
 			}
 			sb.append("<span class=\"componentExpandButton\" >"+errMsg+"</span>");
 		}
-		HtmlHelper.id("AppIVCDataWnd_TContainer_ContentDiv").innerHTML+=sb.toString();
+		HtmlHelper.id("AppIVCDataWnd_TContainer_ContentDiv").innerHTML=sb.toString();
 		
 	}
 	
@@ -941,6 +996,36 @@ function APMTool(app) {
 		}
 		
 		switch(intent) {
+			/**
+			 * 完整查询 
+			 */
+			case "qsearch":
+				dataList=this.mainList;
+				
+				var timeRange=_this.getCurTimeRange();
+				
+				if (timeRange==undefined) {
+					var tmp=new Date().getTime();
+					timeRange={etime:tmp,stime:tmp-60000};
+				}
+				
+				var etime=timeRange["etime"];
+				var stime=timeRange["stime"];
+				data["request"]["appuuid"]=appuuid;
+				data["request"]["stime"]=stime+"";
+				data["request"]["etime"]=etime+"";
+				data["request"]["eptype"]="E,S";
+				data["request"]["from"]=0+"";
+				data["request"]["size"]=500+"";
+				
+				var timeSort=this.timeSortSelector.value();
+				if (timeSort=="DESC") {
+					data["request"]["sort"]="stime=DESC";
+				}
+				else {
+					data["request"]["sort"]="stime=ASC";
+				}
+				break;		   
 			case "lst1min":
 				dataList=this.mainList;
 				
@@ -1091,6 +1176,97 @@ function APMTool(app) {
 	 */
 	this.runIVCCfgWnd=function(sObj) {
 		
+	};
+	
+	//TODO -----------------------------------------------调用链时间控制------------------------------------------
+	/**
+	 * 改变时间区段的单位
+	 */
+	this.onChangeTimeRangeSelector=function() {
+		
+		var val=this.timeRangeSelector.value();
+		
+		if (val=="D") {
+			$('.form_datetime').datetimepicker("remove");
+			HtmlHelper.id("AppIVCWnd_TimeRange").value="";
+			$('.form_datetime').datetimepicker({
+				language : 'zh-CN',
+				autoclose : true,
+				minuteStep : 1,
+				minView: 2,
+				format:"yyyy-mm-dd",
+				todayBtn : true
+			});
+		}
+		else if (val=="H") {
+			$('.form_datetime').datetimepicker("remove");
+			HtmlHelper.id("AppIVCWnd_TimeRange").value="";
+			$('.form_datetime').datetimepicker({
+				language : 'zh-CN',
+				autoclose : true,
+				minuteStep : 1,
+				minView: 1,
+				format:"yyyy-mm-dd hh",
+				todayBtn : true
+			});
+		}
+		else if (val=="M") {
+			$('.form_datetime').datetimepicker("remove");
+			HtmlHelper.id("AppIVCWnd_TimeRange").value="";
+			$('.form_datetime').datetimepicker({
+				language : 'zh-CN',
+				autoclose : true,
+				minuteStep : 1,
+				minView: 0,
+				format:"yyyy-mm-dd hh:ii",
+				todayBtn : true
+			});
+		}
+		
+	};
+	
+	/**
+	 * 清除时间选择
+	 */
+	this.cleanTimeRange=function() {
+		HtmlHelper.id("AppIVCWnd_TimeRange").value="";
+	};
+	
+	/**
+	 * 获取当前的时间区段
+	 */
+	this.getCurTimeRange=function() {
+		
+		var timeRange=HtmlHelper.id("AppIVCWnd_TimeRange").value;
+		var timeUnit=this.timeRangeSelector.value();
+		
+		//全部时间
+		if (timeRange=="") {
+			return undefined;
+		}
+		
+		var date;
+		var plus;
+		switch(timeUnit) {
+		case "D":
+			date=TimeHelper.toDate(timeRange+" 00:00:00");
+			plus=24*3600*1000;
+			break;
+		case "H":
+			date=TimeHelper.toDate(timeRange+":00:00");
+			plus=3600*1000;
+			break;
+		case "M":
+			date=TimeHelper.toDate(timeRange+":00");
+			plus=60*1000;
+			break;
+		}
+		
+		var startTime=date.getTime();
+		var endTime=startTime+plus;
+		var reqDate=TimeHelper.getTime(startTime,"FD");
+		
+		return {stime:startTime,etime:endTime,indexdate:reqDate};
 	};
 }
 

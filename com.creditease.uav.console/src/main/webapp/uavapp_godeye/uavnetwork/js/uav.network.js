@@ -376,6 +376,9 @@ var dataCacheCfg={
 
 var dataCache={};
 
+/**
+ * TODO: UserFilterCache
+ */
 var UserFilterCache={
 		all:false,
 		nomapping:false,
@@ -776,6 +779,80 @@ var preUpgradeDialog = {
 }
 
 /**
+ * TODO： open link
+ */
+var openLink={
+
+		/**
+		 * 延迟打开window
+		 * @param ip
+		 * @param winId
+		 * @param func
+		 * @param callback
+		 * @param tag
+		 */
+		showWindowDelay:function(ip,winId,func,callback,tag,proc) {
+			
+			var info={ip:ip,winId:winId,func:func,callback:callback,tag:tag};
+			
+			if (proc!=undefined) {
+				if (proc["pid"]!=undefined) {
+					info["pid"]=proc["pid"];
+				}
+				else {
+					info["port"]=proc["port"];
+				}
+			}
+			
+			window["openlink_"+tag]=info;
+		},
+		
+		/**
+		 * 触发点执行打开窗口
+		 * @param tag
+		 */
+		runWindowDelay:function(tag) {
+			if (window["openlink_"+tag]==undefined) {
+				return;
+			}
+			
+			var info=window["openlink_"+tag];
+			window["openlink_"+tag]=undefined;
+			if (tag=="procinfo") {
+				
+				var pid=info["pid"];
+				//need find pid by port
+				if (pid==undefined) {
+					var macInfo=app.mdata("macinfo")[info["ip"]];
+					
+					var procs=eval("("+macInfo["node.procs"]+")");
+					
+					for(var key in procs) {
+						
+						var proc=procs[key];
+						
+						var ports=proc["ports"];
+						
+						for(var i=0;i<ports.length;i++) {
+							if (ports[i]==info["port"]) {
+								pid=proc["pid"];
+								break;
+							}
+						}
+					}
+				}
+				
+				app.controller.showProcessWindow(info["ip"],pid,info["winId"],info["func"],info["callback"]);
+			}
+			else {
+				app.controller.showWindow(info["ip"],info["winId"],info["func"],info["callback"]);
+			}
+			
+			
+		}
+};
+
+/**
  * TODO: MVC框架实例定义
  */
 var mvcObj={
@@ -829,10 +906,8 @@ var mvcObj={
 			"overflow-y":"auto",
 			order:995
 		});
-		//show MacList
-		window.winmgr.show("MacList");
-		window.tablistmgr.build(macTabListConfig);
-		
+
+	
 		//init mac chart
 		window["appcharts"].bulid(cpuChartCfg);
 		window["appcharts"].bulid(memChartCfg);
@@ -853,6 +928,27 @@ var mvcObj={
 		
 		//init user filter info
 		UserFilterCache.init();
+		
+		//OpenLink
+		var view=HtmlHelper.getQParam("view");
+		
+		//function 1: OS metrics chart
+		if ("macchart"==view) {
+			var tip=HtmlHelper.getQParam("ip");
+			openLink.showWindowDelay(tip,'MacChartWnd','buildMacChart','createMacChart','macinfo');
+		}
+		//function 2: process metrics chart
+		else if ("procchart"==view) {
+			var tip=HtmlHelper.getQParam("ip");
+			var proc={pid:HtmlHelper.getQParam("pid"),port:HtmlHelper.getQParam("port")};
+			openLink.showWindowDelay(tip,'ProcessChartWnd','buildProcessChart','createProcessChart','procinfo',proc);
+		}
+		
+		//init machine list tab
+		window.tablistmgr.build(macTabListConfig);
+		
+		//show MacList
+		window.winmgr.show("MacList");
 	},
 	datas:{
 		"uavnetwork":{
@@ -914,6 +1010,10 @@ var mvcObj={
 			onrefresh:function(pdlist) {
 				//do groups
 				window["tablistmgr"].doGroups("macTabList");
+				
+				//openlink事件
+				openLink.runWindowDelay("macinfo");		
+				openLink.runWindowDelay("procinfo");	
 			},
 			//--------------元数据定义-----------------
 			//primary key
@@ -1071,7 +1171,7 @@ var mvcObj={
 	    	"org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode":"Hadoop.SecNameNode",
 	    	"org.elasticsearch.bootstrap.Elasticsearch":"Elasticsearch"
 	    },
-		scrollYLocation:0,
+		scrollYLocation:0,		
 	    showWindow:function(ip,winId,func,callback) {
 	    	this.scrollYLocation=HtmlHelper.id("MacList")["scrollTop"];
 	    	var content=this[func](ip);
@@ -1901,11 +2001,25 @@ var mvcObj={
 			return divContent;
 		},
 		buildMacChartContent : function(resultObj){
+			
+			var backScript="app.controller.closeWindow('MacChartWnd','destroyMacChart')";
+			
+			//if open link
+			var view=HtmlHelper.getQParam("view");
+			
+			if (view!=undefined) {
+				var from=HtmlHelper.getQParam("from");
+				var fview=HtmlHelper.getQParam("fview");
+				var fparam=HtmlHelper.getQParams()["fparam"];
+				var burl=from+"?view="+fview+"&param="+fparam;
+				backScript="window.parent.jumpUrl('"+burl+"','应用监控')";
+			}
+			
 	        return  " <div class=\"funcDiv2\" >\n" +
 	            "        <div class=\"topDiv\">\n" +
 	            "            <span class=\"hostTitle\">"+resultObj["host"]+"</span><br/>\n" +
 	            "            <span class=\"ipTitle\">"+resultObj["ip"]+"</span>\n" +
-	            "            <div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('MacChartWnd','destroyMacChart')\"></div>\n" +
+	            "            <div class=\"icon-signout\" onclick=\"javascript:"+backScript+"\"></div>\n" +
 	            "        </div>\n" +
 	            "            <div class='contentDiv' id='contentDiv' ><div class=\"shine2\"></div>" +
 	            "        </div>" +
@@ -2099,6 +2213,12 @@ var mvcObj={
 		buildProcessChartContent : function(resultObj,pid){
 			var procs=eval("("+resultObj["node.procs"]+")");
 			var proc=procs[pid];
+			
+			if (proc==undefined) {
+				alert("进程号["+pid+"]的进程在["+resultObj["ip"]+"]不存在！")
+				return;
+			}
+			
 			var ports=proc["ports"];
 			var connSeries=[
 	        	{
@@ -2152,12 +2272,25 @@ var mvcObj={
 			
 			window["appcharts"].bulid(processConnChartCfg);
 			window["appcharts"].bulid(processFluxChartCfg);
-	        
+			
+			var backScript="javascript:app.controller.closeWindow('ProcessChartWnd','destroyProcessChart')";
+			
+			//if open link
+			var view=HtmlHelper.getQParam("view");
+			
+			if (view!=undefined) {
+				var from=HtmlHelper.getQParam("from");
+				var fview=HtmlHelper.getQParam("fview");
+				var fparam=HtmlHelper.getQParams()["fparam"];
+				var burl=from+"?view="+fview+"&param="+fparam;
+				backScript="window.parent.jumpUrl('"+burl+"','应用监控')";
+			}
+			
 			return  " <div class=\"funcDiv2\" >\n" +
 	            "        <div class=\"topDiv\">\n" +
 	            "            <span class=\"hostTitle\">"+resultObj["ip"]+"</span><br/>\n" +
 	            "            <span class=\"ipTitle\">"+"<span class='pid'>["+pid+"]</span>&nbsp;"+app.controller.getJavaProName(proc)+"</span>\n" +       
-	            "            <div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('ProcessChartWnd','destroyProcessChart')\"></div>\n" +
+	            "            <div class=\"icon-signout\" onclick=\""+backScript+"\"></div>\n" +
 	            "        </div>\n" +
 	            "            <div class='ProcessChartWndDiv' id='ProcessChartWndDiv' ><div class=\"shine2\"></div>" +
 	            "        </div>" +

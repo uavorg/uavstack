@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +54,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.agent.helpers.ReflectHelper;
 import com.creditease.agent.helpers.StringHelper;
@@ -1045,7 +1048,9 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                     }
                 };
             }
-            else if ("/web-app/display-name".equals(xpath)) {
+            else if ("/web-app/display-name".equals(xpath))
+
+            {
                 // get display-name as the application name
                 ic = new DescriptorCollector() {
 
@@ -1135,33 +1140,167 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
     }
 
-    // ----------------------------------------------annotation based component
-    // processor-------------------------------------------------------------
-
     /**
-     * ComponentAnnotationProcessor is the interface to process component class to get the info via annotations
      * 
-     * @author zhen zhang
+     * struts2.xml descriptor
      *
      */
-    private static abstract class ComponentAnnotationProcessor {
+    public static class Struts2XmlProcessor extends DescriptorProcessor {
 
-        public final static String DEFAULT_VALUE = "_default_value";
+        public Struts2XmlProcessor(ProfileContext context) {
+            super(context);
+        }
 
-        @SuppressWarnings("rawtypes")
-        public abstract Map<String, Object> process(Class annoCls, Class<?> comCls, ProfileContext context);
+        @Override
+        public DescriptorCollector selectDescriptorCollector(String xpath) {
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        protected <T> void putAnnoValue(Class<?> c, Class annoCls, String configName, Class<T> configCls,
-                String keyName, Map<String, Object> info) {
+            DescriptorCollector ic = null;
 
-            T value = (T) ReflectHelper.getAnnotationValue(c, annoCls, configName);
+            if ("/struts/package/action".equals(xpath)) {
 
-            if (null == value || DEFAULT_VALUE.equals(value)) {
-                return;
+                // get actions
+                ic = new DescriptorCollector() {
+
+                    @SuppressWarnings({ "rawtypes", "unchecked" })
+                    @Override
+                    public void loadInfo(String sKey, String sKeyRawValue, Map<String, Object> sInfo) {
+
+                        Map<String, Object> elementMap = getProfileElement().getValues();
+
+                        List desList = null;
+                        if (elementMap.containsKey(sKey)) {
+                            Map annoValueMap = (Map) elementMap.get(sKey);
+                            desList = (List) annoValueMap.get("des");
+                            if (desList == null) {
+                                desList = new ArrayList();
+                            }
+                            desList.add(sInfo);
+                            annoValueMap.put("des", desList);
+                        }
+                        else {
+                            Map aMap = new HashMap();
+                            desList = new ArrayList();
+                            desList.add(sInfo);
+                            aMap.put("des", desList);
+                            elementMap.put(sKey, aMap);
+                        }
+                    }
+                };
             }
 
+            return ic;
         }
+
+        @Override
+        protected List<String> getDescriptorFileLocations(String webAppRoot) {
+
+            List<String> files = new ArrayList<String>();
+
+            Document doc = null;
+            NodeList nodes = null;
+
+            String webAppClasspath = webAppRoot + File.separator + "WEB-INF" + File.separator + "classes"
+                    + File.separator;
+            String fileName = "struts.xml";
+            File file = new File(webAppClasspath + fileName);
+
+            if (!file.exists()) {
+                return files;
+            }
+
+            files.add(webAppClasspath + fileName);
+
+            try {
+                doc = this.getDocumentBuilder().parse(file);
+                nodes = (NodeList) this.xpath.evaluate("/struts/include/@file", doc, XPathConstants.NODESET);
+            }
+            catch (IOException e) {
+                if (this.logger.isLogEnabled()) {
+                    this.logger.warn("Load DescriptorFile[" + file.getPath() + "] FAILs.", e);
+                }
+            }
+            catch (SAXException e) {
+                if (this.logger.isLogEnabled()) {
+                    this.logger.warn("Load DescriptorFile[" + file.getPath() + "] FAILs.", e);
+                }
+            }
+            catch (XPathExpressionException e) {
+                if (this.logger.isLogEnabled()) {
+                    this.logger.warn("Load DescriptorFile[" + file.getPath() + "] FAILs.", e);
+                }
+            }
+
+            if (nodes != null) {
+                for (int i = 0; i < nodes.getLength(); i++) {
+                    Node node = nodes.item(i);
+                    files.add(webAppClasspath + node.getTextContent());
+                }
+            }
+
+            return files;
+        }
+
+        @Override
+        public void parseToPEI(final ProfileElementInstance inst, String webAppRoot, String xpath,
+                XMLNodeType... xmlNodeTypes) {
+
+            final DescriptorProcessor dp = this;
+
+            XMLParseHandler handler = new XMLParseHandler() {
+
+                @Override
+                public boolean parse(DescriptorCollector dc, Node node) {
+
+                    Node extensionNode = dp.selectXMLNode("/struts/constant[@name='struts.action.extension']/@value");
+                    String extensionStr = "action";
+
+                    if (extensionNode != null) {
+                        extensionStr = extensionNode.getNodeValue();
+                    }
+
+                    Node pNode = node.getParentNode();
+
+                    Node namespaceNode = pNode.getAttributes().getNamedItem("namespace");
+                    String namespaceStr = "";
+                    if (null != namespaceNode) {
+                        namespaceStr = namespaceNode.getNodeValue();
+                    }
+
+                    Node nameNode = node.getAttributes().getNamedItem("name");
+                    Node methodNode = node.getAttributes().getNamedItem("method");
+                    Node classNode = node.getAttributes().getNamedItem("class");
+                    if (classNode == null) {
+                        return true;
+                    }
+
+                    String methodStr = "execute";
+                    String nameStr = nameNode.getNodeValue();
+                    String classStr = classNode.getNodeValue();
+
+                    if (methodNode != null) {
+                        methodStr = methodNode.getNodeValue();
+                    }
+
+                    Map<String, Object> actionMap = new HashMap<String, Object>();
+
+                    actionMap.put("namespace", namespaceStr);
+                    actionMap.put("name", nameStr);
+                    actionMap.put("method", methodStr);
+                    actionMap.put("class", classStr);
+                    actionMap.put("extension", extensionStr);
+
+                    dc.setProfileElement(inst).loadInfo(classStr, "", actionMap);
+
+                    return true;
+                }
+
+            };
+
+            this.parse(webAppRoot, xpath, handler, xmlNodeTypes);
+        }
+    }
+
+    private static abstract class ComponentProcessor {
 
         @SuppressWarnings("rawtypes")
         protected Class[] loadAnnoClasses(ProfileContext context, String... classNames) {
@@ -1190,7 +1329,91 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             return annoClasses;
         }
+    }
 
+    // ----------------------------------------------Interface based component
+    // processor-------------------------------------------------------------
+
+    private static abstract class ComponentInterfaceProcessor extends ComponentProcessor {
+
+        public abstract Map<String, Object> process(Class<?> comCls, ProfileContext context);
+
+    }
+
+    private static class Struts2ActionInfoProcessor extends ComponentInterfaceProcessor {
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public Map<String, Object> process(Class<?> comCls, ProfileContext context) {
+
+            Map<String, Object> info = new LinkedHashMap<String, Object>();
+
+            Class[] annoClasses = this.loadAnnoClasses(context,
+                    new String[] { "org.apache.struts2.convention.annotation.Namespace",
+                            "org.apache.struts2.convention.annotation.Namespaces",
+                            "org.apache.struts2.convention.annotation.Action",
+                            "org.apache.struts2.convention.annotation.Actions" });
+
+            if (null == annoClasses || annoClasses.length == 0) {
+                return info;
+            }
+
+            getClassAnnoInfo(comCls, info, annoClasses[0], annoClasses[1]);
+
+            // get method info
+            getMethodInfo(comCls, info, annoClasses[2], annoClasses[3]);
+
+            // 这里是一处special处理,替换注解中的转义字符
+            return encodeAnnoInfo(info);
+        }
+
+        /**
+         * 将类似下面的注解信息中的带转义引号(\")替换为单引号
+         * 
+         * @Action(value = "downloadModel", results = { @Result(type = "stream", params = {"inputName", "inputStream",
+         *               "contentDisposition", "attachment;filename=\"${downloadFileName}\"","bufferSize", "512" }) })
+         * 
+         * @param annoInfo
+         * @return
+         */
+        @SuppressWarnings("unchecked")
+        private Map<String, Object> encodeAnnoInfo(Map<String, Object> annoInfo) {
+
+            String annoInfoJSON = JSONHelper.toString(annoInfo);
+
+            annoInfoJSON = annoInfoJSON.replace("\\\"", "'");
+
+            return JSONHelper.toObject(annoInfoJSON, Map.class);
+        }
+    }
+
+    // ----------------------------------------------annotation based component
+    // processor-------------------------------------------------------------
+
+    /**
+     * ComponentAnnotationProcessor is the interface to process component class to get the info via annotations
+     * 
+     * @author zhen zhang
+     *
+     */
+    private static abstract class ComponentAnnotationProcessor extends ComponentProcessor {
+
+        public final static String DEFAULT_VALUE = "_default_value";
+
+        @SuppressWarnings("rawtypes")
+        public abstract Map<String, Object> process(Class annoCls, Class<?> comCls, ProfileContext context);
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        protected <T> void putAnnoValue(Class<?> c, Class annoCls, String configName, Class<T> configCls,
+                String keyName, Map<String, Object> info) {
+
+            T value = (T) ReflectHelper.getAnnotationValue(c, annoCls, configName);
+
+            if (null == value || DEFAULT_VALUE.equals(value)) {
+                return;
+            }
+
+        }
     }
 
     /**
@@ -1654,6 +1877,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
     };
 
+    private static final String[] componentInterfaceNames = new String[] {
+            // struts2
+            "com.opensymphony.xwork2.Action" };
+
     /**
      * we should exclude the methods from Object
      */
@@ -1662,9 +1889,11 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
     private static final Map<String, ComponentAnnotationProcessor> annoProcessors = new HashMap<String, ComponentAnnotationProcessor>();
 
+    private static final Map<String, ComponentInterfaceProcessor> interfaceProcessors = new HashMap<String, ComponentInterfaceProcessor>();
+
     private static final Map<String, Class<? extends DescriptorProcessor>> xpathProcessors = new LinkedHashMap<String, Class<? extends DescriptorProcessor>>();
 
-    private static final Map<String, String[]> anno2xpath = new HashMap<String, String[]>();
+    private static final Map<String, String[]> component2xpath = new HashMap<String, String[]>();
 
     private static final Map<String, String> methodBlackListMap = new HashMap<String, String>();
 
@@ -1675,11 +1904,13 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         /**
          * init annotation to descriptor's xpath
          */
-        anno2xpath.put("javax.servlet.annotation.WebServlet", new String[] { "/web-app/servlet/servlet-class" });
-        anno2xpath.put("javax.servlet.annotation.WebFilter", new String[] { "/web-app/filter/filter-class" });
-        anno2xpath.put("javax.servlet.annotation.WebListener", new String[] { "/web-app/listener/listener-class" });
-        anno2xpath.put("javax.jws.WebService",
+        component2xpath.put("javax.servlet.annotation.WebServlet", new String[] { "/web-app/servlet/servlet-class" });
+        component2xpath.put("javax.servlet.annotation.WebFilter", new String[] { "/web-app/filter/filter-class" });
+        component2xpath.put("javax.servlet.annotation.WebListener",
+                new String[] { "/web-app/listener/listener-class" });
+        component2xpath.put("javax.jws.WebService",
                 new String[] { "/beans/endpoint/@id", "/beans/server/@id", "/endpoints/endpoint/@implementation" });
+        component2xpath.put("com.opensymphony.xwork2.Action", new String[] { "/struts/package/action" });
 
         /**
          * init the mapping of anno class to their info processor
@@ -1693,6 +1924,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         annoProcessors.put("org.springframework.stereotype.Controller", new SpringMVCInfoProcessor());
         annoProcessors.put("org.springframework.web.bind.annotation.RestController", new SpringMVCInfoProcessor());
         annoProcessors.put("org.springframework.context.annotation.ImportResource", new SpringResourceInfoProcessor());
+
+        /**
+         * init the mapping of interface class to their info processor
+         */
+        interfaceProcessors.put("com.opensymphony.xwork2.Action", new Struts2ActionInfoProcessor());
+
         /**
          * init xpath processors
          */
@@ -1703,6 +1940,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         xpathProcessors.put("/beans/endpoint/@id", SpringXmlProcessor.class);
         xpathProcessors.put("/beans/server/@id", SpringXmlProcessor.class);
         xpathProcessors.put("/endpoints/endpoint/@implementation", SunJaxWSXmlProcessor.class);
+        xpathProcessors.put("/struts/package/action", Struts2XmlProcessor.class);
 
         /**
          * init methodBlackListMap
@@ -1778,6 +2016,25 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         }
 
         /**
+         * 2.1 load available interface classes
+         */
+        Map<String, Class<?>> interfaceAvailableClasses = new HashMap<String, Class<?>>();
+
+        for (String interfaceClsName : componentInterfaceNames) {
+            try {
+                Class<?> c = webappclsLoader.loadClass(interfaceClsName);
+                interfaceAvailableClasses.put(interfaceClsName, c);
+            }
+            catch (ClassNotFoundException e) {
+                // ignore
+                if (this.logger.isDebugable()) {
+                    this.logger.warn("Interface Class [" + interfaceClsName + "] is not found in web application ["
+                            + elem.getRepository().getProfile().getId() + "]", e);
+                }
+            }
+        }
+
+        /**
          * 3. see what kind of components we could get via annotations
          */
         UAVServer.ServerVendor vendor = (ServerVendor) UAVServer.instance()
@@ -1802,7 +2059,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         else {
             scanPackage[0] = "";
         }
-        
+
         FastClasspathScanner fcs = new FastClasspathScanner(classLoaders, scanPackage);
         fcs.scan();
         // store FastClasspathScanner instance into ProfileContext
@@ -1826,6 +2083,27 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             // load componentsByAnno first
             loadComponentsByAnno(context, webappclsLoader, fcs, annoAvailableClasses, componentClassName, inst);
 
+        }
+
+        for (String componentClassName : componentInterfaceNames) {
+
+            // set the instance id = simple name of the annotation class
+            ProfileElementInstance inst = elem.getInstance(componentClassName);
+
+            // load componentsByInterface
+            loadComponentsByInterface(context, webappclsLoader, fcs, interfaceAvailableClasses, componentClassName,
+                    inst);
+        }
+
+        String[] allComponentNames = new String[componentClassNames.length + componentInterfaceNames.length];
+        System.arraycopy(componentClassNames, 0, allComponentNames, 0, componentClassNames.length);
+        System.arraycopy(componentInterfaceNames, 0, allComponentNames, componentClassNames.length,
+                componentInterfaceNames.length);
+
+        for (String componentClassName : allComponentNames) {
+
+            ProfileElementInstance inst = elem.getInstance(componentClassName);
+
             // try to load componentsByDescriptor
             loadComponentsByDescriptor(dpInstances, webAppRoot, context, componentClassName, inst);
 
@@ -1839,6 +2117,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             if (componentClassName.equalsIgnoreCase("javax.servlet.annotation.WebServlet")) {
 
                 collectServletInfoForMonitor(inst);
+
             }
 
             /**
@@ -1916,7 +2195,207 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                         "org.springframework.web.bind.annotation.RequestMapping", "value",
                         "org.springframework.web.bind.annotation.RequestMapping", false);
             }
+            // Struts2
+            else if (componentClassName.equalsIgnoreCase("com.opensymphony.xwork2.Action")) {
+                addStruts2URLMapBinding(smgr, inst, appid, className, classInfo);
+            }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getStruts2URLExtension(Map<String, Object> strutsAction) {
+
+        Set<String> extSet = new HashSet<String>();
+
+        for (Map.Entry<String, Object> entry : strutsAction.entrySet()) {
+
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if ("com.opensymphony.xwork2.ActionSupport".equals(key)) {
+                continue;
+            }
+
+            Map<String, Object> valueMap = (Map<String, Object>) value;
+
+            List<Object> desList = (List<Object>) valueMap.get("des");
+
+            if (desList == null) {
+                continue;
+            }
+
+            for (Object desObj : desList) {
+                Map<String, Object> aMap = (Map<String, Object>) desObj;
+                Object extObj = aMap.get("extension");
+                if (extObj == null) {
+                    continue;
+                }
+
+                String[] extArr = ((String) extObj).split(",");
+
+                List<String> extList = Arrays.asList(extArr);
+
+                extSet.addAll(extList);
+
+                return extSet;
+            }
+        }
+
+        if (extSet.size() <= 0) {
+            extSet.add("action");
+        }
+
+        return extSet;
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private void addStruts2URLMapBindingByAnno(ProfileServiceMapMgr smgr, String appid, String className,
+            Map<String, Object> classInfo, Set<String> extension) {
+
+        Map<String, Object> methodsMap = (Map<String, Object>) classInfo.get("methods");
+        Map<String, Object> classAnnoMap = (Map<String, Object>) classInfo.get("anno");
+
+        // get namespaces
+        Set<String> namespaces = new HashSet<String>();
+
+        if (classAnnoMap != null && classAnnoMap.size() > 0) {
+            for (Map.Entry<String, Object> classAnno : classAnnoMap.entrySet()) {
+
+                String annoKey = classAnno.getKey();
+                Object annoValue = classAnno.getValue();
+
+                if ("org.apache.struts2.convention.annotation.Namespaces".equals(annoKey)) {
+
+                    List aList = (List) ((Map) annoValue).get("value");
+
+                    for (Object obj : aList) {
+                        namespaces.add((String) ((Map) obj).get("value"));
+                    }
+
+                }
+
+                if ("org.apache.struts2.convention.annotation.Namespace".equals(annoKey)) {
+                    namespaces.add((String) ((Map) annoValue).get("value"));
+                }
+
+            }
+        }
+        else {
+            namespaces.add("/");
+        }
+
+        // add moitor urls
+        HashSet<String> murls = (HashSet<String>) UAVServer.instance().getServerInfo("monitor.urls");
+        murls.addAll(namespaces);
+
+        // get actions
+        Set<String> actionNames = new HashSet<String>();
+
+        if (methodsMap != null) {
+            for (Map.Entry<String, Object> methodEntry : methodsMap.entrySet()) {
+
+                Map<String, Object> map = (Map<String, Object>) methodEntry.getValue();
+                if (map.get("anno") == null) {
+                    continue;
+                }
+
+                Map<String, Object> methodAnnoMap = (Map<String, Object>) map.get("anno");
+                for (Map.Entry<String, Object> methodAnno : methodAnnoMap.entrySet()) {
+
+                    String annoKey = methodAnno.getKey();
+                    Object annoValue = methodAnno.getValue();
+
+                    // if have Actions annotation ignore Action annotation
+                    if ("org.apache.struts2.convention.annotation.Actions".equals(annoKey)) {
+
+                        List aList = (List) ((Map) annoValue).get("value");
+
+                        for (Object obj : aList) {
+                            actionNames.add((String) ((Map) obj).get("value"));
+                        }
+
+                    }
+
+                    if ("org.apache.struts2.convention.annotation.Action".equals(annoKey)
+                            && !methodAnnoMap.containsKey("org.apache.struts2.convention.annotation.Actions")) {
+                        actionNames.add((String) ((Map) annoValue).get("value"));
+                    }
+                }
+
+                Set<String> urlPSet = new HashSet<String>();
+                Iterator<String> nsIterator = namespaces.iterator();
+                while (nsIterator.hasNext()) {
+                    String ns = nsIterator.next();
+
+                    if (!"/".equals(ns)) {
+                        ns = ns + "/";
+                    }
+
+                    Iterator<String> actionNamesIterator = actionNames.iterator();
+                    while (actionNamesIterator.hasNext()) {
+                        String actionName = actionNamesIterator.next();
+
+                        Iterator<String> extIterator = extension.iterator();
+                        while (extIterator.hasNext()) {
+                            String ext = extIterator.next();
+                            if (!"".equals(ext)) {
+                                ext = "." + ext;
+                            }
+                            urlPSet.add(ns + actionName + ext);
+                        }
+                    }
+                }
+
+                smgr.addServiceMapBinding(appid, className, methodEntry.getKey(), urlPSet, 0, false);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addStruts2URLMapBindingByDes(ProfileServiceMapMgr smgr, String appid, String className,
+            Map<String, Object> classInfo, Set<String> extension) {
+
+        Map<String, Object> valueMap = classInfo;
+
+        List<Object> desList = (List<Object>) (valueMap.get("des"));
+        if (desList == null || desList.size() <= 0) {
+            return;
+        }
+
+        Iterator<String> extIterator = extension.iterator();
+        while (extIterator.hasNext()) {
+            String ext = extIterator.next();
+            if (!"".equals(ext)) {
+                ext = "." + ext;
+            }
+
+            for (Object desObj : desList) {
+                Map<String, Object> aMap = (Map<String, Object>) desObj;
+
+                String ns = (String) aMap.get("namespace");
+
+                if (!"/".equals(ns)) {
+                    ns = ns + "/";
+                }
+
+                Set<String> urlPSet = new HashSet<String>();
+                urlPSet.add(ns + aMap.get("name") + ext);
+                smgr.addServiceMapBinding(appid, className, (String) aMap.get("method"), urlPSet, 0, false);
+            }
+        }
+    }
+
+    private void addStruts2URLMapBinding(ProfileServiceMapMgr smgr, ProfileElementInstance inst, String appid,
+            String className, Map<String, Object> classInfo) {
+
+        if (className.equalsIgnoreCase("com.opensymphony.xwork2.ActionSupport")) {
+            return;
+        }
+
+        Map<String, Object> strutsAction = inst.getValues();
+        Set<String> extSet = getStruts2URLExtension(strutsAction);
+        addStruts2URLMapBindingByAnno(smgr, appid, className, classInfo, extSet);
+        addStruts2URLMapBindingByDes(smgr, appid, className, classInfo, extSet);
     }
 
     /**
@@ -2399,7 +2878,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     protected void loadComponentsByDescriptor(Map<String, DescriptorProcessor> dpInstances, String webAppRoot,
             ProfileContext context, String componentClassName, ProfileElementInstance inst) {
 
-        String[] xpaths = anno2xpath.get(componentClassName);
+        String[] xpaths = component2xpath.get(componentClassName);
 
         if (null == xpaths) {
             return;
@@ -2441,6 +2920,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 // put sun-jaxws.xml processor into profile context
                 if (SunJaxWSXmlProcessor.class.isAssignableFrom(dpClass)) {
                     context.put(SunJaxWSXmlProcessor.class, (SunJaxWSXmlProcessor) dpInst);
+                }
+                // put struts.xml processor into profile context
+                if (Struts2XmlProcessor.class.isAssignableFrom(dpClass)) {
+                    context.put(Struts2XmlProcessor.class, (Struts2XmlProcessor) dpInst);
                 }
             }
             else {
@@ -2502,20 +2985,15 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 continue;
             }
             catch (NoClassDefFoundError e) {
-
                 // ignore
-
                 if (this.logger.isDebugable()) {
-
                     this.logger.warn("Component Class [" + com + "] is not found in web application ["
-
                             + inst.getProfileElement().getRepository().getProfile().getId() + "]", e);
 
                 }
-
                 continue;
-
             }
+
             try {
                 // get the info of the target component class
                 Map<String, Object> info = cip.process(annoClass, comCls, context);
@@ -2531,6 +3009,63 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             }
         }
 
+    }
+
+    protected void loadComponentsByInterface(ProfileContext context, ClassLoader webappclsLoader,
+            FastClasspathScanner fcs, Map<String, Class<?>> interfaceAvailableClasses, String componentClassName,
+            ProfileElementInstance inst) {
+
+        if (!interfaceAvailableClasses.containsKey(componentClassName)) {
+            return;
+        }
+
+        Class<?> interfaceClass = interfaceAvailableClasses.get(componentClassName);
+
+        // get all classes with the target annotations
+        List<String> coms = fcs.getNamesOfClassesImplementing(interfaceClass);
+
+        if (null == coms || coms.isEmpty()) {
+
+            return;
+        }
+
+        // get the ComponentInfoProcessor
+        ComponentInterfaceProcessor cip = interfaceProcessors.get(interfaceClass.getName());
+
+        // set the instance values, key=class found,value=info of the class
+        for (String com : coms) {
+
+            Class<?> comCls = null;
+            try {
+                comCls = webappclsLoader.loadClass(com);
+            }
+            catch (ClassNotFoundException e) {
+                // ignore
+                if (this.logger.isDebugable()) {
+                    this.logger.warn("Component Class [" + com + "] is not found in web application ["
+                            + inst.getProfileElement().getRepository().getProfile().getId() + "]", e);
+                }
+                continue;
+            }
+            catch (NoClassDefFoundError e) {
+                // ignore
+                if (this.logger.isDebugable()) {
+                    this.logger.warn("Component Class [" + com + "] is not found in web application ["
+                            + inst.getProfileElement().getRepository().getProfile().getId() + "]", e);
+
+                }
+                continue;
+            }
+
+            try {
+                // get the info of the target component class
+                Map<String, Object> info = cip.process(comCls, context);
+                inst.setValue(com, info);
+            }
+            catch (RuntimeException e) {
+                // ignore
+            }
+        }
     }
 
 }
