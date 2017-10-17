@@ -449,7 +449,18 @@ var HtmlHelper={
 		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
 		var r = window.location.search.substr(1).match(reg);
 		if (r != null) return unescape(r[2]); return undefined;
-	} 
+	},
+	//get all url params
+	getQParams:function() {
+		var vars = [], hash;
+		var hashes = window.location.href.slice(window.location.href.indexOf('?')+1).split('&');
+		for(var i = 0; i < hashes.length; i++) {
+			hash = hashes[i].split('=');
+			vars.push(hash[0]);
+			vars[hash[0]] = hash[1];
+		}
+		return vars; 
+	}
 };
 /**
  * 日志输出

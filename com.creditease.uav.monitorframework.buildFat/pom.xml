@@ -10,6 +10,11 @@
 	<artifactId>com.creditease.uav.monitorframework.buildFat</artifactId>
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>war</packaging>
+	
+	<properties>
+		<struts2.version>2.3.15.1</struts2.version>
+	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
@@ -258,6 +263,27 @@
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.0.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-core</artifactId>
+			<version>${struts2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-convention-plugin</artifactId>
+			<version>${struts2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-json-plugin</artifactId>
+			<version>${struts2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-config-browser-plugin</artifactId>
+			<version>${struts2.version}</version>
 		</dependency>
 	</dependencies>
 

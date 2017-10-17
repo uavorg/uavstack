@@ -1020,6 +1020,39 @@ var monitorCfg={
 };
 
 /**
+ * TODO： open link
+ */
+var openLink={
+
+		/**
+		 * 延迟打开window
+		 * @param ip
+		 * @param winId
+		 * @param func
+		 * @param callback
+		 * @param tag
+		 */
+		showWindowDelay:function(ip,winId,func,callback,tag) {
+			var info={ip:ip,winId:winId,func:func,callback:callback,tag:tag};
+			window["openlink_"+tag]=info;
+		},
+		
+		/**
+		 * 触发点执行打开窗口
+		 * @param tag
+		 */
+		runWindowDelay:function(tag) {
+			if (window["openlink_"+tag]==undefined) {
+				return;
+			}
+			
+			var info=window["openlink_"+tag];
+			app.controller.showWindow(info["ip"],info["winId"],info["func"],info["callback"]);
+			window["openlink_"+tag]=undefined;
+		}
+};
+
+/**
  * TODO:应用画像与监控
  */
 var mvcObj={
@@ -1255,12 +1288,25 @@ var mvcObj={
 			//not start sync
 			return false;
 		}
+		// for 应用实例监控
+		else if (view=="appinst") {
+			window.winmgr.show("AppInstWnd");
+			var param=HtmlHelper.getQParams()["param"];
+			param=decodeURI(param);
+			var params=param.split(",");
+			var id=params[0];
+			var instid=params[1];
+			var isJse=params[2];
+			var appInfo={id:id,instid:instid,isJse:isJse};
+			openLink.showWindowDelay(appInfo,"AppInstChartWnd","buildAppInstChart","runAppInstChart","monitorapp");
+		}
 		//for 应用监控
 		else {
-			window.winmgr.show("AppList");		
-			window.tablistmgr.build(appTabListConfig);
+			window.winmgr.show("AppList");	
 		}
 		
+		//init app tab list
+		window.tablistmgr.build(appTabListConfig);
 		//init monitorcfg dialog
 		this.controller.initMonitorCfgDialog();
 	},
@@ -1552,6 +1598,7 @@ var mvcObj={
 			"cpt.jaxrs":"cpt.jaxrs",
 			"cpt.springmvc":"cpt.springmvc",
 			"cpt.springmvcRest":"cpt.springmvcRest",
+			"cpt.struts2":"cpt.struts2",
 			 state:"state",
 			"cpt.services":"cpt.services",
 			"cpt.clients":"cpt.clients",
@@ -1735,6 +1782,9 @@ var mvcObj={
 				
 				//启动图谱的Edge的刷新
 				appStream.startAppEdgeMoUpdate();
+				
+				//完成openlink事件
+				openLink.runWindowDelay("monitorapp");
 			},
 			//--------------元数据定义-----------------
 			//primary key
@@ -1924,6 +1974,13 @@ var mvcObj={
 	 */
 	controller:{
 		//----------------------COMMON--------------------------
+		/**
+		 * TODO: delay open
+		 */
+		showWindowDelay:function(iObj,winId,func,callback,tag) {
+			var info={iObj:iObj,winId:winId,func:func,callback:callback,tag:tag};
+			window["openlink_"+tag]=info;
+		},
 		/**
 		 * TODO: controller COMMON
 		 */
@@ -2307,7 +2364,7 @@ var mvcObj={
 	    		/**
 	    		 * check if one app instance window is open and try to query history data
 	    		 */
-	    		if (monitorCfg.app["id"]!=undefined) {
+	    		if (monitorCfg.app["id"]!=undefined&&monitorCfg["app"].isusecustomized==true) {
 	    			pdata=[pdata[monitorCfg.app["id"]]];
 	    		}
 	    	}
@@ -2912,6 +2969,10 @@ var mvcObj={
 		 */
 		quitMonitorChartData:function(dType) {
 			
+			if (dType=="app") {
+				monitorCfg.app["id"]=undefined;
+			}
+			
 			if (monitorCfg[dType].isusecustomized==false) {
 				return;
 			}
@@ -2923,16 +2984,12 @@ var mvcObj={
 			
 			if (dType=="app") {
 				monitorCfg.startTime=undefined;
+				//reset isautorefresh
+			   monitorCfg.isautorefresh=true;
+			   
+			   app.refresh("app.monitor");
 			}
 			
-			switch(dType) {
-			   case "app":
-				  //reset isautorefresh
-				   monitorCfg.isautorefresh=true;
-				   monitorCfg.app["id"]=undefined;
-				   app.refresh("app.monitor");
-				   break;
-			}		
 		},
 		/**
 		 * init LogCfgDialog
@@ -3654,6 +3711,13 @@ var mvcObj={
 			
 			var jsonObj=mdata[obj.id];
 			
+			if(jsonObj==undefined) {
+				setTimeout(function() {
+					openLink.runWindowDelay("monitorapp");
+				},1000);				
+				return;
+			}
+			
 			var isJse=this.isJSE(jsonObj.appurl);
 			
 			if (isJse==true) {
@@ -3664,6 +3728,10 @@ var mvcObj={
 			}
 			
 			var appInstMO=app.mdata("monitor.app")[appInstMOId];
+			
+			if (appInstMO==undefined) {
+				console.log(appInstMOId+" monitor data is null~~~");
+			}
 			
 			var sObjStr=StringHelper.obj2str(obj);
 			
@@ -3735,6 +3803,19 @@ var mvcObj={
             "</div>";
 	        
 	        /**
+	         * 主机（应用容器）查看窗口
+	         */
+	        html+="<div class='contentDiv' >"+this.buildAppMachineWndContent(jsonObj,appInstMOId,isJse)+
+            "</div>";
+	        
+	        /**
+	         * 应用进程查看窗口
+	         */
+	        html+="<div class='contentDiv' >"+this.buildAppProcessWndContent(jsonObj,appInstMOId,isJse)+
+            "</div>";
+	        
+	        
+	        /**
 	         * AppInst Chart 日志组件按钮列表，可以打开日志组件查看窗口
 	         */
 	        html+="<div class='contentDiv' >"+this.buildAppInstLogWndContent(jsonObj,jsonObj["logs.log4j"])+
@@ -3755,6 +3836,42 @@ var mvcObj={
 	       
 	        html+="</div>";
 	        return html;
+		},
+		/**
+		 * buildAppMachineWndContent
+		 */
+		buildAppMachineWndContent:function(jsonObj,appInstMOId,isJse) {
+			var ip=jsonObj["ip"];
+			var sb=new StringBuffer();
+			var param=encodeURI(jsonObj["id"]+","+appInstMOId+","+isJse);
+			sb.append("<span class=\"componentExpandButton componentExpandButtonStyle1\" style='font-size:14px;' onclick='window.parent.jumpUrl(\"uavapp_godeye/uavnetwork/main.html?view=macchart&from=uavapp_godeye/appmonitor/main.html&fview=appinst&fparam="+param+"&ip="+ip+"\",\"应用容器监控\")'><span class='titleGray'>应用容器&nbsp;"+ip+"</span>");
+			
+			return sb.toString();
+		},
+		/**
+		 * buildAppProcessWndContent
+		 */
+		buildAppProcessWndContent:function(jsonObj,appInstMOId,isJse) {
+			var ip=jsonObj["ip"];
+			var proc;
+			//jse can get the pid directly
+			if (isJse) {
+				var jseInfo=jsonObj["appurl"].split("-");
+				proc="pid="+jseInfo[jseInfo.length-1];
+			}
+			//jee can get the port
+			else {
+				var ipport=app.controller.getAppInstIPPort( jsonObj["appurl"]);
+				proc="port="+ipport.split(":")[2];
+			}
+			
+			var param=encodeURI(jsonObj["id"]+","+appInstMOId+","+isJse);
+			
+			var sb=new StringBuffer();
+			
+			sb.append("<span class=\"componentExpandButton componentExpandButtonStyle1\" style='font-size:14px;' onclick='window.parent.jumpUrl(\"uavapp_godeye/uavnetwork/main.html?view=procchart&from=uavapp_godeye/appmonitor/main.html&fview=appinst&fparam="+param+"&ip="+ip+"&"+proc+"\",\"应用容器监控\")'><span class='titleGray'>应用进程</span>");
+			
+			return sb.toString();
 		},
 		/**
 		 * App Customized Metrics
@@ -4504,6 +4621,10 @@ var mvcObj={
             
             if (jsonObj["cpt.springmvcRest"]!=undefined&&jsonObj["cpt.springmvcRest"]!="{}") {
             	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_springmvcRest')\">组件[SpringMVCRest]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_springmvcRest'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.springmvcRest",jsonObj,cptservices)+"</div>" );
+            }
+            
+            if (jsonObj["cpt.struts2"]!=undefined&&jsonObj["cpt.struts2"]!="{}") {
+            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_struts2')\">组件[Struts2]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_struts2'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.struts2",jsonObj,cptservices)+"</div>" );
             }
             sb.append("</div>");
             
@@ -5324,7 +5445,7 @@ var mvcObj={
                     var ret = JSON.parse(data);
                     if(ret.code){ // dba server error...
                     	if(ret.code == 20002){
-                    		alert("该数据源性能数据不存在。\n注：数据源性能数据由系统部DBA提供，如有疑问请联系dba.list");
+                    		alert("该数据源性能数据不存在。\n注：数据源性能数据由系统部DBA提供，如有疑问请联系dba.list@creditease.cn");
                     	}
                     	app.controller.accessDbInstData(reqs,index+1,models);
                     	return;
@@ -5379,7 +5500,7 @@ var mvcObj={
                     	if(ret.code){ // dba server error...
                     		app.controller.openClose(id);
                     		console.log(data);
-                    		alert("访问数据源性能数据服务失败！\n注：数据源性能数据由系统部DBA提供，如有疑问请联系dba.list");
+                    		alert("访问数据源性能数据服务失败！\n注：数据源性能数据由系统部DBA提供，如有疑问请联系dba.list@creditease.cn");
                         	return;
                         }
                     	var html = '<div class="kv">';
