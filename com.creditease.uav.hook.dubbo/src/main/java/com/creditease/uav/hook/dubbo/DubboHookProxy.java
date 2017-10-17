@@ -93,7 +93,7 @@ public class DubboHookProxy extends HookProxy {
                         if ("onApplicationEvent".equals(m.getName())) {
 
                             dpInstall.defineLocalVal(m, "mObj", DubboIT.class);
-                            m.insertBefore(
+                            m.insertAfter(
                                     "{mObj=new DubboIT(\"" + appid + "\");mObj.doProfiling(new Object[]{this,$1});}");
 
                         }
