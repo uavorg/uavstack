@@ -86,7 +86,7 @@ public class XRobotRestService extends AppHubBaseRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        this.doHttpPost("uav.app.xrobot.http.addr", "/xrobot", JSONHelper.toString(msg).getBytes(), "application/json",
+        this.doHttpPost("uav.app.xrobot.http.addr", "/hit/xrobot", JSONHelper.toString(msg).getBytes(), "application/json",
                 "utf-8", new CmdCallback(response));
     }
 

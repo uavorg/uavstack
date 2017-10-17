@@ -1282,6 +1282,11 @@ var mvcObj={
 	    		return jsonObj["host"];
 	    	}
 	    	
+			//if only has 监控代理程序 then display host name
+	    	if (tags=="监控代理程序,") {
+	    		return jsonObj["host"];
+	    	}
+	    				
 	    	return tags;
 	    },
 		//------------------------------MAC---------------------------------------

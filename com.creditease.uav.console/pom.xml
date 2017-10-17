@@ -62,6 +62,12 @@
 			<artifactId>commons-logging</artifactId>
 			<version>1.2</version>
 		</dependency>
+		
+		<dependency> 
+			<groupId>aredis.sourceforge.net</groupId>
+			<artifactId>aredis-api</artifactId>
+			<version>1.4</version>
+		</dependency>
 	</dependencies>
 
 

@@ -1017,6 +1017,7 @@ function APMTool(app) {
 				data["request"]["eptype"]="E,S";
 				data["request"]["from"]=0+"";
 				data["request"]["size"]=500+"";
+				data["request"]["indexdate"]=timeRange["indexdate"];
 				
 				var timeSort=this.timeSortSelector.value();
 				if (timeSort=="DESC") {
