@@ -60,6 +60,8 @@
 									<fileset file="../com.creditease.uav.agent/target/com.creditease.uav.agent-1.0.jar" ></fileset>
 									<fileset file="../com.creditease.uav.agent/target/lib/*.jar" ></fileset>
 									<fileset file="../com.creditease.uav.upgrade/target/com.creditease.uav.upgrade-1.0.jar"></fileset>
+									<fileset file="../com.creditease.uav.agent.buildComponent/exlib/*.dll" ></fileset> 
+                                    <fileset file="../com.creditease.uav.agent.buildComponent/exlib/npf.sys" ></fileset>
 									<!-- additional feature jar -->
 									<fileset file="../com.creditease.uav.threadanalysis/target/com.creditease.uav.threadanalysis-1.0.jar" ></fileset>
 								</copy>
