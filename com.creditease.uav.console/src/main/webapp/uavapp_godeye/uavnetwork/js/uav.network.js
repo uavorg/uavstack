@@ -1144,6 +1144,7 @@ var mvcObj={
             "node.pid":"info/node.pid",
             "node.procs":"info/node.procs",
             "node.services":"info/node.services",
+            "node.version":"info/node.version",
             "node.docker.info": "info/node.docker.info",
             "node.docker.container": "info/node.docker.container"
         }
