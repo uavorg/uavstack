@@ -31,6 +31,7 @@ import javassist.CtMethod;
 public class TomcatAdaptor extends AbstractAdaptor {
 
     private String currentVersion = "";
+    private String currentVersionDetailed = "";
 
     private void detectTomcatVersion() {
 
@@ -70,6 +71,7 @@ public class TomcatAdaptor extends AbstractAdaptor {
         }
 
         currentVersion = ver;
+        currentVersionDetailed = version;
     }
 
     @Override
@@ -322,6 +324,7 @@ public class TomcatAdaptor extends AbstractAdaptor {
         else if (className.equals("org.apache.catalina.startup.HostConfig")) {
 
             final String curVersion = this.currentVersion;
+            final String currentVersionDetailed = this.currentVersionDetailed;
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
                     new AdaptorProcessor[] { new AdaptorProcessor() {
 
@@ -337,7 +340,8 @@ public class TomcatAdaptor extends AbstractAdaptor {
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.TomcatPlusIT");
                             m.insertAfter(
                                     "{mObj=new TomcatPlusIT();mObj.onDeployUAVApp(new Object[]{this,this.host,$1,\""
-                                            + uavMofRoot + "\",\"" + curVersion + "\"});}");
+                                    		+ uavMofRoot + "\",\"" + curVersion + "\",\"" + currentVersionDetailed
+                                    		 + "\"});}");
                         }
 
                     } });
