@@ -53,7 +53,6 @@ public class OpenTSDBRestAgentServlet extends HttpServlet {
     @Override
     public void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        System.out.println("////////////////////////////");
         String para_url = req.getParameter("url");
         if (null != para_url) {
             url = para_url;
