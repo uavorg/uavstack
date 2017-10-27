@@ -20,8 +20,8 @@
 
 package com.creditease.agent.feature.notifycenter.task;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import com.creditease.agent.feature.NotificationCenter;
@@ -103,9 +103,17 @@ public class NotificationTask extends Abstract1NTask {
     public String getActionParmeByPriorityLevel(String actionStr, int plevel) {
 
         @SuppressWarnings("rawtypes")
-        LinkedList list = JSONHelper.toObject(actionStr, LinkedList.class);
-
-        String actionParm = (String) list.get(plevel);
+        ArrayList list = JSONHelper.toObject(actionStr, ArrayList.class);
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        String actionParm = null;
+        if (plevel < list.size()) {
+            actionParm = (String) list.get(plevel);
+        }
+        else {
+            actionParm = (String) list.get(list.size() - 1);
+        }
 
         return actionParm;
 

@@ -75,7 +75,7 @@ public class CEMailAction extends AbstractMailAction {
         userName = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.username");
         password = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.password");
         brokerURL = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.brokerurl");
-       
+
         activeID = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.activeid");
         systemSign = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.systemsign");
     }
@@ -87,7 +87,8 @@ public class CEMailAction extends AbstractMailAction {
      * @return EmailEvent
      * @throws Exception
      */
-    private EmailEvent buildEmailEvent(NotificationEvent notifyEvent) throws Exception {
+    private EmailEvent buildEmailEvent(NotificationEvent notifyEvent, String title, String mailTemplatePath)
+            throws Exception {
 
         List<EmailEntity> list = new ArrayList<EmailEntity>();
 
@@ -105,7 +106,7 @@ public class CEMailAction extends AbstractMailAction {
             return null;
         }
         emailEntity.setToAddress(address);
-        String html = IOHelper.readTxtFile("config/mail.template", "utf-8");
+        String html = IOHelper.readTxtFile(mailTemplatePath, "utf-8");
 
         if (StringHelper.isEmpty(html)) {
             log.err(this, "Send Mail FAIL as mail template is empty");
@@ -115,7 +116,7 @@ public class CEMailAction extends AbstractMailAction {
         /** 变量替换 */
         html = buildMailBody(html, notifyEvent);
         /** 主题 */
-        emailEntity.setSubject("【UAV预警】" + notifyEvent.getTitle());
+        emailEntity.setSubject(title);
         /** 正文 */
         emailEntity.setContent(html);
         /** 添加附件 */
@@ -135,7 +136,7 @@ public class CEMailAction extends AbstractMailAction {
     }
 
     @Override
-    public boolean run(NotificationEvent notifyEvent) {
+    public boolean sendMail(String title, String mailTemplatePath, NotificationEvent notifyEvent) {
 
         if (log.isDebugEnable()) {
             log.debug(this, "Send Mail START: event=" + notifyEvent.toJSONString());
@@ -168,7 +169,7 @@ public class CEMailAction extends AbstractMailAction {
             // 设置不持久化，此处学习，实际根据项目决定
             producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
             // 构造消息，此处写死，项目就是参数，或者方法获取
-            EmailEvent emailEvent = buildEmailEvent(notifyEvent);
+            EmailEvent emailEvent = buildEmailEvent(notifyEvent, title, mailTemplatePath);
 
             if (emailEvent == null) {
                 return false;

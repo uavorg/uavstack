@@ -88,6 +88,7 @@ public class NCConstant {
     public static final String ACTION4SMS = "sms";
     public static final String ACTION4HTTP = "httpcall";
     public static final String ACTION4PUSHNTF = "pushntf";
+    public static final String ACTION4THREADANALYSIS = "threadanalysis";
 
     /**
      * Action param value

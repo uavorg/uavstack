@@ -50,14 +50,15 @@ public class JavaMailAction extends AbstractMailAction {
         password = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.javamail.password");
     }
 
-    private MimeMessage buildMailMessage(Session session, NotificationEvent notifyEvent) throws MessagingException {
+    private MimeMessage buildMailMessage(Session session, NotificationEvent notifyEvent, String title,
+            String mailTemplatePath) throws MessagingException {
 
         MimeMessage message = new MimeMessage(session);
 
         // 邮件标题
-        message.setSubject("【UAV预警】" + notifyEvent.getTitle());
+        message.setSubject(title);
 
-        String html = IOHelper.readTxtFile("config/mail.template", "utf-8");
+        String html = IOHelper.readTxtFile(mailTemplatePath, "utf-8");
         html = buildMailBody(html, notifyEvent);
         // 正文
         message.setContent(html, "text/html;charset=utf-8");
@@ -83,7 +84,7 @@ public class JavaMailAction extends AbstractMailAction {
     }
 
     @Override
-    public boolean run(NotificationEvent event) {
+    public boolean sendMail(String title, String mailTemplatePath, NotificationEvent event) {
 
         Properties props = new Properties();
         props.setProperty("mail.smtp.host", smtpHost);
@@ -96,7 +97,7 @@ public class JavaMailAction extends AbstractMailAction {
             Session session = Session.getInstance(props);
             ts = session.getTransport();
             ts.connect(username, password);
-            MimeMessage message = buildMailMessage(session, event);
+            MimeMessage message = buildMailMessage(session, event, title, mailTemplatePath);
             ts.sendMessage(message, message.getAllRecipients());
             return true;
         }

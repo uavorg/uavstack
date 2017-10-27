@@ -36,6 +36,7 @@ import com.creditease.agent.feature.notifycenter.actions.HttpCallAction;
 import com.creditease.agent.feature.notifycenter.actions.JavaMailAction;
 import com.creditease.agent.feature.notifycenter.actions.PushNotifyEventAction;
 import com.creditease.agent.feature.notifycenter.actions.SMSAction;
+import com.creditease.agent.feature.notifycenter.actions.ThreadAnalysisAction;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.StringHelper;
@@ -82,6 +83,7 @@ public class NotificationCenter extends AgentFeatureComponent {
 
         new HttpCallAction(NCConstant.ACTION4HTTP, this.feature, engine);
         new PushNotifyEventAction(NCConstant.ACTION4PUSHNTF, this.feature, engine);
+        new ThreadAnalysisAction(NCConstant.ACTION4THREADANALYSIS,this.feature,engine);
 
         String cacheServerAddress = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.cache.addr");
         String password = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.cache.concurrent.pwd");

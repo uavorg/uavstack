@@ -47,7 +47,7 @@ public abstract class BaseNotifyAction extends AbstractBaseAction {
         String actionParam = (String) context.getParam(NCConstant.ACTIONVALUE);
         event.addArg(cName, actionParam);
 
-        boolean isSuccess = this.run(event);
+        boolean isSuccess = this.run(event, context);
 
         context.setSucessful(isSuccess);
     }
@@ -68,6 +68,14 @@ public abstract class BaseNotifyAction extends AbstractBaseAction {
     public String getExceptionNextActionId() {
 
         return null;
+    }
+
+    /*
+     * 子类中如果需要使用ActionContext可以通过重写此方法实现
+     */
+    protected boolean run(NotificationEvent event, ActionContext context) {
+
+        return run(event);
     }
 
     /**
