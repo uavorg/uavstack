@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	id="WebApp_ID" version="3.0">
 	<display-name>UAV.AppHub</display-name>
-	<description>{org:"UAV.org",group:"UAV"}</description>
+	<description>{org:"基础研发部",group:"UAV"}</description>
 	<welcome-file-list>
 		<welcome-file>main.html</welcome-file>
 	</welcome-file-list>
@@ -39,6 +39,39 @@
 	<servlet-mapping>
 		<servlet-name>es-serlvet</servlet-name>
 		<url-pattern>/es/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>opentsdb-crdu-servlet</servlet-name>
+		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestCRDUServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>opentsdb-crdu-servlet</servlet-name>
+		<url-pattern>/db/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>opentsdb-agent-servlet</servlet-name>
+		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestAgentServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>opentsdb-agent-servlet</servlet-name>
+		 <!-- <url-pattern>/db2/*</url-pattern>
+		 <url-pattern>/s/*</url-pattern>
+		 <url-pattern>/q/*</url-pattern> -->
+		<url-pattern>/db2/q</url-pattern>
+		<url-pattern>/db2/suggest</url-pattern>
+		<url-pattern>/db2/stats</url-pattern>
+		<url-pattern>/db2/logs</url-pattern>
+		<url-pattern>/db2/version</url-pattern>
+		<url-pattern>/db2/</url-pattern>
+		<url-pattern>/db2/aggregators</url-pattern>
 	</servlet-mapping>
 	<!-- jersey restful service END -->
 
@@ -163,8 +196,16 @@
 	</context-param>
 	<context-param>
 		<param-name>@url:uav.app.godeye.database.http.addr</param-name>
-		<param-value>http://127.0.0.1:5000</param-value>
+		<param-value>http://10.100.33.71:5000</param-value>
     </context-param>
+        <context-param> 
+        <param-name>@url:uav.app.apm.jta.http.addr</param-name> 
+        <param-value>http://localhost:5566</param-value>
+    </context-param>
+    <context-param>
+		<param-name>@url:uav.app.xrobot.http.addr</param-name>
+		<param-value>http://localhost:16969</param-value>
+	</context-param>
     <context-param> 
         <param-name>@url:uav.app.upgrade.server.http.addr</param-name> 
         <param-value>http://localhost:8888</param-value>
@@ -173,10 +214,6 @@
         <param-name>@url:uav.app.apm.ivc.http.addr</param-name> 
         <param-value>http://localhost:7799</param-value>
     </context-param> 
-    <context-param> 
-        <param-name>@url:uav.app.apm.jta.http.addr</param-name> 
-        <param-value>http://localhost:5566</param-value>
-    </context-param>      
     <context-param>
     	<param-name>@url:uav.app.hm.newlog.http.addr</param-name>
     	<param-value>http://localhost:7899</param-value>
@@ -209,12 +246,12 @@
 	
 	<context-param>
 		<param-name>uav.apphub.sso.ldap.connection.info</param-name>
-		<param-value>{"url":"ldap://127.0.0.1:389/","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
+		<param-value>{"url":"ldap://10.151.6.97:389/","loginbasedn":"OU=HABROOT,DC=creditease,DC=corp","querybasedn":"DC=creditease,DC=corp","user":"yx-gitlab01","password":"G3tT8238","suffix":"@creditease.cn","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
 	</context-param>
 	
 	<context-param>
 		<param-name>uav.apphub.sso.grafana.connection.info</param-name>
-		<param-value>{"api.url":"http://127.0.0.1:3000","web.url":"http://127.0.0.1:3000","datasource.opentsdb.url":"http://127.0.0.1:4243","datasource.elasticsearch.url":"http://127.0.0.1:9200","authorization.loginId":"apiuser","authorization.loginPwd":"apiuser","authorization.register.defPwd":"1q@W3e","authorization.register.sleep.time":"2000"}</param-value>
+		<param-value>{"api.url":"http://10.143.128.224:3000","web.url":"http://10.143.128.224:3000","datasource.opentsdb.url":"http://10.143.128.245:4243","datasource.elasticsearch.url":"http://10.100.33.135:9200","authorization.loginId":"apiuser","authorization.loginPwd":"apiuser","authorization.register.defPwd":"1q@W3e","authorization.register.sleep.time":"2000"}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.white.list</param-name>
@@ -224,7 +261,12 @@
 		      2.：groupName可自定义、groupName重复则后面的覆盖前面的
 		      3.： 一个用户只能存在一个groupName里、用户重复存在,则按最先匹配为准
 		 -->
-		<param-value>{"vipgroup":""}</param-value>
+		<param-value>{"vipgroup":"yiqingsun@creditease.cn"}</param-value>
+	</context-param>
+	
+	<context-param>
+		<param-name>uav.app.opentsdb.http.client.params</param-name>
+		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	<!--configure end-->
 	<session-config>
