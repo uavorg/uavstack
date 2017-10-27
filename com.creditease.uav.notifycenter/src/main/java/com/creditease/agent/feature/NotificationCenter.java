@@ -83,7 +83,7 @@ public class NotificationCenter extends AgentFeatureComponent {
 
         new HttpCallAction(NCConstant.ACTION4HTTP, this.feature, engine);
         new PushNotifyEventAction(NCConstant.ACTION4PUSHNTF, this.feature, engine);
-        new ThreadAnalysisAction(NCConstant.ACTION4THREADANALYSIS,this.feature,engine);
+        new ThreadAnalysisAction(NCConstant.ACTION4THREADANALYSIS, this.feature, engine);
 
         String cacheServerAddress = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.cache.addr");
         String password = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.cache.concurrent.pwd");
