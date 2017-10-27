@@ -106,6 +106,8 @@ public abstract class AbstractMailAction extends BaseNotifyAction {
         html = html.replace("#title#", title);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         html = html.replace("#timeFlag#", sdf.format(timeFlag));
+        SimpleDateFormat JTAsdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        html = html.replace("#JTAtimeFlag#", JTAsdf.format(timeFlag));
         html = html.replace("#id#", id);
         html = html.replace("#description#", description);
 

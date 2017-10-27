@@ -475,7 +475,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
             // retry need recover to zero
             stateData.put(NCConstant.COLUMN_RETRY_COUNT, 1);
             stateData.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
-            stateData.put(NCConstant.PRIORITYFLAG, true);
+            stateData.put(NCConstant.PRIORITYFLAG, false);
         }
     }
 
