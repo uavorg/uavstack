@@ -174,14 +174,13 @@ public class UAVMetaDataMgr {
         for (String key : SystemMeta) {
 
             if (metaData.containsKey(key)) {
-            	
-            	String value = System.getProperty(key);
-            	
-            	if (StringHelper.isEmpty(value)) {
-            		System.setProperty(key, (String) metaData.get(key));
-               }
-             
-            
+
+                String value = System.getProperty(key);
+
+                if (StringHelper.isEmpty(value)) {
+                    System.setProperty(key, (String) metaData.get(key));
+                }
+
             }
         }
         if (log.isLogEnabled()) {
