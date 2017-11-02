@@ -56,6 +56,7 @@ public abstract class AbsDBPoolHookProxy extends HookProxy {
         Event event = context.get(Event.class);
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
         switch (event) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_INIT:
                 initHook(ic);
                 break;
@@ -89,6 +90,9 @@ public abstract class AbsDBPoolHookProxy extends HookProxy {
      */
     private void initHook(InterceptContext ic) {
 
+        if (isHookEventDone("initHook")) {
+            return;
+        }
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
         String basePath = (String) ic.get(InterceptConstants.BASEPATH);
         appid = MonitorServerUtil.getApplicationId(contextPath, basePath);
