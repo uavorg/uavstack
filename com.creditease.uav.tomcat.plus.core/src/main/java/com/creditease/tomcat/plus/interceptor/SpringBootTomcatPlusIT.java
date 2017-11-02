@@ -301,10 +301,15 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.createInterceptContext(Event.WEBCONTAINER_STOPPED);
 
-        /**
+		/**
          * NOTE: spring boot rewrite the tomcat webappclassloader, makes the addURL for nothing, then we can't do
          * anything on this we may use its webappclassloader's parent as the classloader
          */
+
+        if (null == context || null == sc) {
+            return;
+        }
+		
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader().getParent());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
