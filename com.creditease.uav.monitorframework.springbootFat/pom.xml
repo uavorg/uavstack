@@ -8,7 +8,7 @@
   <groupId>com.example</groupId>
   <artifactId>starter</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>springbootStart</name>
      <!-- Add typical dependencies for a web application -->
     <dependencies>
@@ -16,6 +16,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.alibaba/dubbo -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<version>2.5.3</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
                
         <dependency>
    			 <groupId>junit</groupId>
@@ -101,6 +117,12 @@
 			<groupId>com.creditease.moniter</groupId>
 			<artifactId>com.creditease.uav.cache.redis</artifactId>
 			 <version>1.0</version>
+			 <exclusions>
+			 	<exclusion>
+			 		<artifactId>commons-logging</artifactId>
+			 		<groupId>commons-logging</groupId>
+			 	</exclusion>
+			 </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>biz.paluch.redis</groupId>
