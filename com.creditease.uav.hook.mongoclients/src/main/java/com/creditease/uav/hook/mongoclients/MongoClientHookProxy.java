@@ -22,11 +22,9 @@ package com.creditease.uav.hook.mongoclients;
 
 import java.util.Map;
 
-import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.appfra.hook.spi.HookProxy;
-import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
@@ -59,6 +57,7 @@ public class MongoClientHookProxy extends HookProxy {
         Event evt = context.get(Event.class);
 
         switch (evt) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_INIT:
                 InsertInterceptToClients(context, webapploader);
                 break;
@@ -78,14 +77,9 @@ public class MongoClientHookProxy extends HookProxy {
 
     public void InsertInterceptToClients(HookContext context, ClassLoader webapploader) {
 
-        /**
-         * NOTE: this is a special process for springboot, because the MongoClient hook happens in transform
-         */
-        if (UAVServer.ServerVendor.SPRINGBOOT == UAVServer.instance()
-                .getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)) {
+        if (isHookEventDone("InsertInterceptToClients")) {
             return;
         }
-
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
 
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
