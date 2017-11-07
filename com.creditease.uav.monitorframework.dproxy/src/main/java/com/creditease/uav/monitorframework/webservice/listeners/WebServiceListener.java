@@ -22,6 +22,8 @@ package com.creditease.uav.monitorframework.webservice.listeners;
 
 import java.util.List;
 
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
@@ -47,8 +49,14 @@ public class WebServiceListener extends InterceptEventListener {
     public boolean isEventListener(Event event) {
 
         switch (event) {
-            case WEBCONTAINER_INIT:
+            case SPRING_BEAN_REGIST:
                 return true;
+            case WEBCONTAINER_INIT:
+                if (UAVServer.ServerVendor.SPRINGBOOT != UAVServer.instance()
+                        .getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)) {
+                    return true;
+                }
+                break;
             case WEBCONTAINER_RESOURCE_CREATE:
                 break;
             case AFTER_SERVET_INIT:
@@ -119,8 +127,10 @@ public class WebServiceListener extends InterceptEventListener {
         ClassLoader webapploader = (ClassLoader) context.get(InterceptConstants.WEBAPPLOADER);
 
         // switch event
-        Event evt = context.getEvent();
-        switch (evt) {
+        Event event = context.getEvent();
+        switch (event) {
+            case SPRING_BEAN_REGIST:
+
             case WEBCONTAINER_INIT:
                 insertWebServiceInterceptor(context, webapploader);
                 break;
