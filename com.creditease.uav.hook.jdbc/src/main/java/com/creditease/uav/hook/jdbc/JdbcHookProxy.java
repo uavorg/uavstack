@@ -44,17 +44,9 @@ public class JdbcHookProxy extends HookProxy {
 
     private final DynamicProxyInstaller dpInstall;
 
-    private boolean isInjectDrvMgr = false;
-    private boolean isInjectDruid = false;
-    private boolean isInjectDBCP2 = false;
-    private boolean isInjectTomcatDBCP2 = false;
-    private boolean isInjectHikari = false;
-    private boolean isInjectDataSource = false;
-
     @SuppressWarnings("rawtypes")
     public JdbcHookProxy(String id, Map config) {
         super(id, config);
-
         dpInstall = new DynamicProxyInstaller();
     }
 
@@ -64,6 +56,7 @@ public class JdbcHookProxy extends HookProxy {
         Event event = context.get(Event.class);
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
         switch (event) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_RESOURCE_INIT:
                 this.injectDriverManager(webapploader, ic);
                 this.injectDBCP2(webapploader, ic);
@@ -113,11 +106,9 @@ public class JdbcHookProxy extends HookProxy {
      */
     private void injectDriverManager(ClassLoader webapploader, InterceptContext ic) {
 
-        if (this.isInjectDrvMgr == true) {
+        if (isHookEventDone("isInjectDrvMgr")) {
             return;
         }
-
-        this.isInjectDrvMgr = true;
 
         JdbcDriverIT jdbcDriverIT = new JdbcDriverIT(this.getAppID(ic));
 
@@ -149,11 +140,9 @@ public class JdbcHookProxy extends HookProxy {
             return;
         }
 
-        if (this.isInjectDataSource == true) {
+        if (isHookEventDone("isInjectDataSource")) {
             return;
         }
-
-        this.isInjectDataSource = true;
 
         JdbcDriverIT jdbcDriverIT = new JdbcDriverIT(this.getAppID(ic));
 
@@ -188,11 +177,9 @@ public class JdbcHookProxy extends HookProxy {
             return;
         }
 
-        if (this.isInjectTomcatDBCP2 == true) {
+        if (isHookEventDone("isInjectTomcatDBCP2")) {
             return;
         }
-
-        this.isInjectTomcatDBCP2 = true;
 
         final String appid = this.getAppID(ic);
 
@@ -242,11 +229,9 @@ public class JdbcHookProxy extends HookProxy {
             return;
         }
 
-        if (this.isInjectDBCP2 == true) {
+        if (isHookEventDone("isInjectDBCP2")) {
             return;
         }
-
-        this.isInjectDBCP2 = true;
 
         final String appid = this.getAppID(ic);
 
@@ -294,11 +279,9 @@ public class JdbcHookProxy extends HookProxy {
             return;
         }
 
-        if (isInjectHikari == true) {
+        if (isHookEventDone("isInjectHikari")) {
             return;
         }
-
-        isInjectHikari = true;
 
         final String appid = this.getAppID(ic);
 
@@ -357,11 +340,9 @@ public class JdbcHookProxy extends HookProxy {
             return;
         }
 
-        if (this.isInjectDruid == true) {
+        if (isHookEventDone("isInjectDruid")) {
             return;
         }
-
-        this.isInjectDruid = true;
 
         final String appid = this.getAppID(ic);
 

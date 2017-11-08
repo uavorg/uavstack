@@ -59,7 +59,8 @@ function AppHubDialog(cfg) {
 		
 		sb.append("</div></div></div></div>");
 		
-		document.body.innerHTML=sb.toString()+document.body.innerHTML;
+		// document.body.innerHTML=sb.toString()+document.body.innerHTML;
+		$(document.body).prepend(sb.toString()); // FIX miss DOM Event when rewriting 'innerHTML' directly
 		
 		var closeBtnElem=HtmlHelper.id(closeBtnId);
 		
@@ -130,6 +131,7 @@ function AppHubDialogManager() {
 	};
 	
 	this.open=function(id,obj) {
+		
 		var tl=list.get(id);
 		if (undefined==tl) {
 			return;

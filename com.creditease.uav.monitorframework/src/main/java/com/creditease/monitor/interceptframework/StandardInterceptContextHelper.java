@@ -23,12 +23,13 @@ package com.creditease.monitor.interceptframework;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 
 public class StandardInterceptContextHelper {
 
-    private static ThreadLocal<StandardInterceptContextHelper> ThreadCaptureContextHelper = new ThreadLocal<StandardInterceptContextHelper>();
+    private static TransmittableThreadLocal<StandardInterceptContextHelper> ThreadCaptureContextHelper = new TransmittableThreadLocal<StandardInterceptContextHelper>();
 
     protected static InterceptContext getContext(Event event, boolean isCreateForNone) {
 

@@ -34,7 +34,7 @@ public class OSProcess {
     private Set<String> ports = new HashSet<String>();
 
     // program name
-    private String name = "UNKOWN";
+    private String name = "UNKNOWN";
 
     // extract info to describe the process
     private Map<String, String> tags = new LinkedHashMap<String, String>();
