@@ -35,7 +35,13 @@
 			<artifactId>com.creditease.uav.cache.redis</artifactId>
 
 		</dependency>
-		
+		<dependency>  
+		<groupId>jpcap</groupId>  
+		<artifactId>jpcap</artifactId>  
+		<version>1.0</version>  
+		<scope>system</scope>	
+		<systemPath>${basedir}/../com.creditease.uav.agent.buildComponent/exlib/jpcap.jar</systemPath>  
+		</dependency>
 	</dependencies>	
 	
 	<build>

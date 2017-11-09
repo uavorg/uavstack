@@ -27,6 +27,7 @@ import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappClassLoader;
 
+import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.ReflectHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
@@ -35,22 +36,27 @@ import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.tomcat.plus.util.TomcatLog;
+import com.creditease.uav.util.MonitorServerUtil;
 
 public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
     /**
      * startUAVServer
      */
-    public void startServer(int port) {
+    public void startServer(String port, String contextPath) {
 
         // integrate Tomcat log
         UAVServer.instance().setLog(new TomcatLog("MonitorServer"));
         // start Monitor Server when server starts
         UAVServer.instance().start(new Object[] { UAVServer.ServerVendor.SPRINGBOOT });
-
+        // set appid
+        setAppid(contextPath);
         // set the connector port
-        UAVServer.instance().putServerInfo(CaptureConstants.INFO_APPSERVER_LISTEN_PORT, port);
-
+        UAVServer.instance().putServerInfo(CaptureConstants.INFO_APPSERVER_LISTEN_PORT,
+                DataConvertHelper.toInt(port, 8080));
+        InterceptSupport iSupport = InterceptSupport.instance();
+        // this context will be transmited from springboot mainThread to webcontainerInit thread then back to mainThread
+        iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
     }
 
     /**
@@ -67,7 +73,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
             contextPath = contextPath.substring(1);
         }
 
-        System.setProperty("com.creditease.uav.springboot.appid", contextPath);
+        System.setProperty("com.creditease.uav.appid", MonitorServerUtil.getApplicationId(contextPath, ""));
 
     }
 
@@ -252,7 +258,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         StandardContext sc = (StandardContext) args[0];
         InterceptSupport iSupport = InterceptSupport.instance();
-        InterceptContext context = iSupport.createInterceptContext(Event.WEBCONTAINER_STARTED);
+        InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
 
         /**
          * NOTE: spring boot rewrite the tomcat webappclassloader, makes the addURL for nothing, then we can't do
@@ -285,8 +291,9 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         }
 
         context.put(InterceptConstants.BASEPATH, basePath);
+        // we don't doIntercept here cause some pre-profile(like dubbo) not happen yet, profile will be done after
+        // finishRefresh
 
-        iSupport.doIntercept(context);
     }
 
     /**
@@ -300,6 +307,10 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         StandardContext sc = (StandardContext) args[0];
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.createInterceptContext(Event.WEBCONTAINER_STOPPED);
+
+        if (null == context || null == sc) {
+            return;
+        }
 
         /**
          * NOTE: spring boot rewrite the tomcat webappclassloader, makes the addURL for nothing, then we can't do
@@ -366,4 +377,30 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         iSupport.doIntercept(context);
     }
 
+    /**
+     * springboot load beans before web container start, hook opr should be done before beanRegist in case of duplicate
+     * definition ,so we define SPRING_BEAN_REGIST event to trigger hook
+     */
+    public void onSpringBeanRegist(String contextPath) {
+
+        InterceptSupport iSupport = InterceptSupport.instance();
+        InterceptContext context = iSupport.createInterceptContext(Event.SPRING_BEAN_REGIST);
+        context.put(InterceptConstants.WEBAPPLOADER, Thread.currentThread().getContextClassLoader());
+        context.put(InterceptConstants.CONTEXTPATH, contextPath);
+        context.put(InterceptConstants.BASEPATH, "");
+        iSupport.doIntercept(context);
+    }
+
+    /**
+     * ComponentProfile will be done after springboot finish it's context's refresh, cause every pre-profile(like dubbo)
+     * is ready.
+     * 
+     */
+    public void onSpringFinishRefresh() {
+
+        InterceptSupport iSupport = InterceptSupport.instance();
+        InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
+
+        iSupport.doIntercept(context);
+    }
 }

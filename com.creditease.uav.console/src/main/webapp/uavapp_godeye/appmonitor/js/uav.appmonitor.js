@@ -1598,6 +1598,7 @@ var mvcObj={
 			"cpt.jaxrs":"cpt.jaxrs",
 			"cpt.springmvc":"cpt.springmvc",
 			"cpt.springmvcRest":"cpt.springmvcRest",
+			"cpt.struts2":"cpt.struts2",
 			 state:"state",
 			"cpt.services":"cpt.services",
 			"cpt.clients":"cpt.clients",
@@ -4620,6 +4621,10 @@ var mvcObj={
             
             if (jsonObj["cpt.springmvcRest"]!=undefined&&jsonObj["cpt.springmvcRest"]!="{}") {
             	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_springmvcRest')\">组件[SpringMVCRest]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_springmvcRest'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.springmvcRest",jsonObj,cptservices)+"</div>" );
+            }
+            
+            if (jsonObj["cpt.struts2"]!=undefined&&jsonObj["cpt.struts2"]!="{}") {
+            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_struts2')\">组件[Struts2]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_struts2'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.struts2",jsonObj,cptservices)+"</div>" );
             }
             sb.append("</div>");
             

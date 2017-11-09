@@ -20,14 +20,11 @@
 
 package com.creditease.uav.threadanalysis.client.action;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.IOHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.RuntimeHelper;
@@ -35,173 +32,100 @@ import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.http.api.UAVHttpMessage;
 import com.creditease.agent.spi.AbstractBaseAction;
 import com.creditease.agent.spi.ActionContext;
-import com.creditease.agent.spi.AgentFeatureComponent;
 import com.creditease.agent.spi.IActionEngine;
 import com.creditease.agent.spi.IConfigurationManager;
-import com.creditease.uav.httpasync.HttpAsyncClient;
-import com.creditease.uav.httpasync.HttpAsyncClientFactory;
-import com.creditease.uav.httpasync.HttpClientCallback;
-import com.creditease.uav.httpasync.HttpClientCallbackResult;
 
 public class ThreadAnalysisAction extends AbstractBaseAction {
 
-    private HttpAsyncClient client;
+    private static final String SERVICE_POSTFIX = "/com.creditease.uav/server?action=runSupporter";
 
-    private String rootMetaPath;
+    // 执行时间map,key为进程号，value为执行时间；用于判断在限定时间段内不需要发起多次请求
+    private static volatile Map<String, Long> timeIntervalMap = new ConcurrentHashMap<String, Long>();
+
+    private String dumpFileDirectory;
+
+    private long timeInterval = 30000L; // 30s
 
     public ThreadAnalysisAction(String cName, String feature, IActionEngine engine) {
         super(cName, feature, engine);
-        client = HttpAsyncClientFactory.build(2, 50, 10000, 10000, 10000);
 
-        rootMetaPath = this.getConfigManager().getContext(IConfigurationManager.METADATAPATH) + "thread.analysis";
         // 线程分析的文件位置，不存在则创建。只有一个MA，存在多个用户的情况，考虑权限问题，设置这个文件夹对别的用户可读写
+        dumpFileDirectory = getConfigManager().getContext(IConfigurationManager.METADATAPATH) + "thread.analysis";
         try {
-            IOHelper.createFolder(rootMetaPath);
-            RuntimeHelper.exec(10000, "/bin/sh", "-c", "chmod 777 " + rootMetaPath);
+            IOHelper.createFolder(dumpFileDirectory);
+            RuntimeHelper.exec(10000, "/bin/sh", "-c", "chmod 777 " + dumpFileDirectory);
         }
-        catch (Exception e) {
+        catch (Exception ignore) {
             // ignore
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void doAction(ActionContext context) throws Exception {
 
         try {
             UAVHttpMessage data = (UAVHttpMessage) context.getParam("msg");
-            String action = "runSupporter";
-            String server = data.getRequest("server") + "/com.creditease.uav/server?action=" + action;
-            final String url = server;
 
-            String param = data.getRequest("actparam");
+            if (!controlConcurrency(data)) {
+                data.putResponse("rs", "ERR");
+                data.putResponse("msg", "ERR:THREAD DUMP IS RUNNING");
+                return;
+            }
 
             String user = data.getRequest("user");
             if (StringHelper.isEmpty(user)) {
                 user = "UNKNOWN";
             }
 
+            String url = data.getRequest("server") + SERVICE_POSTFIX;
+            if (!url.startsWith("http")) {
+                url = "http://" + url;
+            }
+
+            String param = data.getRequest("actparam");
+            @SuppressWarnings("unchecked")
             Map<String, Object> paramMap = JSONHelper.toObject(param, Map.class);
+            @SuppressWarnings("unchecked")
             List<Object> paramsList = (List<Object>) paramMap.get("param");
-            paramsList.add(this.rootMetaPath);
+            paramsList.add(this.dumpFileDirectory);
             paramMap.put("param", paramsList);
 
-            final AtomicBoolean isSuccess = new AtomicBoolean(false);
+            ActionContext ac = new ActionContext();
+            ac.putParam("user", user);
+            ac.putParam("url", url);
+            ac.putParam("paramMap", paramMap);
 
-            final CountDownLatch cdl = new CountDownLatch(1);
+            if ("true".equals(data.getRequest("multiple"))) {
+                ac.putParam("multiple", true);
+                int duration = DataConvertHelper.toInt(data.getRequest("duration"), 0);
+                int interval = DataConvertHelper.toInt(data.getRequest("interval"), 5);
+                int times = duration / interval + 1;
+                ac.putParam("times", times);
+                ac.putParam("suspendTime", interval * 1000);
+            }
+            else {
+                ac.putParam("multiple", false);
+                ac.putParam("times", 1);
+                ac.putParam("suspendTime", 0);
+            }
 
-            final StringBuilder response = new StringBuilder();
+            ac = getActionEngineMgr().getActionEngine("JTAActionEngine").execute("DumpThreadAction", ac);
 
-            client.doAsyncHttpPost(url, JSONHelper.toString(paramMap), new HttpClientCallback() {
+            String ret = (String) ac.getParam("msg");
 
-                @Override
-                public void completed(HttpClientCallbackResult result) {
-
-                    String res = result.getReplyDataAsString();
-
-                    log.info(this, "MOFCtrlAction Success: url=" + url + ", res=" + res);
-
-                    if (!StringHelper.isEmpty(res) && !res.contains("ERR") && !res.contains("Err")) {
-                        isSuccess.set(true);
-                    }
-
-                    response.append(res);
-
-                    cdl.countDown();
-                }
-
-                @Override
-                public void failed(HttpClientCallbackResult result) {
-
-                    String exp = result.getException().getMessage();
-                    response.append(exp);
-
-                    log.err(this, "MOFCtrlAction FAIL: url=" + url + ", err=" + exp);
-
-                    isSuccess.set(false);
-                    cdl.countDown();
-                }
-            });
-
-            cdl.await(10000, TimeUnit.MILLISECONDS);
-
-            if (isSuccess.get() == false) {
+            if (ret.contains("ERR:")) {
                 data.putResponse("rs", "ERR");
-                data.putResponse("msg", response.toString());
-                return;
+                data.putResponse("msg", ret);
             }
-            // 成功则返回文件名
-            String fileName = response.toString();
-            // 如果传入的参数不正确，则不会生成文件。至此可知参数符合规则。
-            String ipport = getIpport(fileName);
-            String pid = "unknown";
-            String time = System.currentTimeMillis() + "";
-            if (paramsList.size() > 2) {
-                pid = paramsList.get(0).toString();
-                time = paramsList.get(1).toString();
+            else {
+                data.putResponse("rs", "OK");
+                data.putResponse("msg", ret);
             }
-            String target = ipport + "_" + pid + "_" + time + "_" + user;
-            doCollectFiles(data, fileName, target);
         }
         catch (Exception e) {
             log.err(this, "do thread analysis FAILED.", e);
             throw e;
         }
-    }
-
-    private String getIpport(String fileName) {
-
-        String file = StringHelper.getFilename(fileName);
-        String[] args = file.split("_");
-        if (args.length > 2) {
-            return args[0] + ":" + args[1];
-        }
-        return "127.0.0.1:8080";
-
-    }
-
-    /**
-     * doCollectFiles
-     * 
-     * @param data
-     * @param fileName
-     */
-    private void doCollectFiles(UAVHttpMessage data, String fileName, String target) {
-
-        AgentFeatureComponent afc = (AgentFeatureComponent) this.getConfigManager().getComponent("collectclient",
-                "CollectDataAgent");
-
-        if (afc == null) {
-            data.putResponse("rs", "ERR");
-            data.putResponse("msg", "归集客户端未启动");
-            return;
-        }
-
-        String collectAct = "collectdata.add";
-        String mqTopic = "JQ_JTA";
-
-        // call CollectDataAgent, prepare parameters
-        Map<String, Object> task = new HashMap<String, Object>();
-        task.put("target", target);
-        task.put("action", mqTopic);
-        task.put("file", fileName);
-        task.put("topic", mqTopic);
-        task.put("unsplit", true);
-        List<Map<String, Object>> tasks = new ArrayList<Map<String, Object>>();
-        tasks.add(task);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("tasks", tasks);
-        Map<String, Object> call = new HashMap<String, Object>();
-        call.put("feature", "threadanalysis");
-        call.put("component", "ThreadAnalysisAgent");
-        call.put("eventKey", "collect.callback");
-        params.put("callback", call);
-
-        String collectTasks = JSONHelper.toString(params);
-        afc.exchange(collectAct, collectTasks);
-
-        data.putResponse("rs", "OK");
-        data.putResponse("msg", fileName);
     }
 
     @Override
@@ -222,4 +146,39 @@ public class ThreadAnalysisAction extends AbstractBaseAction {
         return null;
     }
 
+    /**
+     * controlConcurrency
+     * 
+     * @param pid
+     * @param exectime
+     * @return
+     */
+    private boolean controlConcurrency(UAVHttpMessage data) {
+
+        String server = data.getRequest("server");
+        long exectime = System.currentTimeMillis();
+        long duration = 1000L * DataConvertHelper.toInt(data.getRequest("duration"), 0);
+        // initial
+        if (!timeIntervalMap.containsKey(server)) {
+            synchronized (timeIntervalMap) {
+                if (!timeIntervalMap.containsKey(server)) {
+                    // 在exectimeMap记录进程号和执行时间
+                    timeIntervalMap.put(server, exectime + duration);
+                    return true;
+                }
+            }
+        }
+        // only one can entrance
+        if ((exectime - timeIntervalMap.get(server)) > timeInterval) {
+            synchronized (timeIntervalMap) {
+                if ((exectime - timeIntervalMap.get(server)) > timeInterval) {
+                    // 在exectimeMap记录进程号和执行时间
+                    timeIntervalMap.put(server, exectime + duration);
+                    return true;
+                }
+            }
+        }
+        // thread analysis is running, abandon
+        return false;
+    }
 }
