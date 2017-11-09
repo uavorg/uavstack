@@ -1027,20 +1027,29 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @GET
     @Path("node/q/cache")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void loadUavNetworkInfo(@Suspended AsyncResponse response) {
+    public void loadUavNetworkInfo(@QueryParam("fkey") String fkey, @QueryParam("fvalue") String fvalue,
+            @Suspended AsyncResponse response) {
 
         UAVHttpMessage message = new UAVHttpMessage();
         message.setIntent("node");
 
-        String groups = getUserGroupsByFilter(request);
-        if ("NOMAPPING".equals(groups)) {
-            response.resume("{\"rs\":\"{}\"}");
-        }
-        else if ("ALL".equals(groups)) {
-            loadUavNetworkInfoFromHttp(message, response);
+        if (StringHelper.isEmpty(fkey) || StringHelper.isEmpty(fvalue)) {
+            String groups = getUserGroupsByFilter(request);
+            if ("NOMAPPING".equals(groups)) {
+                response.resume("{\"rs\":\"{}\"}");
+            }
+            else if ("ALL".equals(groups)) {
+                loadUavNetworkInfoFromHttp(message, response);
+            }
+            else {
+                message.putRequest("fkey", "group");
+                message.putRequest("fvalue", groups);
+                loadUavNetworkInfoFromHttp(message, response);
+            }
         }
         else {
-            message.putRequest("appGroups", groups);
+            message.putRequest("fkey", fkey);
+            message.putRequest("fvalue", fvalue);
             loadUavNetworkInfoFromHttp(message, response);
         }
 
