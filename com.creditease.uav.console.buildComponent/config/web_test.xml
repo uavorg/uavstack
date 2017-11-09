@@ -14,7 +14,7 @@
 		<servlet-class>com.creditease.uav.apphub.core.AppHubRestServlet</servlet-class>
 		<init-param>
 			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>com.creditease.uav.apphub.rest,com.creditease.uav.godeye.rest,com.creditease.uav.manage.rest,com.creditease.uav.appmongo.rest,com.creditease.uav.grafana</param-value>
+			<param-value>com.creditease.uav.apphub.rest,com.creditease.uav.godeye.rest,com.creditease.uav.manage.rest,com.creditease.uav.appmongo.rest,com.creditease.uav.grafana,com.creditease.uav.opentsdb</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 		<async-supported>true</async-supported>
@@ -40,17 +40,6 @@
 	<servlet-mapping>
 		<servlet-name>es-serlvet</servlet-name>
 		<url-pattern>/es/*</url-pattern>
-	</servlet-mapping>
-	<servlet>
-		<servlet-name>opentsdb-crdu-servlet</servlet-name>
-		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestCRDUServlet</servlet-class>
-		<load-on-startup>2</load-on-startup>
-		<async-supported>true</async-supported>
-	</servlet>
-	
-	<servlet-mapping>
-		<servlet-name>opentsdb-crdu-servlet</servlet-name>
-		<url-pattern>/db/*</url-pattern>
 	</servlet-mapping>
 	
 	<servlet>
@@ -131,6 +120,10 @@
 		<param-value>127.0.0.1:6379</param-value>
 	</context-param>
 	<context-param>
+		<param-name>uav.app.opentsdb.redis.store.addr</param-name>
+		<param-value>127.0.0.1:6379</param-value>
+ 	</context-param>
+	<context-param>
 		<param-name>uav.app.gui.redis.store.params</param-name>
 		<param-value>{"min":50,"max":300,"queue":10,"pwd":"Uav!1227Admin"}</param-value>
 	</context-param>
@@ -144,6 +137,10 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.app.godeye.redis.store.params</param-name>
+		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5,"pwd":"Uav!1227Admin"}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>uav.app.opentsdb.redis.store.params</param-name>
 		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5,"pwd":"Uav!1227Admin"}</param-value>
 	</context-param>
 	<context-param>
@@ -166,6 +163,8 @@
 		<param-name>uav.app.es.http.client.params</param-name>
 		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
+	
+ 	<context-param>
 	<context-param>
 		<param-name>@url:uav.app.godeye.hbquery.http.addr</param-name>
 		<param-value>http://127.0.0.1:8020,http://127.0.0.1:8020</param-value>

@@ -1,0 +1,111 @@
+@CHARSET "UTF-8";
+/*原子布局 BEGINI*/
+html {
+	height: 100%;
+}
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+.ListBG {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+.ObjectBG {
+	font-size: 16px;
+	color: #333333;
+	background: white;
+}
+
+.icon-myout {
+	float: right;
+	margin-top: -3px;
+	margin-right: 15px;
+	font-size: 2em;
+}
+.ObjectBG span{
+	word-break:break-all; 
+	white-space:normal ;
+	word-wrap : break-word ;
+	display:inline-block;
+}
+.ObjectBG strong{
+	word-break:break-all; 
+	white-space:normal ;
+	word-wrap : break-word ;
+	display:inline-block;
+}
+.ObjectBG ul {
+	margin: 0 10px 0 10px;
+	text-align: left;
+	padding: 0px;
+}
+
+.ObjectBG li {
+	list-style-type: none;
+}
+.title-head {
+	font-size: 16px;
+	color: #ffffff;
+	background-color: #009ad6;
+	padding-top:12px;
+	padding-bottom:12px;
+}
+
+.editor-input {
+  height: 23px;
+  border: 1px solid #ddd;
+  padding-left: 10px;
+  font-size: 13px;
+  border-radius: 3px;
+  width: 90%;
+  resize:none;
+}
+.title
+{
+	text-align: left;
+	width: 15%;
+}
+.userinput
+{
+	text-align: left;
+	width: 85%;
+}
+.icon-myout:hover {
+	border-radius: 3px;
+	box-shadow: 0 0 4px 4px #fff;
+}
+.modal-header
+{
+    padding: 2px 2px;
+    padding-top: 2px;
+    padding-right: 15px;
+    padding-bottom: 2px;
+    padding-left: 15px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    background-color: #337ab7;	
+}
+.modal-footer {
+    padding: 2px 2px;
+}
+
+.modal-body {
+    position: relative;
+    max-height: 400px;
+    padding: 5px;
+    overflow-y: auto;
+}
+
+.errorMsg
+{
+	color: red;
+	margin-right: 10px;
+}
