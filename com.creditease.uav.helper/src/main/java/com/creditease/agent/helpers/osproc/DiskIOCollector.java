@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.creditease.agent.helpers.IOHelper;
+import com.creditease.agent.helpers.RuntimeHelper;
+import com.creditease.agent.helpers.StringHelper;
 
 public class DiskIOCollector {
 
@@ -38,6 +40,39 @@ public class DiskIOCollector {
 
     private Map<String, Map<String, Long>> lastDiskIoMap = new HashMap<String, Map<String, Long>>();
     private long time = 0;
+
+    public void collectWin(Map<String, Map<String, String>> resultMap) {
+
+        try {
+            String output = RuntimeHelper.exec(
+                    "wmic path Win32_PerfFormattedData_PerfDisk_LogicalDisk get DiskReadBytesPerSec,DiskWriteBytesPerSec,Name");
+
+            if (StringHelper.isEmpty(output)) {
+                return;
+            }
+
+            String[] strs = output.split("\n");
+            for (String str : strs) {
+                str = str.replaceAll("\\s{2,}", " ");
+                String[] args = str.split(" ");
+                if (1 == args.length) {
+                    continue;
+                }
+
+                if (!(args[2].equals("_Total")) && !(args[2].equals("Name"))) {
+                    double rd_persec = Long.parseLong(args[0]) / 1024.0;
+                    double wr_persec = Long.parseLong(args[1]) / 1024.0;
+
+                    DecimalFormat df = new DecimalFormat("#0.00");
+                    resultMap.get(args[2]).put("disk_read", df.format(rd_persec));
+                    resultMap.get(args[2]).put("disk_write", df.format(wr_persec));
+                }
+            }
+        }
+        catch (Exception e) {
+            // ignore
+        }
+    }
 
     public void collect(Map<String, Map<String, String>> resultMap) {
 

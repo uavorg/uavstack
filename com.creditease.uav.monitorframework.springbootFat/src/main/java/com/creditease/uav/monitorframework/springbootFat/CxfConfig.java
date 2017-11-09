@@ -1,5 +1,9 @@
 package com.creditease.uav.monitorframework.springbootFat;
 
+import javax.xml.ws.Endpoint;
+
+import org.apache.cxf.bus.spring.SpringBus;
+import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -13,24 +17,24 @@ public class CxfConfig {
 
         return new ServletRegistrationBean(new CXFServlet(), "/soap/*");
     }
-    //
-    // @Bean(name = SpringBus.DEFAULT_BUS_ID)
-    // public SpringBus springBus() {
-    //
-    // return new SpringBus();
-    // }
-    //
-    // @Bean
-    // public UserService userService() {
-    //
-    // return new UserServiceImpl();
-    // }
-    //
-    // @Bean
-    // public Endpoint endpoint() {
-    //
-    // EndpointImpl endpoint = new EndpointImpl(new SpringBus(), userService());
-    // endpoint.publish("/user");
-    // return endpoint;
-    // }
+
+    @Bean(name = SpringBus.DEFAULT_BUS_ID)
+    public SpringBus springBus() {
+
+        return new SpringBus();
+    }
+
+    @Bean
+    public UserService userService() {
+
+        return new UserServiceImpl();
+    }
+
+    @Bean
+    public Endpoint endpoint() {
+
+        EndpointImpl endpoint = new EndpointImpl(new SpringBus(), userService());
+        endpoint.publish("/user");
+        return endpoint;
+    }
 }

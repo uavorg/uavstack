@@ -277,7 +277,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
 
             int priority = (int) stateData.get(NCConstant.COLUMN_PRIORITY);
 
-            if (priority < getMaxPrioritySizeByEvent(event)) {
+            if (priority < getMaxPrioritySizeByEvent(event) - 1) {
 
                 log.debug(this, "current priority is: " + priority);
 
@@ -473,8 +473,9 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
             stateData.put(NCConstant.COLUMN_PRIORITY, prioriy);
 
             // retry need recover to zero
-            stateData.put(NCConstant.COLUMN_RETRY_COUNT, 0);
+            stateData.put(NCConstant.COLUMN_RETRY_COUNT, 1);
             stateData.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
+            stateData.put(NCConstant.PRIORITYFLAG, false);
         }
     }
 

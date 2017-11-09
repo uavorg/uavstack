@@ -26,7 +26,6 @@ import java.util.Map;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
@@ -365,16 +364,25 @@ public class DubboIT {
         dspi.setGroup(group);
         dspi.setVersion(version);
 
-        List<ProtocolConfig> plist = sb.getProtocols();
+        @SuppressWarnings("unchecked")
+        List<URL> urlList = sb.getExportedUrls();
 
-        if (plist != null) {
-            for (ProtocolConfig pc : plist) {
+        if (urlList != null) {
+            for (URL url : urlList) {
                 DubboServiceProfileInfo.Protocol pro = new DubboServiceProfileInfo.Protocol();
-                pro.setpName(pc.getName());
-                pro.setPort(pc.getPort());
-                pro.setCharset(pc.getCharset());
-                pro.setContextpath(pc.getContextpath());
-                pro.setSerialization(pc.getSerialization());
+                pro.setPort(url.getPort());
+                pro.setpName(url.getProtocol());
+                int pathLength = url.getPath().length();
+                // 长度加1为了去除反斜杠/
+                int interfaceLength = url.getServiceInterface().length() + 1;
+                String contextpath = null;
+                if (pathLength > interfaceLength + 1) {
+                    contextpath = url.getPath().substring(0, pathLength - interfaceLength);
+                }
+                pro.setContextpath(contextpath);
+                pro.setCharset(url.getParameter("charset"));
+                // dubbo当前默认的序列化方式为hessian2，不知道日后会不会变，故此处不进行默认赋值
+                pro.setSerialization(url.getParameter("serialization"));
                 dspi.addProtocol(pro);
             }
         }
