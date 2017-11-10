@@ -164,7 +164,6 @@
 		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	
- 	<context-param>
 	<context-param>
 		<param-name>@url:uav.app.godeye.hbquery.http.addr</param-name>
 		<param-value>http://127.0.0.1:8020,http://127.0.0.1:8020</param-value>

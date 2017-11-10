@@ -175,7 +175,7 @@
 		<param-name>@url:uav.app.godeye.notify.view.http.addr</param-name>
 		<param-value>http://127.0.0.1:9011,http://127.0.0.1:9011</param-value>
 	</context-param>
-		<context-param>
+	<context-param>
 		<param-name>@url:uav.app.godeye.notify.strategy.http.addr</param-name>
 		<param-value>http://127.0.0.1:9004,http://127.0.0.1:9004</param-value>
 	</context-param>
@@ -183,11 +183,11 @@
 		<param-name>@url:uav.app.manage.apphubmanager.http.addr</param-name>
 		<param-value>http://127.0.0.1:8031,http://127.0.0.1:8031</param-value>
 	</context-param>
-	    <context-param> 
+	<context-param> 
         <param-name>@url:uav.app.upgrade.server.http.addr</param-name> 
         <param-value>http://127.0.0.1:8888</param-value>
     </context-param>
-        <context-param> 
+    <context-param> 
         <param-name>@url:uav.app.apm.ivc.http.addr</param-name> 
         <param-value>http://127.0.0.1:7799,http://127.0.0.1:7799</param-value>
     </context-param> 
@@ -219,7 +219,7 @@
 		<param-name>uav.apphub.sso.guest.password</param-name>
 		<param-value>guestAbc23781ADSKHbnwe</param-value>
 	</context-param>
-		<context-param>
+	<context-param>
 		<param-name>uav.apphub.sso.implclass</param-name>
 		<param-value>com.creditease.uav.apphub.sso.GUISSOLdapClient</param-value>
 	</context-param>		
