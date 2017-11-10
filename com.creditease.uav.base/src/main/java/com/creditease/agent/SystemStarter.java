@@ -69,36 +69,6 @@ public class SystemStarter {
 
     public void stop() {
 
-        if (sysInvokerMgr != null) {
-            sysInvokerMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "ISystemInvokerMgr");
-            log.info(this, "System Invoker Manager shutdown");
-        }
-
-        if (sysForkjoinWorkerMgr != null) {
-            sysForkjoinWorkerMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
-            log.info(this, "System ForkjoinWorker Manager shutdown");
-        }
-
-        if (sys1nQueueWorkerMgr != null) {
-            sys1nQueueWorkerMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
-            log.info(this, "System 1+N QueueWorker Manager shutdown");
-        }
-
-        if (sysActionEngineMgr != null) {
-            sysActionEngineMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "ISystemActionEngineMgr");
-            log.info(this, "System ActionEngine Manager shutdown");
-        }
-
-        if (timerWorkManager != null) {
-            timerWorkManager.shutdown();
-            this.configMgr.unregisterComponent("Global", "ITimerWorkManager");
-            log.info(this, "System Timer Manager shutdown");
-        }
-
         Set<Object> components = this.configMgr.getComponents();
 
         for (Object component : components) {
@@ -131,6 +101,36 @@ public class SystemStarter {
                             e);
                 }
             }
+        }
+
+        if (sysInvokerMgr != null) {
+            sysInvokerMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "ISystemInvokerMgr");
+            log.info(this, "System Invoker Manager shutdown");
+        }
+
+        if (sysForkjoinWorkerMgr != null) {
+            sysForkjoinWorkerMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
+            log.info(this, "System ForkjoinWorker Manager shutdown");
+        }
+
+        if (sys1nQueueWorkerMgr != null) {
+            sys1nQueueWorkerMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
+            log.info(this, "System 1+N QueueWorker Manager shutdown");
+        }
+
+        if (sysActionEngineMgr != null) {
+            sysActionEngineMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "ISystemActionEngineMgr");
+            log.info(this, "System ActionEngine Manager shutdown");
+        }
+
+        if (timerWorkManager != null) {
+            timerWorkManager.shutdown();
+            this.configMgr.unregisterComponent("Global", "ITimerWorkManager");
+            log.info(this, "System Timer Manager shutdown");
         }
 
         log.info(this, "CreditEase Agent Server stopped");

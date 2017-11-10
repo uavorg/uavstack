@@ -56,13 +56,7 @@ public class SystemActionEngineMgr implements ISystemActionEngineMgr {
     @Override
     public void shutdown(String actionEngineID) {
 
-        if (aeMap.containsKey(actionEngineID)) {
-            IActionEngine ae = aeMap.remove(actionEngineID);
-            ae.stop();
-            ae.clean();
-            // unregister actionEngine
-            ConfigurationManager.getInstance().unregisterComponent(((ActionEngine) ae).getFeature(), actionEngineID);
-        }
+        shutdown(actionEngineID, true);
     }
 
     @Override
@@ -70,7 +64,26 @@ public class SystemActionEngineMgr implements ISystemActionEngineMgr {
 
         Set<String> keys = aeMap.keySet();
         for (String actionEngineID : keys) {
-            shutdown(actionEngineID);
+            shutdown(actionEngineID,false);
+        }
+    }
+
+    private void shutdown(String actionEngineID, boolean removeAE) {
+
+        if (aeMap.containsKey(actionEngineID)) {
+
+            IActionEngine ae;
+
+            if (removeAE) {
+                ae = aeMap.remove(actionEngineID);
+            }
+            else {
+                ae = aeMap.get(actionEngineID);
+            }
+
+            ae.clean();
+            // unregister actionEngine
+            ConfigurationManager.getInstance().unregisterComponent(((ActionEngine) ae).getFeature(), actionEngineID);
         }
     }
 
