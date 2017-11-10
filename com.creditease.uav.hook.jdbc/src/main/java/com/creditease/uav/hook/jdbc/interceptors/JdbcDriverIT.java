@@ -244,6 +244,9 @@ public class JdbcDriverIT extends BaseComponent {
                 }
             }
             else if (method.getName().equals("executeQuery")) {
+                if (isPrepareSt == false) {
+                    this.sql = (String) args[0];
+                }
                 action = "Q";
             }
             else if (method.getName().equals("executeUpdate")) {
@@ -583,7 +586,9 @@ public class JdbcDriverIT extends BaseComponent {
 
         try {
             Class<?> driverConnectionInterfaceCls = cl.loadClass(clsName);
-            connectionInterfaces.add(driverConnectionInterfaceCls);
+            if (driverConnectionInterfaceCls.isInterface()) {
+                connectionInterfaces.add(driverConnectionInterfaceCls);
+            }
         }
         catch (ClassNotFoundException e) {
             // ignore
