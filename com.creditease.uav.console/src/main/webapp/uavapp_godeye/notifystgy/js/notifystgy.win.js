@@ -66,6 +66,8 @@ var selUiConf = {
 		}
 		
 }
+
+var supportJTA = ["服务状态指标系","应用状态指标系","应用服务器状态指标系","调用状态指标系"];
 /**
  * 初始化头部
  */
@@ -101,6 +103,7 @@ function showAddDiv() {
 	var sb=new StringBuffer();
 	sb.append( "<div class=\"titleDiv\">");
 	sb.append( "<input type=\"hidden\" id=\"isOwner\" value=\"true\">");
+	sb.append( "<input type=\"hidden\" id=\"enableThreadAnalysis\" value=\"false\">");
 	sb.append( "<input type=\"hidden\" id=\"owner\" value=\""+window.parent.loginUser.userId+"\">");
 	sb.append( "添加策略");
 	sb.append( "<div class=\"icon-signout icon-myout\" onclick=\"javascript:closeObjectDiv()\"></div>");
@@ -167,7 +170,7 @@ function showAddDiv() {
 	HtmlHelper.id("objectDiv").innerHTML = sb.toString();
 	window.winmgr.hide("notifyList");
 	window.winmgr.show("objectDiv");
-	initActionDiv();
+	initActionDiv($("#isOwner").val());
 
 }
 
@@ -177,8 +180,7 @@ function showAddDiv() {
  */
 function showEditNotifyDiv(jsonObjParam) {
 
-	var selTypeSize = $("#actionTypeSel option").size();
-	var key,jsonObj,isOwner=false; 
+	var key,jsonObj,isOwner=false;enableThreadAnalysis=false;
 	//因为只有一对 key：value 获取key（值为id） 
 	$.each(jsonObjParam,function(index,obj){
 		key = index;
@@ -244,7 +246,9 @@ function showEditNotifyDiv(jsonObjParam) {
 	}else if(names[1]){
 		sb.append( '<div><input class="'+cssRedOnly+'" value="'+getSelUiConfigValue(names[1])+'" readonly="readonly"></input></div>');
 		selUiConf["userInput"]["notifyNameM"]=names[1];//编辑赋值，准备修改数据
-
+		if($.inArray(getSelUiConfigValue(names[1]),supportJTA) >= 0){
+			enableThreadAnalysis=true;
+		}
 	}
 	//3
 	if(names[2] && names[1] == "log"){
@@ -350,6 +354,7 @@ function showEditNotifyDiv(jsonObjParam) {
 	sb.append( '<div class="well" id="actionFatDiv">');
 	sb.append( '<div><span class="well-title">触发动作</span><div class="well-title-div"><span class="glyphicon glyphicon-plus well-add" id="actionAddButton" onclick="javascript:showAction(this,\'ADD\');"></span></div></div>');	
 	var actionSum = 0;
+	initActionDiv(isOwner?"true":"false");
 	if (jsonObj.action!=undefined) {
 		$.each(jsonObj.action,function(index,value){
 			actionSum++;
@@ -361,7 +366,11 @@ function showEditNotifyDiv(jsonObjParam) {
 			var html ;
 
 			if(isOwner){
-				html = '<div class="well-list">'+josnSpan.type+'<span style="display:none">'+JSON.stringify(josnSpan)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisActionObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showAction(this,\'EDIT\');"></span></div>';
+				if("threadanalysis" == josnSpan.type){
+					var html = '<div class="well-list" id="ChoosedJTA">'+josnSpan.type+'<span style="display:none">'+JSON.stringify(josnSpan)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisActionObj(this);"></div>';
+				}else{
+					html = '<div class="well-list">'+josnSpan.type+'<span style="display:none">'+JSON.stringify(josnSpan)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisActionObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showAction(this,\'EDIT\');"></span></div>';
+				}
 			}else{
 				html = '<div class="well-list">'+josnSpan.type+'<span style="display:none">'+JSON.stringify(josnSpan)+'</span><span class="glyphicon glyphicon-eye-open well-edit" onclick="javascript:showAction(this,\'EDIT\');"></span></div>';
 			}
@@ -391,7 +400,7 @@ function showEditNotifyDiv(jsonObjParam) {
 	/**
 	 * 所有渲染内容 div end
 	 */
-
+	sb.append( "<input type=\"hidden\" id=\"enableThreadAnalysis\" value=\""+ enableThreadAnalysis +"\">");
 	HtmlHelper.id("objectDiv").innerHTML = sb.toString();
 	
 	/**
@@ -405,7 +414,8 @@ function showEditNotifyDiv(jsonObjParam) {
 	 * 判断触发动作按钮 begin(类型都已经存在值，则不能再添加)
 	 * 不是归属者也不能添加
 	 */
-	if(actionSum==selTypeSize || !isOwner){
+	var selTypeSize = $("#actionTypeSel option").size();
+	if(selTypeSize == 0 || !isOwner){
 		$("#actionAddButton").attr("class","well-add");
 		$("#actionAddButton").click(function(){});
 	}
@@ -414,8 +424,6 @@ function showEditNotifyDiv(jsonObjParam) {
 	 */
 	window.winmgr.hide("notifyList");
 	window.winmgr.show("objectDiv");
-
-	initActionDiv();
 
 }
 
@@ -463,10 +471,9 @@ function initConditionsDiv(thisObj) {
 /**
  * 触发动作添加窗口
  */
-function initActionDiv() {
+function initActionDiv(isOwner) {
 
 	var old = document.getElementById("actionDiv");
-	var isOwner = $("#isOwner").val();
 	if(old){
 		var node = old.parentNode;
 		node.removeChild(old);
@@ -484,11 +491,12 @@ function initActionDiv() {
 	sb.append( '<div class="modal-body" id="actionBodyDiv">');
 
 	sb.append( '<input id="actiontype" type=\"hidden\" ></input><input id="actionEditType" type=\"hidden\" ></input>');
-	sb.append( "<select id=\"actionTypeSel\">");
+	sb.append( "<select id=\"actionTypeSel\" onchange=\"javascript:actionChangeShow('ADD');\">");
 	sb.append( '<option value="sms">发送短信（填写短信号码）</option>');
 	sb.append( '<option value="mail">发送邮件（填写邮箱地址）</option>');
 	sb.append( '<option value="phone">电话通知（填写手机号）</option>');
 	sb.append( '<option value="httpcall">Http动作（填写URL）</option>');
+	sb.append( '<option value="threadanalysis">线程分析</option>')
 	sb.append( '</select>');
 
 	if(isOwner=="true"){
@@ -502,7 +510,7 @@ function initActionDiv() {
 	sb.append( '<span style="margin-right:5px;color:#ff0000;display:none;" id="ActionErrMsg">必输项不能为空</span>');
 
 	if(isOwner=="true"){
-		sb.append( '<button class="btn btn-primary " id=\"actionSaveButton\" onclick="javascript:appendActionTextarea(this);">添加优先级</button>');
+		sb.append( '<button class="btn btn-primary btn-addPriority" id=\"actionSaveButton\" onclick="javascript:appendActionTextarea(this);">添加优先级</button>');
 	}
 	sb.append( '<button class="btn btn-primary " id=\"actionSaveButton\" onclick="javascript:actionAppend();">保存</button>');
 	sb.append( '<button class="btn" data-dismiss="modal">关闭</button>' + '</div>');
@@ -583,6 +591,21 @@ function funcChangeShow(thisObj,showId){
 	}
 }
 
+function actionChangeShow(type){
+	if("ADD" == type){
+		if("threadanalysis" == $("#actionTypeSel").val()){
+			$("textarea[name='actionValue']").val("10101").hide();
+			$(".btn-addPriority").hide();
+		}else{
+			$("textarea[name='actionValue']").val("").show();
+			$(".btn-addPriority").show();
+		}
+	}else{
+		$("textarea[name='actionValue']").show();
+		$(".btn-addPriority").show();
+	}
+}
+
 function selServerChangeShow(type,value,text){
 	var selId = type+"_notifyNameF";
 	$("#"+selId).html(text);
@@ -595,12 +618,16 @@ function selServerChangeShow(type,value,text){
 		selUiConf["userInput"]["notifyNameF"]=value;
 		selUiConf["userInput"]["notifyNameM"]="jvm";
 		$("#notifyNameI").attr("placeholder","输入监控实例名或者实例组名");
+		$("#enableThreadAnalysis").val(false);
+		removeChoosedJTA();
 	}else if(value=="log"){
 		$("#"+type+"_appName_div").show();
 		$("#"+type+"_notifyNameM_div").attr("class","btn-group selectDiv defNone");
 		$("#notifyNameI").attr("placeholder","输入指定日志");
 		selUiConf["userInput"]["notifyNameF"]="";
 		selUiConf["userInput"]["notifyNameM"]=value;
+		$("#enableThreadAnalysis").val(false);
+		removeChoosedJTA();
 	}else{
 		$("#"+type+"_appName_div").hide();
 		$("#"+type+"_notifyNameM_div").attr("class","btn-group selectDiv");
@@ -621,12 +648,35 @@ function selServerChangeShow(type,value,text){
 	}
 	
 }
+
+function removeChoosedJTA(){
+	if(HtmlHelper.id("ChoosedJTA") != null){
+		HtmlHelper.id("ChoosedJTA").remove();
+	}
+}
+
+function changeJTAStat(text){
+	if($.inArray(text,supportJTA) >= 0){
+		$("#enableThreadAnalysis").val(true);
+		if(HtmlHelper.id("ChoosedJTA") == null){
+			$("#actionAddButton").attr("class","glyphicon glyphicon-plus well-add");
+			$("#actionAddButton").click(function(){showAction(this,'ADD')});
+		}
+	}else{
+		$("#enableThreadAnalysis").val(false);
+		removeChoosedJTA();
+	}
+}
+
 function selIndexChangeShow(type,value,text){
+	 changeJTAStat(text);
+	 
 	 $("#"+type+"_notifyNameM").html(text);
 	 $("#"+type+"_notifyNameM").css("padding-left","2px");
 	 $("#"+type+"_notifyNameM").css("color","black");
 	 selUiConf["userInput"]["notifyNameM"]=value;
 }
+
 function appNameChange(obj){
 	 selUiConf["userInput"]["notifyNameF"]=obj.value;
 }
@@ -714,6 +764,7 @@ function appendConditions(jsonObj) {
  */
 function showAction(thisObj,type){
 	actionConf.actionObj=thisObj.parentNode;
+	checkJTAAction();
 	$("#actiontype").val(type);
 	$.each($("textarea[name='actionValue']"),function(index,obj){
 		if(index>0){
@@ -753,15 +804,23 @@ function showAction(thisObj,type){
 
 		$("#actionEditType").val(spanJson.type);
 		
+		actionChangeShow("EDIT");
 		if(isOwner!="true"){
 			$("#actionSaveButton").hide();
 		}
-		
 	}else{
 		$("#actionTypeSel").show();
+		actionChangeShow("ADD");
 	}
-	
-	
+}
+
+function checkJTAAction(){
+	if($("#enableThreadAnalysis").val() =="true"&& $("#actionTypeSel").find("option[value='threadanalysis']").size() == 0 && $("#ChoosedJTA").size() == 0){
+		$("#actionTypeSel").append("<option value='threadanalysis'>线程分析</option>");
+	}
+	else if($("#enableThreadAnalysis").val() == "false" && $("#actionTypeSel").find("option[value='threadanalysis']").size() == 1){
+		$("#actionTypeSel option[value=threadanalysis]").remove();
+	}	
 }
 
 function actionAppend(){
@@ -797,7 +856,6 @@ function removeActonTextarea(thisObj){
 }
 
 function checkAction(){
-
 	var actionTextValues = $("textarea[name='actionValue']");
 	
 	var checkValue =  $.trim(actionTextValues[0].value); //只校验第一个必须输入
@@ -847,7 +905,9 @@ function appendActions() {
 	var type = $("#actiontype").val();
 	var html = getAppendHtml(type);
 	
-	
+	if("threadanalysis" == $("#actionTypeSel").val()){
+		$("#enableThreadAnalysis").val(false);
+	}
 	if("ADD"==type){
 		var newNode = document.createElement("div");
 		newNode.innerHTML = html;
@@ -887,7 +947,11 @@ function appendActions() {
 		}
 		
 		var jsonObj = {type:HtmlHelper.inputXSSFilter(actionType),value:HtmlHelper.inputXSSFilter(result)};
-		var html = '<div class="well-list">'+jsonObj.type+'<span style="display:none">'+JSON.stringify(jsonObj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisActionObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showAction(this,\'EDIT\');"></span></div>';
+		if("threadanalysis" == jsonObj.type){
+			var html = '<div class="well-list" id="ChoosedJTA">'+jsonObj.type+'<span style="display:none">'+JSON.stringify(jsonObj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisActionObj(this);"></div>';
+		}else{
+			var html = '<div class="well-list">'+jsonObj.type+'<span style="display:none">'+JSON.stringify(jsonObj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisActionObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showAction(this,\'EDIT\');"></span></div>';
+		}
 		return html;
 	}
 }
@@ -903,10 +967,14 @@ function delThisObj(thisObj) {
 }
 
 function delThisActionObj(thisObj) {
+
 	/**
 	 * 还原当前选项
 	 */
 	var spanJson = JSON.parse(thisObj.parentNode.getElementsByTagName('span')[0].innerHTML);
+	if(spanJson.type == "threadanalysis"){
+		$("#enableThreadAnalysis").val(true);
+	}
 	$('#actionTypeSel').append("<option value='"+spanJson.type+"'>"+spanJson.type+"</option>"); 
 	$("#actionAddButton").attr("class","glyphicon glyphicon-plus well-add");
 	$("#actionAddButton").click(function(){showAction(this,'ADD')});

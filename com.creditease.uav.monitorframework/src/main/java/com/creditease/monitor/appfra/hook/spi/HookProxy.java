@@ -21,6 +21,7 @@
 package com.creditease.monitor.appfra.hook.spi;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.creditease.uav.common.BaseComponent;
@@ -29,6 +30,8 @@ import com.creditease.uav.common.BaseComponent;
 public abstract class HookProxy extends BaseComponent {
 
     protected final String id;
+
+    protected Map<String, Boolean> isHookEventDone = new HashMap<String, Boolean>();
 
     protected final Map config;
 
@@ -81,5 +84,18 @@ public abstract class HookProxy extends BaseComponent {
     public boolean isRun(HookContext context) {
 
         return false;
+    }
+
+    /**
+     * check if hook event is done
+     * 
+     * @param event
+     * @return
+     */
+    public boolean isHookEventDone(String event) {
+
+        Boolean result = isHookEventDone.get(event);
+        isHookEventDone.put(event, true);
+        return (result == null) ? false : result;
     }
 }

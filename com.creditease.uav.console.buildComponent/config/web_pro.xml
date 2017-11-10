@@ -41,6 +41,38 @@
 		<servlet-name>es-serlvet</servlet-name>
 		<url-pattern>/es/*</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>opentsdb-crdu-servlet</servlet-name>
+		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestCRDUServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>opentsdb-crdu-servlet</servlet-name>
+		<url-pattern>/db/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>opentsdb-agent-servlet</servlet-name>
+		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestAgentServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>opentsdb-agent-servlet</servlet-name>
+		 <!-- <url-pattern>/db2/*</url-pattern>
+		 <url-pattern>/s/*</url-pattern>
+		 <url-pattern>/q/*</url-pattern> -->
+		<url-pattern>/db2/q</url-pattern>
+		<url-pattern>/db2/suggest</url-pattern>
+		<url-pattern>/db2/stats</url-pattern>
+		<url-pattern>/db2/logs</url-pattern>
+		<url-pattern>/db2/version</url-pattern>
+		<url-pattern>/db2/</url-pattern>
+		<url-pattern>/db2/aggregators</url-pattern>
+	</servlet-mapping>
 	<!-- jersey restful service END -->
 
 	<!-- filter START -->
@@ -201,6 +233,10 @@
 	<context-param>
 		<param-name>uav.apphub.sso.grafana.connection.info</param-name>
 		<param-value>{"api.url":"http://127.0.0.1:3000","web.url":"http://uav.creditease.corp/datacenter","datasource.opentsdb.url":"http://127.0.0.1:4242","datasource.elasticsearch.url":"http://127.0.0.1:9300","authorization.loginId":"apiuser","authorization.loginPwd":"Uav!630admin","authorization.register.defPwd":"1q@W3e","authorization.register.sleep.time":"2000"}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>uav.app.opentsdb.http.client.params</param-name>
+		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.white.list</param-name>

@@ -1,0 +1,146 @@
+@CHARSET "UTF-8";
+/*原子布局 BEGINI*/
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+.ListBG {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+.ObjectBG {
+	font-size: 16px;
+	color: #333333;
+	background: white;
+}
+
+.AppHubMVCSearchBarInputText {
+	width: 207px;
+	text-align: left;
+}
+
+.icon-myout {
+	float: right;
+	margin-top: -3px;
+	margin-right: 15px;
+	font-size: 2em;
+}
+
+.icon-myout:hover {
+	border-radius: 3px;
+	box-shadow: 0 0 4px 4px #fff;
+}
+
+
+
+
+/*详情页面布局 BEGIN*/
+
+.ObjectBG span{
+	word-break:break-all; 
+	white-space:normal ;
+	word-wrap : break-word ;
+	display:inline-block;
+}
+.ObjectBG strong{
+	word-break:break-all; 
+	white-space:normal ;
+	word-wrap : break-word ;
+	display:inline-block;
+}
+.colon{
+	color: #000000;
+	font-weight:bold;
+}
+
+.title-head {
+	font-size: 16px;
+	color: #ffffff;
+	background-color: #009ad6;
+	padding-top:12px;
+	padding-bottom:12px;
+}
+
+.titleH {
+	font-weight: bold;
+	color: #008040;
+}
+
+.timeLH{
+	font-weight: bold;
+	color: #ff0000;
+}
+
+
+.listBody li{
+	color:  #959595;
+	font-size: 14px;
+}
+
+.listBdesc{
+	color:  #000000;
+	margin-left:10px;
+}
+
+.ObjectBG ul {
+	margin: 0 10px 0 10px;
+	text-align: left;
+	padding: 0px;
+}
+
+.ObjectBG li {
+	list-style-type: none;
+}
+
+.publicheadDiv {
+	color: #777;
+}
+
+.publicheadDiv .tValue{
+	color: #DC143C;
+}
+
+.listDiv {
+	margin-top:3px;
+	box-shadow: 0 0 0px 1px #009ad6;
+	font-size: 14px;
+	background: #FFFFE0;
+	margin-bottom:5px;
+}
+
+.listDiv .title {
+	font-size: 16px;
+	color:#fff;
+	padding-top:2px;
+	padding-bottom:2px;
+	background:#87CEEB;
+}
+
+.listDiv .argsTitle{
+	margin-left:0px;	
+	color: #DC143C;
+	!font-weight:bold;
+}
+
+.listDiv .argsSubTitle{
+	margin-left:10px;
+	color: #6B8E23;
+}
+
+.listDiv .argsSubValue {
+	color:#333;
+}
+/*详情页面布局 END*/
