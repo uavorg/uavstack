@@ -78,7 +78,7 @@ public class ActionEngine extends AbstractComponent implements IActionEngine {
             }
             catch (Exception e) {
                 if (log.isTraceEnable()) {
-                    log.err(this, "Exception occured " + e.getMessage());
+                    log.err(this, "Exception occured " + e.getMessage(), e);
                 }
                 context.setE(e);
                 context.setJumpTargetActionId(null);

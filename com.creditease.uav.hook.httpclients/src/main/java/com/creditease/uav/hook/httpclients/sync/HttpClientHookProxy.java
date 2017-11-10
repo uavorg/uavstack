@@ -56,6 +56,7 @@ public class HttpClientHookProxy extends HookProxy {
         Event evt = context.get(Event.class);
 
         switch (evt) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_INIT:
                 InsertInterceptToClients(context, webapploader);
                 break;
@@ -75,6 +76,10 @@ public class HttpClientHookProxy extends HookProxy {
     }
 
     public void InsertInterceptToClients(HookContext context, ClassLoader webapploader) {
+
+        if (isHookEventDone("InsertInterceptToClients")) {
+            return;
+        }
 
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
 
