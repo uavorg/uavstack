@@ -260,10 +260,6 @@
 		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	
-	<context-param>
-		<param-name>uav.app.opentsdb.http.client.params</param-name>
-		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
-	</context-param>
 	<!--configure end-->
 	<session-config>
 		<session-timeout>30</session-timeout>
