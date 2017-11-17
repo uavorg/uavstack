@@ -111,8 +111,9 @@ public class HBQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
                 HeartBeatProtocol.STORE_KEY_NODEINFO);
 
         String resultMsg = "{}";
-        String filterValue = data.getRequest("appGroups"); // 多字段逗号分开
-        // goup过滤 begin
+        String filterKey = data.getRequest("fkey");
+        String filterValue = data.getRequest("fvalue");
+        // 过滤 begin
         if (!StringHelper.isEmpty(filterValue)) {
             Map<String, String> filterMap = new HashMap<String, String>();
             String[] fValues = filterValue.split(",");
@@ -121,9 +122,9 @@ public class HBQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
                 String key = String.valueOf(i.next());
                 String body = resultMap.get(key);
 
-                for (String group : fValues) {
-                    String filterKey = "\"group\":\"" + group + "\",";
-                    if (body.indexOf(filterKey) >= 0) {
+                for (String value : fValues) {
+                    String groupFilter = "\"" + filterKey + "\":\"" + value + "\",";
+                    if (body.indexOf(groupFilter) >= 0) {
                         filterMap.put(key, body);
                         break;
                     }
