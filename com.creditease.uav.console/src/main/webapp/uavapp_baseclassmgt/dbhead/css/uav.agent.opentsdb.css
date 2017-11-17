@@ -109,3 +109,6 @@ body {
 	color: red;
 	margin-right: 10px;
 }
+.pointer {
+	cursor : pointer;
+}

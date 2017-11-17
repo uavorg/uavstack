@@ -144,6 +144,10 @@
 		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5}</param-value>
 	</context-param>
 	<context-param>
+		<param-name>uav.app.opentsdb.http.client.params</param-name>
+		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
+	</context-param>
+	<context-param>
 		<param-name>uav.app.gui.http.client.params</param-name>
 		<param-value>{"max.con":5,"max.tot.con":20,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
@@ -230,10 +234,6 @@
 	<context-param>
 		<param-name>uav.apphub.sso.grafana.connection.info</param-name>
 		<param-value>{"api.url":"http://127.0.0.1:3000","web.url":"http://uav.creditease.corp/datacenter","datasource.opentsdb.url":"http://127.0.0.1:4242","datasource.elasticsearch.url":"http://127.0.0.1:9300","authorization.loginId":"apiuser","authorization.loginPwd":"Uav!630admin","authorization.register.defPwd":"1q@W3e","authorization.register.sleep.time":"2000"}</param-value>
-	</context-param>
-	<context-param>
-		<param-name>uav.app.opentsdb.http.client.params</param-name>
-		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.white.list</param-name>

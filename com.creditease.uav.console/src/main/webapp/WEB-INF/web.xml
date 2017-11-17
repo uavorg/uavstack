@@ -171,6 +171,10 @@
 		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5,"pwd":""}</param-value>
 	</context-param>
 	<context-param>
+		<param-name>uav.app.opentsdb.http.client.params</param-name>
+		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
+	</context-param>
+	<context-param>
 		<param-name>@url:uav.app.godeye.hbquery.http.addr</param-name>
 		<param-value>http://localhost:8020</param-value>
 	</context-param>
@@ -254,10 +258,6 @@
 		      3.： 一个用户只能存在一个groupName里、用户重复存在,则按最先匹配为准
 		 -->
 		<param-value>{"vipgroup":""}</param-value>
-	</context-param>
-	<context-param>
-		<param-name>uav.app.opentsdb.http.client.params</param-name>
-		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	
 	<!--configure end-->

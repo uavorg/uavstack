@@ -120,7 +120,7 @@ function ListManage() {
 		for(var i=0; i<data.length; i++) {
 			var row={
 				id       :data[i].name,
-				dburl    :"<a onclick=loadDescDiv('"+href+"','"+data[i].url+"')>"+data[i].url+"</a>",
+				dburl    :"<a onclick=loadDescDiv('"+href+"','"+data[i].url+"') class='pointer'>"+data[i].url+"</a>",
 				version  :data[i].version,
 			};
 			list.push(row);
