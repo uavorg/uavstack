@@ -165,7 +165,8 @@ public class RabbitmqIT extends BaseComponent {
                     ivcContextParams = (Map<String, Object>) UAVServer.instance().runSupporter(
                             "com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
                             InvokeChainConstants.CHAIN_APP_CLIENT, InvokeChainConstants.CapturePhase.PRECAP, params,
-                            RabbitmqProducerAdapter.class, new Object[] { (BasicProperties) args[2], args[3] });
+                            RabbitmqProducerAdapter.class,
+                            new Object[] { (BasicProperties) args[args.length - 2], args[args.length - 1] });
                     if (ivcContextParams != null
                             && ivcContextParams.containsKey(InvokeChainConstants.PARAM_MQHEAD_INFO)) {
                         args[2] = ivcContextParams.get(InvokeChainConstants.PARAM_MQHEAD_INFO);
