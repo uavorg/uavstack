@@ -18,7 +18,7 @@
  * >>
  */
 
-package com.creditease.agent.feature.common;
+package org.uavstack.resources.common.invoker;
 
 import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;

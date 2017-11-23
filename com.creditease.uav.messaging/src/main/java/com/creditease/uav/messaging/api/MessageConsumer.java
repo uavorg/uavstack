@@ -20,7 +20,6 @@
 
 package com.creditease.uav.messaging.api;
 
-
 public abstract class MessageConsumer {
 
     protected String[] msgTypeIds;

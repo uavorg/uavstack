@@ -23,7 +23,6 @@ package com.creditease.uav.messaging.api;
 import com.creditease.agent.log.SystemLogger;
 import com.creditease.agent.log.api.ISystemLogger;
 
-
 public abstract class MessageProducer {
 
     protected ISystemLogger log = null;
@@ -64,7 +63,8 @@ public abstract class MessageProducer {
     public abstract void start();
 
     public abstract void stop();
-    
-    public void setMsgSizeLimit(long limit){
+
+    public void setMsgSizeLimit(long limit) {
+
     }
 }
