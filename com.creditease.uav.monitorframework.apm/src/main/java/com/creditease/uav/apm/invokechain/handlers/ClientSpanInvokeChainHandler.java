@@ -94,10 +94,12 @@ public class ClientSpanInvokeChainHandler extends InvokeChainCapHandler {
             // in async thread
             span = (Span) context.get(InvokeChainConstants.PARAM_SPAN_KEY);
         }
-        context.put(InvokeChainConstants.PARAM_SPAN_KEY, span);
+
         if (span == null) {
             return;
         }
+
+        context.put(InvokeChainConstants.PARAM_SPAN_KEY, span);
 
         String appid = (String) context.get(CaptureConstants.INFO_CLIENT_APPID);
 

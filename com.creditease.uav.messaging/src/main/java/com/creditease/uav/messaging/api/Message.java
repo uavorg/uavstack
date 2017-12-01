@@ -26,7 +26,6 @@ import java.util.Map;
 
 import com.creditease.agent.helpers.JSONHelper;
 
-
 public class Message implements Serializable {
 
     private static final long serialVersionUID = -5490137500811637000L;

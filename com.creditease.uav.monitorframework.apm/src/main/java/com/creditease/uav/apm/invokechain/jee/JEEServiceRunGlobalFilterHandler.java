@@ -95,6 +95,10 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
 
             context.put(InterceptConstants.HTTPRESPONSE, responseWrapper);
 
+            // 由于application/x-www-form-urlencoded
+            // 形式传参时获取inputsteam会删除parameters，故在添加wrapper时先通过调用getParameterMap方法lock（tomcat源码进行）parameters
+            request.getParameterMap();
+
             RewriteIvcRequestWrapper requestWrapper = new RewriteIvcRequestWrapper(request, "IVC_DAT");
 
             context.put(InterceptConstants.HTTPREQUEST, requestWrapper);

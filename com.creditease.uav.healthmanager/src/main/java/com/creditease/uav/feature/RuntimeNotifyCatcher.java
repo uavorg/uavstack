@@ -29,9 +29,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.aredis.cache.AsyncRedisConnection;
+import org.uavstack.resources.common.messaging.StandardMessagingBuilder;
 
 import com.creditease.agent.ConfigurationManager;
-import com.creditease.agent.feature.common.messaging.StandardMessagingBuilder;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
@@ -45,6 +45,7 @@ import com.creditease.uav.feature.runtimenotify.StrategyJudgement;
 import com.creditease.uav.feature.runtimenotify.http.RuntimeNotifyServerWorker;
 import com.creditease.uav.feature.runtimenotify.scheduler.NodeInfoWatcher;
 import com.creditease.uav.feature.runtimenotify.scheduler.RuntimeNotifyStrategyMgr;
+import com.creditease.uav.feature.runtimenotify.scheduler.TimerNotifyWorker;
 import com.creditease.uav.feature.runtimenotify.task.JudgeNotifyTask;
 import com.creditease.uav.messaging.api.MessageConsumer;
 
@@ -74,8 +75,6 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
 
     @Override
     public void start() {
-
-        new StrategyJudgement("StrategyJudgement", this.feature);
 
         // reset aredis bootstrap executor pool size
         AsyncRedisConnection.setBootstrapExecutorPoolSize(getCfgInt("cm.bootstrappoolsize", 10));
@@ -109,6 +108,8 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
                             "RuntimeNotifyCatcher-StorageCacheManager INIT: server:%s,minsize:%d,maxsize:%d,qsize:%d",
                             storeCMServer, storeCMMinSize, storeCMMaxSize, storeCMQueueSize));
         }
+
+        new StrategyJudgement("StrategyJudgement", this.feature);
 
         // init strategyMgr
         String strategy = getCfg("strategy.config");
@@ -211,6 +212,19 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
         if (log.isTraceEnable()) {
             log.info(this, "RuntimeNotifyCatcher-RuntimeNotifyServerWorker started");
         }
+
+        // init RuntimeNotifyTimerWorker
+        if (DataConvertHelper.toBoolean(this.getCfg("timernotify.enable"), false)) {
+
+            TimerNotifyWorker timerNotifyWorker = new TimerNotifyWorker("TimerNotifyWorker", feature);
+
+            this.getTimerWorkManager().scheduleWork("TimerNotifyWorker", timerNotifyWorker, 0, 60000);
+
+            if (log.isTraceEnable()) {
+                log.info(this, "RuntimeNotifyCatcher-RuntimeNotifyStrategyMgr started: " + strategy);
+            }
+        }
+
     }
 
     @Override
@@ -260,6 +274,13 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
 
         if (log.isTraceEnable()) {
             log.info(this, "RuntimeNotifyCatcher-RuntimeNotifyStrategyMgr stopped");
+        }
+
+        // stop RuntimeNotifyTimerWorker
+        this.getTimerWorkManager().cancel("timerNotifyWorker");
+
+        if (log.isTraceEnable()) {
+            log.info(this, "RuntimeNotifyCatcher-timerNotifyWorker stopped");
         }
 
         // shutdown CacheManager
@@ -348,7 +369,7 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
 
         // step 2: notification judge
         if (needConcurrent == false) {
-            // one thread judage
+            // one thread judge
             for (Slice slice : slices) {
                 new JudgeNotifyTask(JudgeNotifyTask.class.getSimpleName(), "runtimenotify", slice).run();
             }
@@ -374,7 +395,7 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
 
         List<Slice> list = new ArrayList<>();
         Map<String, List<Map>> frames = mdf.getDatas();
-
+        String appgroup = mdf.getExt("appgroup");
         for (Map.Entry<String, List<Map>> frame : frames.entrySet()) {
             List<Map> servers = frame.getValue();
             for (Map server : servers) {
@@ -384,7 +405,9 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
                 for (Map ins : instances) {
                     String id = (String) ins.get("id");
                     Map values = (Map) ins.get("values");
-
+                    values.put("ip", mdf.getIP());
+                    values.put("host", mdf.getHost());
+                    values.put("appgroup", appgroup);
                     String key = frame.getKey() + RuntimeNotifyCatcher.STRATEGY_SEPARATOR + meId
                             + RuntimeNotifyCatcher.STRATEGY_SEPARATOR + id;
                     Slice slice = new Slice(key, mdf.getTimeFlag());
