@@ -1197,6 +1197,14 @@ var mvcObj={
 			theme:"BGDark",
 			order:1050
 		});
+		//build AppIVCCfgWnd
+		window.winmgr.build({
+			id:"AppIVCCfgWnd",
+			height:"auto",
+			"overflow-y":"auto",
+			theme:"BGLight",
+			order:1050
+		});
 		//build AppAPMCfgWnd
 		window.winmgr.build({
 			id:"AppAPMCfgWnd",
@@ -2914,16 +2922,6 @@ var mvcObj={
 			viewBtn.onclick=function() {
 				app.controller.runMonitorChartData(dType);
 			};
-			
-			//监控工具箱只在应用实例级别显示
-			if (undefined!=isJse&&isJse==false) {
-				appAPM.buildMonitorToolPanel(sObj);
-			}
-			//清空
-			else {
-				var toolView=HtmlHelper.id("MonitorConfigDialog_Tool");
-				toolView.innerHTML="";
-			}
 			
 			$("#MonitorConfigDialog").modal();
 		},		
@@ -5314,6 +5312,27 @@ var mvcObj={
 			appLog.runAppNewLogRollWnd(sObj);
 		},
 		destroyAppNewLogRollWnd:function() {
+			
+		},
+		// TODO -------------------------------调用链配置窗口---------------------------------------------------
+		/**
+		 * buildAppIVCCfgWnd
+		 */
+		buildAppIVCCfgWnd:function(sObj) {
+			return appAPM.buildAppIVCCfgWnd(sObj);
+		},
+		
+		/**
+		 * runAppIVCCfgWnd
+		 */
+		runAppIVCCfgWnd:function(sObj) {
+			appAPM.runAppIVCCfgWnd(sObj);
+		},
+		
+		/**
+		 * destroyAppIVCCfgWnd
+		 */
+		destroyAppIVCCfgWnd:function() {
 			
 		},
 		// TODO -------------------------------日志配置窗口---------------------------------------------------
