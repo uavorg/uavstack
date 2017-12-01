@@ -57,20 +57,26 @@ function saveNotify(checkIsExist){
 					/**
 					 * 策略
 					 */
-					var cJson = {
-						"expr" : json.expr
-					};
-					if (json.range) {
-						cJson["range"] = parseInt(json.range);
-					}
-					if ("0" != json.func && "count" == json.func) {
-						cJson["func"] = "count>" + json.cparam;
-					} else if ("0" != json.func) {
-						cJson["func"] = json.func;
+					if(!json.type||json.type=="stream"){
+						var cJson = {
+								"expr" : json.expr,
+								"type" :"stream"
+							};
+							if (json.range) {
+								cJson["range"] = parseInt(json.range);
+							}
+							if ("0" != json.func && "count" == json.func) {
+								cJson["func"] = "count>" + json.cparam;
+							} else if ("0" != json.func) {
+								cJson["func"] = json.func;
+							}
+							
+							cJson["id"]=json.id;
+							conditions.push(cJson);
+					}else{
+						conditions.push(json);
 					}
 					
-					cJson["id"]=json.id;
-					conditions.push(cJson);
 					
 				}catch(e){
 					console.log(e);
