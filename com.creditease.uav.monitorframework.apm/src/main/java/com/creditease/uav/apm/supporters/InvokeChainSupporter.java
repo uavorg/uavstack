@@ -33,12 +33,13 @@ import com.creditease.monitor.log.DataLoggerManager;
 import com.creditease.uav.apm.invokechain.handlers.ClientSpanInvokeChainHandler;
 import com.creditease.uav.apm.invokechain.handlers.MethodSpanInvokeChainHandler;
 import com.creditease.uav.apm.invokechain.handlers.ServiceSpanInvokeChainHandler;
+import com.creditease.uav.apm.invokechain.handlers.SpanContextHandler;
 import com.creditease.uav.apm.invokechain.jee.JEEServiceRunGlobalFilterHandler;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainAdapter;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainCapHandler;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
-import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants.CapturePhase;
+import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
 import com.creditease.uav.appserver.listeners.GlobalFilterDispatchListener;
 import com.creditease.uav.common.Supporter;
 
@@ -96,6 +97,7 @@ public class InvokeChainSupporter extends Supporter {
 
         // register MethodSpanInvokeChainHandler
         handlerMap.put(InvokeChainConstants.CHAIN_APP_METHOD, new MethodSpanInvokeChainHandler());
+
     }
 
     @Override
@@ -263,6 +265,15 @@ public class InvokeChainSupporter extends Supporter {
             catch (Exception e) {
                 this.logger.error("Register Adapter" + params[0].toString() + "FAIL. ", e);
                 return false;
+            }
+        }
+        else if (methodName.equals("getSpanContext")) {
+            try {
+                return new SpanContextHandler().new SpanContext();
+            }
+            catch (Exception e) {
+                this.logger.error("getSpanContext FAIL. ", e);
+                return null;
             }
         }
 
