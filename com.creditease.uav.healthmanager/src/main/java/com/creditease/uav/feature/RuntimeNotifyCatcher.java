@@ -29,9 +29,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.aredis.cache.AsyncRedisConnection;
+import org.uavstack.resources.common.messaging.StandardMessagingBuilder;
 
 import com.creditease.agent.ConfigurationManager;
-import com.creditease.agent.feature.common.messaging.StandardMessagingBuilder;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
@@ -348,7 +348,7 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
 
         // step 2: notification judge
         if (needConcurrent == false) {
-            // one thread judage
+            // one thread judge
             for (Slice slice : slices) {
                 new JudgeNotifyTask(JudgeNotifyTask.class.getSimpleName(), "runtimenotify", slice).run();
             }

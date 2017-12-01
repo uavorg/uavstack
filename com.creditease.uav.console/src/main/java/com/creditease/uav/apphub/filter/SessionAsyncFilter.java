@@ -263,7 +263,11 @@ public class SessionAsyncFilter implements Filter {
         userInfo.put("type", actiontype);
         userInfo.put("url", actionurl);
         userInfo.put("desc", actiondesc);
-
+        userInfo.put("authemails", String
+                .valueOf(request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.emailList")));
+        userInfo.put("authsystems", String
+                .valueOf(request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.systems")));
+        
         logger.info(this, JSONHelper.toString(userInfo));
     }
 

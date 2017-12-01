@@ -43,8 +43,11 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     /**
      * startUAVServer
      */
-    public void startServer(String port, String contextPath) {
+    public void startServer(String port, String contextPath, Object arg) {
 
+        if (!"AnnotationConfigEmbeddedWebApplicationContext".equals(arg.getClass().getSimpleName())) {
+            return;
+        }
         // integrate Tomcat log
         UAVServer.instance().setLog(new TomcatLog("MonitorServer"));
         // start Monitor Server when server starts
@@ -313,10 +316,10 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         }
 
         /**
-         * NOTE: spring boot rewrite the tomcat webappclassloader, makes the addURL for nothing, then we can't do
-         * anything on this we may use its webappclassloader's parent as the classloader
+         * NOTE: spring boot will reset tomcat webappclassloader to null when shutdown, we may use the currentThread's
+         * classloader as the classloader
          */
-        context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader().getParent());
+        context.put(InterceptConstants.WEBAPPLOADER, Thread.currentThread().getContextClassLoader());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
         String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
@@ -383,6 +386,9 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      */
     public void onSpringBeanRegist(String contextPath) {
 
+        if (contextPath == null) {
+            contextPath = "";
+        }
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.createInterceptContext(Event.SPRING_BEAN_REGIST);
         context.put(InterceptConstants.WEBAPPLOADER, Thread.currentThread().getContextClassLoader());

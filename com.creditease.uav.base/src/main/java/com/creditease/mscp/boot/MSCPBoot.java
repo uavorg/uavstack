@@ -22,6 +22,7 @@ package com.creditease.mscp.boot;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,7 +31,17 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+
+import com.creditease.agent.helpers.CommonHelper;
+import com.creditease.agent.helpers.IOHelper;
+import com.creditease.agent.helpers.PropertiesHelper;
 
 public class MSCPBoot {
 
@@ -44,7 +55,78 @@ public class MSCPBoot {
 
     public void start(String[] args) {
 
-        mainClsLoader = createBootClassLoader();
+        // step1: command argument parsing
+        if (null != args && (args.length % 2) != 0) {
+            throw new RuntimeException(
+                    "The count of command arguments should be even number! Please check the command arguments line.");
+        }
+
+        Map<String, String> cmdArgs = new HashMap<String, String>();
+
+        for (int i = 0; i < args.length; i += 2) {
+
+            String cmdKey = args[i];
+
+            if (cmdKey.indexOf("-") != 0) {
+                throw new RuntimeException("The command argument key at " + (i + 1) + " should start with \"-\" ");
+            }
+
+            cmdArgs.put(cmdKey, args[i + 1]);
+        }
+
+        if (cmdArgs.containsKey("-help")) {
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("UAV base framework help:\n");
+            sb.append("-help ?      display help information\n");
+            sb.append("-profile or -p <profile name>      use the target profile in name <profile name> to startup\n");
+
+            System.out.print(sb.toString());
+            return;
+        }
+
+        // step 2: exclude those feature jars
+        Set<String> featureJars = new HashSet<String>();
+        String rootPath = IOHelper.getCurrentPath();
+        String profileName = CommonHelper.getValueFromSeqKeys(cmdArgs, new String[] { "-profile", "-p" });
+        profileName = (profileName == null) ? "agent" : profileName;
+        String pfPath = rootPath + "/config/" + profileName + ".properties";
+        try {
+            Properties p = PropertiesHelper.loadPropertyFile(pfPath);
+
+            Set<Entry<Object, Object>> configEntrys = p.entrySet();
+
+            for (Entry<Object, Object> configEntry : configEntrys) {
+
+                String configName = configEntry.getKey().toString();
+
+                // check if feature configuration
+                if (!(configName.indexOf("feature.") == 0)) {
+                    continue;
+                }
+
+                if (configName.endsWith(".loader") == false) {
+                    continue;
+                }
+
+                String jarList = configEntry.getValue().toString();
+
+                if ("default".equalsIgnoreCase(jarList)) {
+                    continue;
+                }
+
+                String[] featureJarsList = jarList.split(",");
+                featureJars.addAll(Arrays.asList(featureJarsList));
+            }
+        }
+        catch (IOException e1) {
+            e1.printStackTrace();
+            return;
+        }
+
+        // step 3: create common classloader
+        mainClsLoader = createBootClassLoader(featureJars);
 
         Thread.currentThread().setContextClassLoader(mainClsLoader);
 
@@ -53,16 +135,16 @@ public class MSCPBoot {
 
             Object starter = c.newInstance();
 
-            Method m = c.getMethod("startup", new Class<?>[] { String[].class });
+            Method m = c.getMethod("startup", new Class<?>[] { Map.class });
 
-            m.invoke(starter, new Object[] { args });
+            m.invoke(starter, new Object[] { cmdArgs });
         }
         catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private ClassLoader createBootClassLoader() {
+    private ClassLoader createBootClassLoader(Set<String> featureJars) {
 
         File f = new File("");
 
@@ -70,7 +152,7 @@ public class MSCPBoot {
 
         String libPath = currentPath + "/lib";
 
-        final URL[] files = loadJars(libPath);
+        final URL[] files = loadJars(featureJars, libPath);
 
         final ClassLoader parent = this.getClass().getClassLoader();
 
@@ -84,7 +166,7 @@ public class MSCPBoot {
         });
     }
 
-    private URL[] loadJars(String... libPaths) {
+    private URL[] loadJars(final Set<String> featureJars, String... libPaths) {
 
         List<File> files = new ArrayList<File>();
 
@@ -100,7 +182,7 @@ public class MSCPBoot {
                 @Override
                 public boolean accept(File dir, String name) {
 
-                    if (name.endsWith(".jar")) {
+                    if (name.endsWith(".jar") && !featureJars.contains(name)) {
                         return true;
                     }
 
