@@ -12,8 +12,7 @@
     <link rel="stylesheet" type="text/css" href="../../apphub/css/comp.mvc.css">
     
     <link rel="stylesheet" type="text/css" href="../../apphub/css/crud.css">
-    <link rel="stylesheet" type="text/css" href="css/db.css">
-    <link rel="stylesheet" type="text/css" href="css/uav.opentsdb.css">
+    <link rel="stylesheet" type="text/css" href="css/uav.agent.opentsdb.css">
     
 	
 	<!--third party-->
@@ -36,9 +35,96 @@
 		
 </head>
 <body>
+	<div class="modal fade" id="OpenTSDBAddModal" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+		        <div class="modal-header">
+		             <h5>添加</h5>
+		        </div>
+		        <div class="modal-body">
+		           <form id="OpenTSDBAddForm">
+		           		<table>
+		           			<tr>
+		           				<td class="title">实例名称：</td>
+		           				<td class="userinput"><input type='text' class='editor-input' id='OpenTSDBAddName'></td>
+		           			</tr>
+		           			<tr>
+		           				<td class="title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;URL：</td>
+		           				<td class="userinput"><input type='text' class='editor-input' id='OpenTSDBAddURL'></td>
+		           			</tr>
+		           			<tr>
+		           				<td class="title">版本编号：</td>
+		           				<td class="userinput"><input type='text' class='editor-input' id='OpenTSDBAddVersion'></td>
+		           			</tr>
+		           		</table>
+				   </form>
+		        </div>
+		        <div class="modal-footer">
+		        	<span class="errorMsg" id="errorAddMsg" style="display:none"></span>
+		        	<button id="AddOpenTSDBSavaBTN" class="btn btn-primary" onclick="clickSureCallback_add()">保存</button>
+		            <button class="btn" onclick="closeModal('add')">关闭</button>
+		        </div>
+	        </div>
+	    </div>
+	</div>
+	
+	<div class="modal fade" id="OpenTSDBModifyModal" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+		        <div class="modal-header">
+		             <h5>修改</h5>
+		        </div>
+		        <div class="modal-body">
+		           <form id="OpenTSDBModifyForm">
+		           		<table>
+		           			<tr>
+		           				<td class="title">实例名称：</td>
+		           				<td class="userinput"><input type='text' id="OpenTSDBModifyName" class="editor-input" value="" disabled="disabled"></td>		           						           			</tr>
+		           			<tr>
+		           				<td class="title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;URL：</td>
+		           				<td class="userinput"><input type='text' class='editor-input' id='OpenTSDBModifyURL' value=""></td>
+		           			</tr>
+		           			<tr>
+		           				<td class="title">版本编号：</td>
+		           				<td class="userinput"><input type='text' class='editor-input' id='OpenTSDBModifyVersion' value=""></td>
+		           			</tr>
+		           		</table>
+				   </form>
+		        </div>
+		        <div class="modal-footer">
+		        	<span class="errorMsg" id="errorModifyMsg" style="display:none"></span>
+		        	<button id="ModifyOpenTSDBBTN" class="btn btn-primary" onclick="clickSureCallback_modify()">修改</button>
+		            <button class="btn" onclick="closeModal('modify')">关闭</button>
+		        </div>
+	        </div>
+	    </div>
+	</div>
+	
+	<div class="modal fade" id="OpenTSDBDelModal" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+		        <div class="modal-header">
+		             <h5>删除</h5>
+		        </div>
+		        <div class="modal-body">
+		           <form id="OpenTSDBModifyForm">
+		           		<table>
+		           			<tr>
+		           				<td>是否确定删除[<span style='color: red' id='OpenTSDBDelName'></span>]</td>
+		           			</tr>
+		           		</table>
+				   </form>
+		        </div>
+		        <div class="modal-footer">
+		        	<span class="errorMsg" id="errorDelMsg" style="display:none"></span>
+		        	<button id="ModifyOpenTSDBBTN" class="btn btn-primary" onclick="clickSureCallback_del()">删除</button>
+		            <button class="btn" onclick="closeModal('del')">关闭</button>
+		        </div>
+	        </div>
+	    </div>
+	</div>
 </body>
 <!--app lib-->
-<script type="text/javascript" src="js/uav.opentsdb.js"></script>
-<script type="text/javascript" src="js/table.js"></script>
-<script type="text/javascript" src="js/db_manage.js"></script>
+<script type="text/javascript" src="js/list_manage.js"></script>
+<script type="text/javascript" src="js/opentsdb_agent.js"></script>
 </html>

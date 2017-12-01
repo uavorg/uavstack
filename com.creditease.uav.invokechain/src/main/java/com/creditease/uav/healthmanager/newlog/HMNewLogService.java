@@ -25,7 +25,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.creditease.agent.feature.common.messaging.StandardMessagingBuilder;
+import org.uavstack.resources.common.messaging.StandardMessagingBuilder;
+
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.agent.spi.AgentFeatureComponent;

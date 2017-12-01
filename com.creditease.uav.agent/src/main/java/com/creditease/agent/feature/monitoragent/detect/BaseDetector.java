@@ -162,7 +162,8 @@ public abstract class BaseDetector
 
         worker = (BaseMonitorDataCatchWorker) ReflectHelper.newInstance(bmdcWorkerCls,
                 new Class<?>[] { String.class, String.class, JVMAgentInfo.class, BaseDetector.class },
-                new Object[] { workerName, this.feature, appServerInfo, this });
+                new Object[] { workerName, this.feature, appServerInfo, this },
+                this.getConfigManager().getFeatureClassLoader(this.feature));
 
         return worker;
     }

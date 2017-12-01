@@ -18,7 +18,7 @@
  * >>
  */
 
-package com.creditease.agent.feature.common;
+package org.uavstack.resources.common.invoker;
 
 import com.creditease.agent.spi.AbstractSystemInvoker;
 import com.creditease.agent.spi.AgentResourceComponent;

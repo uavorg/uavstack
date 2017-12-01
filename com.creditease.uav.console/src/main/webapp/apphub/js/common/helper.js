@@ -639,7 +639,7 @@ var AjaxHelper={
 			cache:cfg.cache,
 			data:cfg.data,
 			dataType:cfg.dataType,
-			contentType:cfg.contentType,
+			contentType:(typeof(value)=="undefined"?"application/json; charset=UTF-8":cfg.contentType),
 			beforeSend:function () {
 				timeOutId = setTimeout(function(){PageHelper.showLoading();},1000);
 		    },

@@ -61,6 +61,11 @@
 			<artifactId>com.creditease.uav.threadanalysis</artifactId>
 
 		</dependency>
+		
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>org.uavstack.resources.common</artifactId>
+		</dependency>
 	</dependencies>	
 	
 	<build>
