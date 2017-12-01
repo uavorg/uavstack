@@ -44,6 +44,5 @@ var list = new AppHubTable(listConfig);
 $(document).ready(function() {
 	initHeadDiv();
 	initListClass();
-	initConditionsDiv();
 });
 
