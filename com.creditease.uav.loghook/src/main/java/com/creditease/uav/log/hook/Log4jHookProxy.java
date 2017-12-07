@@ -124,16 +124,16 @@ public class Log4jHookProxy extends HookProxy {
 
         // figureout root logger
         figureoutLogConfiguration(logger4j.getRootLogger(), list, appid);
-
-        // figureour norootlogger
-        LoggerRepository lr = null;
+		
+        // figureour norootlogger		
+		LoggerRepository lr = null;
         try {
-            lr = logger4j.getLoggerRepository();
+           lr = logger4j.getLoggerRepository();
         }
         catch (NoSuchMethodError err) {
-            // for log4j-over-slf4j, doesn't have this method
-            return;
-        }
+           // for log4j-over-slf4j, doesn't have this method
+           return;
+		}
 
         Enumeration logEnum = lr.getCurrentLoggers();
 
