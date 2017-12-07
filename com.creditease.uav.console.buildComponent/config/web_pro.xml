@@ -14,7 +14,7 @@
 		<servlet-class>com.creditease.uav.apphub.core.AppHubRestServlet</servlet-class>
 		<init-param>
 			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>com.creditease.uav.apphub.rest,com.creditease.uav.godeye.rest,com.creditease.uav.manage.rest,com.creditease.uav.appmongo.rest,com.creditease.uav.grafana</param-value>
+			<param-value>com.creditease.uav.apphub.rest,com.creditease.uav.godeye.rest,com.creditease.uav.manage.rest,com.creditease.uav.appmongo.rest,com.creditease.uav.grafana,com.creditease.uav.opentsdb</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 		<async-supported>true</async-supported>
@@ -40,6 +40,27 @@
 	<servlet-mapping>
 		<servlet-name>es-serlvet</servlet-name>
 		<url-pattern>/es/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>opentsdb-agent-servlet</servlet-name>
+		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestAgentServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+		<async-supported>true</async-supported>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>opentsdb-agent-servlet</servlet-name>
+		 <!-- <url-pattern>/db2/*</url-pattern>
+		 <url-pattern>/s/*</url-pattern>
+		 <url-pattern>/q/*</url-pattern> -->
+		<url-pattern>/db2/q</url-pattern>
+		<url-pattern>/db2/suggest</url-pattern>
+		<url-pattern>/db2/stats</url-pattern>
+		<url-pattern>/db2/logs</url-pattern>
+		<url-pattern>/db2/version</url-pattern>
+		<url-pattern>/db2/</url-pattern>
+		<url-pattern>/db2/aggregators</url-pattern>
 	</servlet-mapping>
 	<!-- jersey restful service END -->
 
@@ -99,6 +120,10 @@
 		<param-value>127.0.0.1:26379</param-value>
 	</context-param>
 	<context-param>
+		<param-name>uav.app.opentsdb.redis.store.addr</param-name>
+		<param-value>127.0.0.1:26379</param-value>
+ 	</context-param>
+	<context-param>
 		<param-name>uav.app.gui.redis.store.params</param-name>
 		<param-value>{"min":50,"max":300,"queue":10}</param-value>
 	</context-param>
@@ -113,6 +138,14 @@
 	<context-param>
 		<param-name>uav.app.godeye.redis.store.params</param-name>
 		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>uav.app.opentsdb.redis.store.params</param-name>
+		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>uav.app.opentsdb.http.client.params</param-name>
+		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.app.gui.http.client.params</param-name>
@@ -146,7 +179,7 @@
 		<param-name>@url:uav.app.godeye.notify.view.http.addr</param-name>
 		<param-value>http://127.0.0.1:9011,http://127.0.0.1:9011</param-value>
 	</context-param>
-		<context-param>
+	<context-param>
 		<param-name>@url:uav.app.godeye.notify.strategy.http.addr</param-name>
 		<param-value>http://127.0.0.1:9004,http://127.0.0.1:9004</param-value>
 	</context-param>
@@ -154,11 +187,11 @@
 		<param-name>@url:uav.app.manage.apphubmanager.http.addr</param-name>
 		<param-value>http://127.0.0.1:8031,http://127.0.0.1:8031</param-value>
 	</context-param>
-	    <context-param> 
+	<context-param> 
         <param-name>@url:uav.app.upgrade.server.http.addr</param-name> 
         <param-value>http://127.0.0.1:8888</param-value>
     </context-param>
-        <context-param> 
+    <context-param> 
         <param-name>@url:uav.app.apm.ivc.http.addr</param-name> 
         <param-value>http://127.0.0.1:7799,http://127.0.0.1:7799</param-value>
     </context-param> 
@@ -190,7 +223,7 @@
 		<param-name>uav.apphub.sso.guest.password</param-name>
 		<param-value>guestAbc23781ADSKHbnwe</param-value>
 	</context-param>
-		<context-param>
+	<context-param>
 		<param-name>uav.apphub.sso.implclass</param-name>
 		<param-value>com.creditease.uav.apphub.sso.GUISSOLdapClient</param-value>
 	</context-param>		

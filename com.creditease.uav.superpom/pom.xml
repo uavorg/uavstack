@@ -8,7 +8,7 @@
 	<packaging>pom</packaging>
 	<version>1.0</version>
 	<name>UAV</name>
-	
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -17,8 +17,8 @@
 		</license>
 	</licenses>
 	<repositories>
-		
 		<repository>
+			
 			<id>aliyun</id>
 			<name>aliyun</name>
 			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
@@ -54,8 +54,8 @@
 	</repositories>
 
 	<pluginRepositories>
-		
 		<pluginRepository>
+			
 			<id>aliyun</id>
 			<name>aliyun</name>
 			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
@@ -186,7 +186,7 @@
 				<artifactId>com.creditease.uav.monitorframework.buildFat</artifactId>
 				<version>1.0</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>com.creditease.moniter</groupId>
 				<artifactId>com.creditease.uav.monitorframework.springbootFat</artifactId>
@@ -391,6 +391,12 @@
 			<dependency>
 				<groupId>com.creditease.moniter</groupId>
 				<artifactId>com.creditease.uav.jetty.plus.core</artifactId>
+				<version>1.0</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.creditease.moniter</groupId>
+				<artifactId>org.uavstack.resources.common</artifactId>
 				<version>1.0</version>
 			</dependency>
 

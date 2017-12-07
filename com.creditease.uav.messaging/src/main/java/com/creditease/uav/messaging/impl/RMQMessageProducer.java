@@ -32,8 +32,6 @@ import com.creditease.uav.mq.api.MQProducer;
 import com.creditease.uav.mq.api.MQProducerConfig;
 import com.creditease.uav.mq.api.QueueInfo;
 
-
-
 public class RMQMessageProducer extends MessageProducer {
 
     private MQProducer producer;

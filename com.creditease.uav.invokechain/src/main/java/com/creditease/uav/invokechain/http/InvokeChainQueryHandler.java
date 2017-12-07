@@ -20,6 +20,8 @@
 
 package com.creditease.uav.invokechain.http;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +112,39 @@ public class InvokeChainQueryHandler extends AbstractHttpHandler<UAVHttpMessage>
 
         SortBuilder[] sorts = buildSort(data);
 
+        String indexDate = getIndexDateFromTraceId(traceid);
+
+        data.putRequest("indexdate", indexDate);
+
         queryToList(data, qb, null, sorts);
+    }
+
+    /**
+     * \ 根据traceid获取时间，确定ES的索引
+     * 
+     * @param traceid
+     * @return indexData
+     */
+    private static String getIndexDateFromTraceId(String traceid) {
+
+        int count = 0;
+        StringBuilder sb = new StringBuilder();
+        // 从traceid中获取时间戳,取第二个'_'和第三个'_'之间的字符
+        for (int i = 0; i < traceid.length(); i++) {
+            if (count == 2 && traceid.charAt(i) != '_') {
+                sb.append(traceid.charAt(i));
+            }
+            else if (count == 2) {
+                break;
+            }
+            if (traceid.charAt(i) == '_') {
+                count++;
+            }
+        }
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Long timeStamp = DataConvertHelper.toLong(sb.toString(), System.currentTimeMillis());
+        String indexdate = dateFormat.format(timeStamp);
+        return indexdate;
     }
 
     /**

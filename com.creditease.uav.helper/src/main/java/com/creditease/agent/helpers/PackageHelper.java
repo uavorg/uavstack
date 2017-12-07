@@ -35,9 +35,9 @@ public class PackageHelper {
 
     }
 
-    public static String[] getHandlerName(String packageDir) {
+    public static String[] getHandlerName(String packageDir, ClassLoader... classLoaders) {
 
-        List<String> classNames = getClassName(packageDir, false);
+        List<String> classNames = getClassName(packageDir, false, classLoaders);
         String[] str = new String[classNames.size()];
         if (packageDir != null) {
             for (int i = 0; i < classNames.size(); i++) {
@@ -54,9 +54,9 @@ public class PackageHelper {
      *            包名
      * @return 类的完整名称
      */
-    public static List<String> getClassName(String packageName) {
+    public static List<String> getClassName(String packageName, ClassLoader... classLoaders) {
 
-        return getClassName(packageName, true);
+        return getClassName(packageName, true, classLoaders);
     }
 
     /**
@@ -68,25 +68,42 @@ public class PackageHelper {
      *            是否遍历子包
      * @return 类的完整名称
      */
-    public static List<String> getClassName(String packageName, boolean childPackage) {
+    public static List<String> getClassName(String packageName, boolean childPackage, ClassLoader... classLoaders) {
 
-        List<String> fileNames = null;
+        List<String> fileNames = new ArrayList<String>();
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         String packagePath = packageName.replace(".", "/");
         URL url = loader.getResource(packagePath);
+        getClassNameFromClsLoader(fileNames, childPackage, packagePath, url, loader);
+
+        for (ClassLoader cl : classLoaders) {
+            url = cl.getResource(packagePath);
+            getClassNameFromClsLoader(fileNames, childPackage, packagePath, url, cl);
+        }
+
+        return fileNames;
+    }
+
+    private static void getClassNameFromClsLoader(List<String> fileNames, boolean childPackage, String packagePath,
+            URL url, ClassLoader cl) {
+
+        List<String> tempFileNames = null;
         if (url != null) {
             String type = url.getProtocol();
             if ("file".equals(type)) {
-                fileNames = getClassNameByFile(url.getPath(), childPackage);
+                tempFileNames = getClassNameByFile(url.getPath(), childPackage);
             }
             else if ("jar".equals(type)) {
-                fileNames = getClassNameByJar(url.getPath(), childPackage);
+                tempFileNames = getClassNameByJar(url.getPath(), childPackage);
             }
         }
         else {
-            fileNames = getClassNameByJars(((URLClassLoader) loader).getURLs(), packagePath, childPackage);
+            tempFileNames = getClassNameByJars(((URLClassLoader) cl).getURLs(), packagePath, childPackage);
         }
-        return fileNames;
+
+        if (tempFileNames != null) {
+            fileNames.addAll(tempFileNames);
+        }
     }
 
     /**

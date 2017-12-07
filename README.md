@@ -1,8 +1,8 @@
 # UAVStack
-UAVStack是由宜信技术研发中心推出的智能化服务技术栈，是研发运维一体化的解决方案。UAV是无人机的缩写，寓意无人机翱翔蓝天，智能的，透明的完成任务。
+UAVStack是智能化服务技术栈，是研发运维一体化的解决方案。UAV是无人机的缩写，寓意无人机翱翔蓝天，智能的，透明的完成任务。
 它包括任务机器人（代号HIT），全维监控（代号UAV.Monitor）,应用性能管理（代号UAV.APM）,服务治理（代号UAV.ServiceGovern）,微服务计算（代号UAV.MSCP），用户体验管理（代号UAV.UEM）等。
 
-UAVStack is an intelligent service technology stack launched by CreditEase Technology Research and Development Center. It is a solution for integration of R & D, operation and maintenance. UAV is the abbreviation of unmanned aerial vehicle (UAV), which means that unmanned aerial vehicle flies into the sky, and completes tasks intelligently and transparently.
+UAVStack is an intelligent service technology stack. It is a solution for integration of R & D, operation and maintenance. UAV is the abbreviation of unmanned aerial vehicle (UAV), which means that unmanned aerial vehicle flies into the sky, and completes tasks intelligently and transparently.
 
 It includes AIOps Robot (HIT),full dimension monitoring (UAV.Monitor), application performance management (UAV.APM), service governance (UAV.ServiceGovern), micro-service computing (UAV.MSCP), user experience management (UAV.UEM) etc..
 
@@ -13,7 +13,7 @@ UAVStack Open Source series includes UAV.Monitor, UAV.APM, UAV.ServiceGovern, UA
 
 ![Uavstack开源系列](https://uavorg.github.io/main/index/img/support/openSource.png)
 
-# 更新公告 Project Updating Principle
+# 更新模式 Project Updating Principle
 * 开源系列源代码Issue更新，将与内部版本完全同步，最低频率每周一次
 * 开源系列源代码相关的功能优化，将与内部版本完全同步，最低频率每周一次
 * 开源系列源代码相关的新功能开放，会提前一周预告，并于下周内发布
@@ -144,9 +144,9 @@ build结果
 
 # 文档中心 Documents
 ## 全维监控UAV.Monitor+APM
-* [用户指南](https://uavorg.github.io/main/uavdoc_useroperation/index.html)
-* [安装部署](https://uavorg.github.io/main/uavdoc_deploydocs/index.html)
-* [架构说明](https://uavorg.github.io/main/uavdoc_architecture/index.html)
+* [用户指南](https://uavorg.github.io/documents/uavdoc_useroperation/index.html)
+* [安装部署](https://uavorg.github.io/documents/uavdoc_deploydocs/index.html)
+* [架构说明](https://uavorg.github.io/documents/uavdoc_architecture/index.html)
 
 # 下载中心 Downloads
 ## 全维监控UAV.Monitor+APM

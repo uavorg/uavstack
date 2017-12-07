@@ -89,55 +89,22 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
         final AbstractAdaptor aa = this;
 
-        /*
-         * Springboot's AutoConfig would load MongoClient before webContainer started, so the hook should be done in
-         * transform
-         */
-        if ("com.mongodb.MongoClient".equals(className)) {
-            hookJarMap = getHookJarMap();
-
-            String jarFileLoc = hookJarMap.get("com.mongodb.Mongo");
-
-            try {
-                installHookJars(clsLoader, jarFileLoc, uavMofRoot);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-            return this.inject(className, new String[] { "com.creditease.uav.hook.mongoclients.interceptors" },
-                    new AdaptorProcessor() {
-
-                        @Override
-                        public void process(CtMethod m) throws Exception {
-
-                            aa.addLocalVar(m, "mObj",
-                                    "com.creditease.uav.hook.mongoclients.interceptors.MongoClientIT");
-                            m.insertAfter("{mObj=new MongoClientIT(\"" + getAppid() + "\");$_=mObj.doInstall($_);}");
-
-                        }
-
-                        @Override
-                        public String getMethodName() {
-
-                            return "getDatabase";
-                        }
-
-                    });
-
-        }
-        else if (className.equals("org.springframework.context.support.AbstractApplicationContext"))
+        if (className.equals("org.springframework.context.support.AbstractApplicationContext"))
 
         {
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
                     new AdaptorProcessor() {
 
+                        /**
+                         * we need startServer before ApplicationContext's refresh cause some hook operation could
+                         * happen when refresh.
+                         */
                         @Override
                         public void process(CtMethod m) throws Exception {
 
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
                             m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.setAppid(this.getEnvironment().getProperty(\"server.context-path\"));}");
+                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"server.context-path\"),this);}");
                         }
 
                         @Override
@@ -148,28 +115,7 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                     });
         }
-        else if (className.equals("org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer")) {
 
-            return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
-                    new AdaptorProcessor() {
-
-                        @Override
-                        public void process(CtMethod m) throws Exception {
-
-                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
-                            m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.tomcat.getService().findConnectors()[0].getPort());}");
-                        }
-
-                        @Override
-                        public String getMethodName() {
-
-                            return "initialize";
-                        }
-
-                    });
-
-        }
         else if (className.equals("org.apache.catalina.core.StandardEngineValve")) {
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
                     new AdaptorProcessor() {
@@ -339,15 +285,43 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                     } });
         }
+        else if (className.equals("org.springframework.boot.context.embedded.EmbeddedWebApplicationContext")) {
+            return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
+                    new AdaptorProcessor[] { new AdaptorProcessor() {
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "finishRefresh";
+                        }
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
+                            m.insertAfter("{mObj=new SpringBootTomcatPlusIT();mObj.onSpringFinishRefresh();}");
+                        }
+
+                    }, new AdaptorProcessor() {
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "postProcessBeanFactory";
+                        }
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
+                            m.insertBefore(
+                                    "{mObj=new SpringBootTomcatPlusIT();mObj.onSpringBeanRegist(this.getEnvironment().getProperty(\"server.context-path\"));}");
+                        }
+
+                    } });
+        }
 
         return null;
-    }
-
-    private String getAppid() {
-
-        return System.getProperty("com.creditease.uav.springboot.appid") == null ? ""
-                : System.getProperty("com.creditease.uav.springboot.appid");
-
     }
 
 }

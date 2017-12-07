@@ -27,7 +27,9 @@ import java.util.Map;
 
 import com.creditease.agent.feature.notifycenter.NCConstant;
 import com.creditease.agent.helpers.JSONHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.NotificationEvent;
+import com.creditease.agent.spi.ActionContext;
 import com.creditease.agent.spi.IActionEngine;
 import com.creditease.uav.helpers.url.BASE64EncoderUrl;
 
@@ -54,6 +56,34 @@ public abstract class AbstractMailAction extends BaseNotifyAction {
         uavurl = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.uavurl");
     }
 
+    @Override
+    public boolean run(NotificationEvent event, ActionContext context) {
+
+        // 默认邮件模板地址和邮件主题
+        String mailTemplatePath = "config/mail.template";
+        String mailTitle = "【UAV预警】" + event.getTitle();
+
+        // 尝试从actionContext中获取邮件模板地址和邮件主题，如果没有则使用默认值
+        if (!StringHelper.isEmpty((String) context.getParam("mailTemplatePath"))) {
+            mailTemplatePath = (String) context.getParam("mailTemplatePath");
+        }
+
+        if (!StringHelper.isEmpty((String) context.getParam("mailTitle"))) {
+            mailTitle = (String) context.getParam("mailTitle");
+        }
+
+        boolean Result = sendMail(mailTitle, mailTemplatePath, event);
+        return Result;
+    }
+
+    @Override
+    public boolean run(NotificationEvent event) {
+
+        return false;
+    }
+
+    abstract boolean sendMail(String title, String mailTemplatePath, NotificationEvent notifyEvent);
+
     /**
      * 属性替换
      * 
@@ -76,6 +106,8 @@ public abstract class AbstractMailAction extends BaseNotifyAction {
         html = html.replace("#title#", title);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         html = html.replace("#timeFlag#", sdf.format(timeFlag));
+        SimpleDateFormat JTAsdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        html = html.replace("#JTAtimeFlag#", JTAsdf.format(timeFlag));
         html = html.replace("#id#", id);
         html = html.replace("#description#", description);
 

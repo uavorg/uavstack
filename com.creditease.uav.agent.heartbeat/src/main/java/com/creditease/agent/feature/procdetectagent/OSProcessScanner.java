@@ -312,7 +312,7 @@ public class OSProcessScanner extends AbstractTimerWork {
                     proc.addPort(port);
 
                     portList = portList.append(port).append(" ");
-                    if (!"UNKOWN".equals(proc.getName())) {
+                    if (!"UNKNOWN".equals(proc.getName())) {
                         continue;
                     }
 

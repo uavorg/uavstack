@@ -294,6 +294,9 @@ public class HBClientDefaultHandler extends AbstractHBClientHandler {
             Map<String, Map<String, String>> resultMap = new HashMap<String, Map<String, String>>();
             for (int i = 0; i < roots.length; i++) {
                 File file = roots[i];
+                if (0 == file.getTotalSpace())
+                    continue;
+
                 Map<String, String> temp = new HashMap<String, String>();
                 temp.put("free", String.valueOf(Math.round((double) (file.getFreeSpace() / 1024))));
                 temp.put("total", String.valueOf(Math.round((double) (file.getTotalSpace() / 1024))));
