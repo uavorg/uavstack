@@ -199,6 +199,16 @@ public class SpanFactory {
     }
 
     /**
+     * 从ThreadLocal中获取spanMap
+     * 
+     * @return
+     */
+    public Map<String, Span> getSpansFromContext() {
+
+        return threadLocalTracker.get();
+    }
+
+    /**
      * 从ThreadLocal中获取span
      * 
      * @return

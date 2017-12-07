@@ -201,8 +201,11 @@ public class NewLogDataMessageHandler implements MessageHandler {
              * 如果没有规则设置，使用了全行抓取，则索引Type=日志文件名+"_def"
              */
             String logFileType = logFileName;
+            StringBuilder uuidStr = new StringBuilder();
+            uuidStr.append(ipport).append(mdf.getServerId()).append("-").append(appid).append("-").append(logid);
             if (line.containsKey("content")) {
                 logFileType += "_def";
+                uuidStr.append("-").append(line.get("content"));
             }
             /**
              * 如果设置了规则，则应该使用索引Type=日志文件名+"_"+<规则名>
@@ -212,10 +215,9 @@ public class NewLogDataMessageHandler implements MessageHandler {
             }
 
             /**
-             * 保证不重复：IP+SvrID+AppID+LogFileName+LogLineNum
+             * 保证不重复：IP+SvrID+AppID+LogFileName+日志内容（def下为content）
              */
-            String uuid = EncodeHelper.encodeMD5(new StringBuilder().append(ipport).append(mdf.getServerId())
-                    .append("-").append(appid).append("-").append(logid).append("-").append(lnum).toString());
+            String uuid = EncodeHelper.encodeMD5(uuidStr.toString());
 
             // 准备index，如果不存在，就创建
             String currentIndex = indexMgr.prepareIndex(appid);
