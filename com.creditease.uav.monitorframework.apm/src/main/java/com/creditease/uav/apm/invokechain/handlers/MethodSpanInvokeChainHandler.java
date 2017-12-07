@@ -52,7 +52,7 @@ public class MethodSpanInvokeChainHandler extends InvokeChainCapHandler {
         String sign = (String) context.get(InvokeChainConstants.METHOD_SPAN_MTDSIGN);
         span.setClassName(cls);
         span.setMethodName(method + ((StringHelper.isEmpty(sign)) ? "" : "(" + sign + ")"));
-        span.setEndpointInfo(mSeqCountFormat.format(parentSpan.getSpanMethodSeqCounter()));
+        span.setEndpointInfo(mSeqCountFormat.format(parentSpan.incrementAndGetSpanMethodSeqCounter()));
         span.setUrl("");
 
         String storekey = new StringBuilder().append(cls).append(".").append(method).append(".").append(sign)

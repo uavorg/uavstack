@@ -8,108 +8,12 @@ function APMTool(app) {
 	
 	var apmLoader=new AppHubMVCLoader("APM_Loader");
 	
-	/**
-	 * TODO: 监控工具箱UI
-	 */
-	this.buildMonitorToolPanel=function(sObj) {
-		
-		var id="MonitorConfigDialog_Tool";
-		
-		//invokechain
-		var sb=new StringBuffer();
-		sb.append('<div align="left">');
-		sb.append('调用链跟踪 ');
-		sb.append('<button id="' + id + '_ivc_startbtn" class="btn btn-primary" style="width:80px;">启动</button>');
-		sb.append('&nbsp;<button id="' + id + '_ivc_stopbtn" class="btn btn-danger"  style="width:80px;">停止</button>');
-		sb.append('&nbsp;<button id="' + id + '_ivc_cfgbtn" class="btn btn-info"  style="width:80px;display:none">配置</button>');
-		sb.append('');
-		sb.append('</div>');
-		
-		//重调用链
-		sb.append('<div align="left" style="margin-top:5px;">');
-		sb.append('重调用链跟踪 ');
-		sb.append("<button id=\"" + id + "_ivcdata_startbtn\" class=\"btn btn-primary\"  style='width:80px;' >启动</button>");
-		sb.append("&nbsp;<button id=\"" + id + "_ivcdata_stopbtn\" class=\"btn btn-danger\"  style='width:80px;' >停止</button>");
-		sb.append('');
-		sb.append('</div>');
-		
-		//TODO Web浏览器跟踪
-//		sb.append('<div align="left" style="margin-top:5px;">');
-//		sb.append('浏览器跟踪 ');
-//		sb.append("<button id=\"" + id + "_uem_startbtn\" class=\"btn btn-primary\"  style='width:80px;' onclick='alert(\"此功能尚未开放\")'>启动</button>");
-//		sb.append("&nbsp;<button id=\"" + id + "_uem_stopbtn\" class=\"btn btn-danger\"  style='width:80px;' onclick='alert(\"此功能尚未开放\")'>停止</button>");
-//		sb.append('');
-//		sb.append('</div>');
-		
-		var toolView=HtmlHelper.id(id);
-		toolView.innerHTML=sb.toString();
-		
-		//build what need Object
-		var ctrlObj={
-			nodeURL:"",
-			serverURL:"",
-			file:"",
-			appUUID:"",
-			toolTag:"",
-			mqTopic:"",
-			collectAct:""
-		};
-		var instID=sObj["instid"];
-		ctrlObj["appUUID"]=instID;
-		var appInfo=instID.split("---");
-		var urlInfo=instID.split("/");
-		ctrlObj["serverURL"]=urlInfo[0]+"//"+urlInfo[2];
-		var ipport=urlInfo[2].split(":");
-		ctrlObj["nodeURL"]="http://"+ipport[0]+":10101/node/ctrl";
-		ctrlObj["file"]=appInfo[1]+"_"+ipport[1]+"_";
-		
-		//invokechain button setup
-		var ivcStartBtn=HtmlHelper.id(id+"_ivc_startbtn");
-		var ivcStopBtn=HtmlHelper.id(id+"_ivc_stopbtn");
-		var ivcCfgBtn=HtmlHelper.id(id+"_ivc_cfgbtn");
-		
-		ivcStartBtn.onclick=function() {
-			ctrlObj["toolTag"]="ivc";
-			ctrlObj["mqTopic"]="JQ_IVC";
-			ctrlObj["collectAct"]="collectdata.add";
-			ctrlObj["collectRoot"]="com.creditease.uav.invokechain.logroot";
-			_this.callMOFTool("调用链", "start",ctrlObj,"startSupporter","[\"com.creditease.uav.apm.supporters.InvokeChainSupporter\"]");
-		};
-		
-		ivcStopBtn.onclick=function() {
-			ctrlObj["toolTag"]="ivc";
-			ctrlObj["mqTopic"]="JQ_IVC";
-			ctrlObj["collectAct"]="collectdata.del";
-			ctrlObj["collectRoot"]="com.creditease.uav.invokechain.logroot";
-			_this.callMOFTool("调用链", "stop",ctrlObj,"stopSupporter","[\"com.creditease.uav.apm.supporters.InvokeChainSupporter\"]");
-		};
-		
-		ivcCfgBtn.onclick=function() {
-			$("#MonitorConfigDialog").modal('hide');
-			app.controller.showWindow({winmode:"embed",func:"ivc",appuuid:instID,appurl:appInfo[0],appid:appInfo[1]},"AppAPMCfgWnd","buildAppAPMCfgWnd","runAppAPMCfgWnd");
-		};
-		
-		//重调用链 button setup
-		var ivcDataStartBtn=HtmlHelper.id(id+"_ivcdata_startbtn");
-		var ivcDataStopBtn=HtmlHelper.id(id+"_ivcdata_stopbtn");
-		
-		ivcDataStartBtn.onclick=function() {
-			ctrlObj["toolTag"]="ivcdat";
-			ctrlObj["mqTopic"]="JQ_SLW";
-			ctrlObj["collectAct"]="collectdata.add";
-			ctrlObj["collectRoot"]="com.creditease.uav.ivcdat.logroot";
-			_this.callMOFTool("重调用链", "start",ctrlObj,"startSupporter","[\"com.creditease.uav.apm.supporters.SlowOperSupporter\"]");
-		};
-		
-		ivcDataStopBtn.onclick=function() {
-			ctrlObj["toolTag"]="ivcdat";
-			ctrlObj["mqTopic"]="JQ_SLW";
-			ctrlObj["collectAct"]="collectdata.del";
-			ctrlObj["collectRoot"]="com.creditease.uav.ivcdat.logroot";
-			_this.callMOFTool("重调用链", "stop",ctrlObj,"stopSupporter","[\"com.creditease.uav.apm.supporters.SlowOperSupporter\"]");
-		};
-		
-	};
+	 /**
+	  * 页面点击跳转过程中用于传递信息的全局参数
+	  */
+	this.ivcInfo = {
+		comeFrom:""
+	}
 	
 	/**
 	 * 调用MA启动/停止MOF上的功能
@@ -188,6 +92,57 @@ function APMTool(app) {
 	this.destroyAppAPMCfgWnd=function() {
 		
 	};
+	 
+	
+	// TODO -------------------------------调用链配置窗口---------------------------------------------------
+	/**
+	 * 创建日志配置窗口GUI
+	 */
+	this.buildAppIVCCfgWnd=function(sObj) {
+		
+		this.IVCfgInfo={};
+		
+		if (sObj!=undefined) {
+			this.IVCfgInfo=sObj;
+		}
+				
+		html="<div class=\"appDetailContent\" style='background:#333;' >" +
+        "<div class=\"topDiv\" >" +
+        "<span class=\"tagTitle\">调用链配置</span><br/>"+
+        "<span class=\"idTitle\" >"+this.IVCfgInfo["appurl"]+"</span>" +
+        "<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCCfgWnd','destroyAppIVCCfgWnd','AppIVCWnd')\"></div>" +	            
+        "</div></div>";
+		
+		html+="<div class=\"AppHubMVCSearchBar\" align='left'>"
+		    +"&nbsp;<button  class=\"btn btn-primary\" style=\"width:120px;\" onclick='appAPM.ivcStart(\""+this.IVCfgInfo["appuuid"]+"\")'>启动调用链</button>"
+		    +"&nbsp;<button  class=\"btn btn-danger\" style=\"width:120px;\"  onclick='appAPM.ivcStop(\""+this.IVCfgInfo["appuuid"]+"\")'>关闭调用链</button>"
+	        +"</div>";
+		html+="<div class=\"AppHubMVCSearchBar\" align='left'>"
+		    +"&nbsp;<button  class=\"btn btn-primary\" style=\"width:120px;\" onclick='appAPM.ivcDataStart(\""+this.IVCfgInfo["appuuid"]+"\")'>启动重调用链</button>"
+		    +"&nbsp;<button  class=\"btn btn-danger\" style=\"width:120px;\"  onclick='appAPM.ivcDataStop(\""+this.IVCfgInfo["appuuid"]+"\")'>关闭重调用链</button>"
+	        +"</div>";
+		html+="<div class=\"AppHubMVCSearchBar\" align='left'>"
+		    +"&nbsp;<button  class=\"btn btn-primary\" style=\"width:120px;\" onclick='appAPM.logTraceStart(\""+this.IVCfgInfo["appuuid"]+"\")'>启动日志关联</button>"
+		    +"&nbsp;<button  class=\"btn btn-danger\" style=\"width:120px;\"  onclick='appAPM.logTraceStop(\""+this.IVCfgInfo["appuuid"]+"\")'>关闭日志关联</button>"
+	        +"</div>";
+	
+		return html;
+	};
+	
+	/**
+	 * 初始化调用链配置窗口
+	 */
+	this.runAppIVCCfgWnd=function(sObj) {
+		
+	};
+	
+	/**
+	 * 
+	 */
+	this.destroyAppIVCCfgWnd=function() {
+		
+	};
+	
 	//TODO -----------------------------------------------------------调用链-----------------------------------------------------------------
 	/**
 	 * 当前应用的信息
@@ -276,12 +231,13 @@ function APMTool(app) {
 			appid:['应用标识','10%'],
 			state : [ '状态', '50px' ],
 			cost : [ '耗时ms', '70px' ],
-			traceid : [ '', '1px' ]
+			traceid : [ '', '1px' ],
+			logLink : [ '日志关联', '50px' ]
 		},
 		cloHideStrategy : {
-			1000 : [ 0, 1, 2, 3, 4, 5, 6, 7, 8,9,10 ],
-			800 :   [ 0, 1, 2, 3, 4, 5, 6, 7, 8,9,10  ],
-			500 : [ 0,1, 2,9,10 ],
+			1000 : [ 0, 1, 2, 3, 4, 5, 6, 7, 8,9,10,11 ],
+			800 :   [ 0, 1, 2, 3, 4, 5, 6, 7, 8,9,10,11  ],
+			500 : [ 0,1, 2,9,10,11 ],
 			300:[0,1,2],
 		},
 		columnStyle :{
@@ -326,12 +282,63 @@ function APMTool(app) {
 					return _this.UI_list_state(value,true);
 				case 10:
 					return _this.UI_list_cost(value);
+				case 12:
+					return "<div class=\"icon-link\" style=\"cursor:pointer\" title=\"提取关联日志\" onclick=\"javascript:appAPM.showLogSelect(this)\"></div>";
 				}
 				
 				return value;
 			}
 		}
 	};
+	
+	
+	this.showLogSelect = function(sObj){
+		
+		var params = {};
+		params.comeFrom = this.ivcInfo["comeFrom"];
+		var pNode = sObj.parentNode.parentNode;
+		params.ctn = "\"uav_" + pNode.id + "\"";
+		params.ipport = pNode.getElementsByTagName("td")[7].id;
+		params.appid = pNode.getElementsByTagName("td")[8].id;
+		var appurl = "http://"+params.ipport+"/"+params.appid+"/";
+		AjaxHelper.call({
+            url: '../../rs/godeye/profile/q/cache',
+            data: {"fkey":"appurl","fvalue":appurl},
+            cache: false,
+            type: 'GET',
+            dataType: 'html',
+            timeout: 30000,
+            success: function(result){
+                var obj = StringHelper.str2obj(result);
+                var res = obj["rs"];
+                var datas = StringHelper.str2obj(res);
+                var data;
+                for(var key in datas){
+                	data = datas[key];
+                }
+                var logdata = StringHelper.str2obj(data)["logs.log4j"];
+                var logObj = StringHelper.str2obj(logdata);
+                for(var key in logObj){
+                	if(key.lastIndexOf("/") > 0){
+                		key = key.substring(key.lastIndexOf("/") + 1);
+                	}
+                	$("#logSelector").append("<option value='"+ key +"' width='%97'> "+ key +"</option>");
+                }
+                if($("#logSelector option").size()>0){
+                	$("#selectLogWinfooter").append( '<button class="btn btn-primary " onclick=\'javascript:appAPM.jumpLogRollWnd('+ JSON.stringify(params) +')\';">确定</button>');
+                }else{
+                	$("#logSelector").append("<option value='无日志文件' width='%97'>无日志文件</option>");
+                }
+                $("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
+            },
+            error: function(result){
+            	$("#logSelector").append("<value='获取日志文件失败' width='%97'>");
+            	$("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
+            }
+         });
+		
+		$("#selectLogWin").modal({backdrop:false});
+	}
 	
 	/**
 	 * 根据value展示state的不同UI
@@ -459,11 +466,13 @@ function APMTool(app) {
 		var winmode=this.appInfo["winmode"];
 		//App模式
 		if (winmode!="standalone") {
+			var sObjStr=JSON.stringify(sObj);
 			html="<div class=\"appDetailContent\" style='background:#333;' >" +
 	        "<div class=\"topDiv\" >" +
 	        "<span class=\"tagTitle\">"+this.appInfo["appname"]+"</span><br/>"+
 	        "<span class=\"idTitle\" >"+this.appInfo["appurl"]+"</span>" +
 	        "<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCWnd','destroyAppIVCWnd','AppInstChartWnd')\"></div>" +
+	        "<div class=\"glyphicon glyphicon-cog\" onclick='javascript:app.controller.showWindow("+sObjStr+",\"AppIVCCfgWnd\",\"buildAppIVCCfgWnd\",\"runAppIVCCfgWnd\")'></div>"+
 	        "</div></div>";
 			
 			html+="<div class=\"AppHubMVCSearchBar AppIVCWnd_AppMode\" align='left' style='background:#eee;'>";
@@ -527,7 +536,7 @@ function APMTool(app) {
 			
 			this.appSelector.init();
 			this.appInstSelector.init();
-			this.callAppProfile();
+			this.callAppProfile(sObj);
 		}
 		
 		//mainlist
@@ -536,7 +545,8 @@ function APMTool(app) {
 		this.mainList.initTable();
 		
 		this.mainList.cellClickUser = function(id,pNode) {
-			app.controller.showWindow({traceid:id},"AppIVCTraceWnd","buildAppIVCTraceWnd","runAppIVCTraceWnd");
+			//comeFrom表示该请求的来源位置，用于后面的返回定位
+			app.controller.showWindow({traceid:id,comeFrom:"IVC"},"AppIVCTraceWnd","buildAppIVCTraceWnd","runAppIVCTraceWnd");
 		};
 		
 		//init datetime picker		
@@ -579,16 +589,67 @@ function APMTool(app) {
 	 * 调用链Trace窗口UI
 	 */
 	this.buildAppIVCTraceWnd=function(sObj) {
-		var html="<div class=\"appDetailContent\"  style='background:#333;' >" +
-        "<div class=\"topDiv\">" +
-        "<span class=\"tagTitle\">调用链跟踪</span><br/>"+
-        "<span class=\"idTitle\" style='font-size:8px;color:gray;'>"+sObj["traceid"]+"</span>" +
-        "<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCTraceWnd','destroyAppIVCTraceWnd','AppIVCWnd')\"></div>" +
-        "</div></div>";
-		html+="<div  id='AppIVCTraceWnd_TContainer' style='font-size:12px;color:black;'></div>";
+		if(this.appInfo==undefined){
+			//设置当前应用信息
+			this.appInfo={
+					appuuid:"",
+					appid:"",
+					appurl:"",
+					appname:""
+			};
+		}
+		var html=
+		"<div class=\"appDetailContent\"  style='background:#333;' >" +
+        	"<div class=\"topDiv\">" +
+        		"<span class=\"tagTitle\">调用链跟踪</span><br/>"+
+        		"<span class=\"idTitle traceid\" style='font-size:8px;color:gray;'>"+sObj["traceid"]+"</span>";
+		if(sObj!=undefined && "comeFrom" in sObj){
+			this.ivcInfo["comeFrom"] = sObj["comeFrom"];
+			if(sObj["comeFrom"]=="NewLog"){
+				html +=
+					"<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCTraceWnd','destroyAppIVCTraceWnd','AppNewLogRollWnd')\"></div>" +
+					"<div class=\"icon-link\" style=\"cursor:pointer\" title=\"转到调用链搜索\" onclick=\"app.controller.showWindow({'winmode':'standalone','appname':'"+sObj["appname"]+"','appuuid':'"+sObj["appuuid"]+"'},'AppIVCWnd','buildAppIVCWnd','runAppIVCWnd');\"></div>";
+			}else{
+				html +=
+					"<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCTraceWnd','destroyAppIVCTraceWnd','AppIVCWnd')\"></div>";
+			}
+		}else{
+			html +=
+					"<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppIVCTraceWnd','destroyAppIVCTraceWnd','AppIVCWnd')\"></div>";
+		}
+		html+=
+        	"</div>"+
+        "</div>"+
+		"<div  id='AppIVCTraceWnd_TContainer' style='font-size:12px;color:black;'>" +
+		"</div>";
+		
+		var sb=new StringBuffer();
+		
+		sb.append('<div class="modal fade" id="selectLogWin" aria-hidden="false">');
+		sb.append('<div class="modal-dialog">');
+		sb.append( '<div class="modal-content">');
+		sb.append( '<div class="modal-header" style="display: -webkit-box;">');
+		sb.append( '<div style="width: 97%;"><h5>日志文件选择</h5></div>');
+
+		sb.append( '</div>');
+		sb.append( '<div class="modal-body" id="actionBodyDiv">');
+		sb.append( "<select id=\"logSelector\">");
+		sb.append( '</select>');
+	
+		sb.append( '</div>');
+		sb.append( '<div class="modal-footer"  id ="selectLogWinfooter">');
+		sb.append( '</div>' + '</div>' + '</div>');
+		html += sb.toString();
+		
 		
 		return html;
 	};
+	
+	this.clearLogSelector=function(){
+		$("#selectLogWin").modal('hide');
+		$("#logSelector").empty();
+		$("#selectLogWinfooter").empty();
+	}
 	
 	/**
 	 * 调用链Trace窗口初始化
@@ -600,6 +661,30 @@ function APMTool(app) {
 		this.traceList.initTable();
 		
 		this.callIVCQuery("trace",sObj);
+	};
+	/**
+	 * 调用链Trace窗退出
+	 */
+	this.destroyAppIVCTraceWnd=function(){
+		
+	}
+	
+	/**
+	 * 跳转到日志搜索结果页
+	 */
+	this.jumpLogRollWnd = function(param){
+//		var pNode = sObj.parentNode.parentNode;
+//		var param = StringHelper.str2obj(params);
+//		param.ipport = pNode.getElementsByTagName("td")[7].id;;
+//		param.appid = pNode.getElementsByTagName("td")[8].id;
+		param.intent="qContent";
+		param.logfile = HtmlHelper.id("logSelector").value;
+		param.logtype = HtmlHelper.id("logSelector").value.replace(".","_") + "_def";
+		$("#selectLogWin").modal('hide');
+		$("#logSelector").empty();
+		$("#selectLogWinfooter").empty();
+		
+		app.controller.showWindow(param,"AppNewLogRollWnd","buildAppNewLogRollWnd","runAppNewLogRollWnd");
 	};
 	
 	/**
@@ -787,11 +872,15 @@ function APMTool(app) {
 	/**
 	 * 加载MAINList的数据，显示该应用的服务调用链数据
 	 */
-	this.loadIVCList = function(list,datas,count,totalCount) {
+	this.loadIVCList = function(list,datas,count,totalCount,params) {
 		
 		list.clearTable();
-		
-		list.setCaption("<div align='center'>应用实例:<font color='#333'>"+this.appInfo["appname"]+"("+this.appInfo["appuuid"].split("/")[2]+")</font>，总数：<font color='red'>"+totalCount+"</font></div>");
+		if(params!=undefined&&"appname" in params&&"appuuid" in params){
+			_this.appInfo["appid"] = params["appname"];
+			list.setCaption("<div align='center'>应用实例:<font color='#333'>"+params["appname"]+"("+params["appuuid"].split("/")[2]+")</font>，总数：<font color='red'>"+totalCount+"</font></div>");
+		}else{
+			list.setCaption("<div align='center'>应用实例:<font color='#333'>"+this.appInfo["appname"]+"("+this.appInfo["appuuid"].split("/")[2]+")</font>，总数：<font color='red'>"+totalCount+"</font></div>");
+		}
 		
 		// 必须先显示分页
 		list.setTotalRow(count);
@@ -814,9 +903,18 @@ function APMTool(app) {
 	/**
 	 * 全局视图需要单独取该用户可查看的profile信息
 	 */
-	this.callAppProfile=function() {
+	this.callAppProfile=function(sObj) {
 		this.profileDAO.callAppProfile(function(jsonData) {
 			_this.loadAppSelector(jsonData);
+			if(sObj != undefined){
+				if(sObj["appname"]){
+					$("select#AppIVCWnd_AppSelector").val(sObj["appname"]); 
+					appAPM.onChangeAppSelector();
+				}
+				if(sObj["appuuid"]){
+					$("select#AppIVCWnd_AppInstSelector").val(sObj["appuuid"]);
+				}
+			}
 		});
 	};
 	
@@ -982,8 +1080,10 @@ function APMTool(app) {
 		var dataList;
 		
 		var appuuid;
-		
-		var winmode=this.appInfo["winmode"];
+		var winmode = '';
+		if(this.appInfo!=undefined&&"winmode" in this.appInfo){
+			winmode = this.appInfo["winmode"];
+		}
 		//全局模式
 		if ("standalone"==winmode) {
 			this.appInfo["appid"]=this.appSelector.value();
@@ -1114,7 +1214,7 @@ function APMTool(app) {
                     	apmLoader.show("调用链共"+datas.length+"记录，正生成分析树...",280);
                     	setTimeout(function() {
                     		datas=_this.sortTrace(intent,datas);
-                    		_this.loadIVCList(dataList, datas, datas.length,count);
+                    		_this.loadIVCList(dataList, datas, datas.length,count,pObj);
                     	},1);
                     }
                     else {
@@ -1269,6 +1369,82 @@ function APMTool(app) {
 		
 		return {stime:startTime,etime:endTime,indexdate:reqDate};
 	};
+	
+	this.buildCtrlObj = function(appuuid){
+		var ctrlObj={
+				nodeURL:"",
+				serverURL:"",
+				file:"",
+				appUUID:"",
+				toolTag:"",
+				mqTopic:"",
+				collectAct:""
+			};
+			ctrlObj["appUUID"]=appuuid;
+			var appInfo=appuuid.split("---");
+			var urlInfo=appuuid.split("/");
+			ctrlObj["serverURL"]=urlInfo[0]+"//"+urlInfo[2];
+			var ipport=urlInfo[2].split(":");
+			ctrlObj["nodeURL"]="http://"+ipport[0]+":10101/node/ctrl";
+			ctrlObj["file"]=appInfo[1]+"_"+ipport[1]+"_";
+		return ctrlObj;
+	}
+	
+	this.ivcStart=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		ctrlObj["toolTag"]="ivc";
+		ctrlObj["mqTopic"]="JQ_IVC";
+		ctrlObj["collectAct"]="collectdata.add";
+		ctrlObj["collectRoot"]="com.creditease.uav.invokechain.logroot";
+		_this.callMOFTool("调用链", "start",ctrlObj,"startSupporter","[\"com.creditease.uav.apm.supporters.InvokeChainSupporter\"]");
+	};
+	
+	this.ivcStop=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		ctrlObj["toolTag"]="ivc";
+		ctrlObj["mqTopic"]="JQ_IVC";
+		ctrlObj["collectAct"]="collectdata.del";
+		ctrlObj["collectRoot"]="com.creditease.uav.invokechain.logroot";
+		_this.callMOFTool("调用链", "stop",ctrlObj,"stopSupporter","[\"com.creditease.uav.apm.supporters.InvokeChainSupporter\"]");
+	};
+	
+	this.ivcCfg=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		$("#MonitorConfigDialog").modal('hide');
+		app.controller.showWindow({winmode:"embed",func:"ivc",appuuid:instID,appurl:appInfo[0],appid:appInfo[1]},"AppAPMCfgWnd","buildAppAPMCfgWnd","runAppAPMCfgWnd");
+	};
+	
+	this.ivcDataStart=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		ctrlObj["toolTag"]="ivcdat";
+		ctrlObj["mqTopic"]="JQ_SLW";
+		ctrlObj["collectAct"]="collectdata.add";
+		ctrlObj["collectRoot"]="com.creditease.uav.ivcdat.logroot";
+		_this.callMOFTool("重调用链", "start",ctrlObj,"startSupporter","[\"com.creditease.uav.apm.supporters.SlowOperSupporter\"]");
+	};
+	
+	this.ivcDataStop=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		ctrlObj["toolTag"]="ivcdat";
+		ctrlObj["mqTopic"]="JQ_SLW";
+		ctrlObj["collectAct"]="collectdata.del";
+		ctrlObj["collectRoot"]="com.creditease.uav.ivcdat.logroot";
+		_this.callMOFTool("重调用链", "stop",ctrlObj,"stopSupporter","[\"com.creditease.uav.apm.supporters.SlowOperSupporter\"]");
+	};
+	
+	this.logTraceStart=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		ctrlObj["toolTag"]="logTrace";
+		_this.callMOFTool("调用链日志追踪", "start",ctrlObj,"startSupporter","[\"com.creditease.uav.apm.supporters.LogTraceSupporter\"]");
+	};
+	
+	this.logTraceStop=function(appuuid) {
+		var ctrlObj = this.buildCtrlObj(appuuid);
+		ctrlObj["toolTag"]="logTrace";
+		_this.callMOFTool("调用链日志追踪", "stop",ctrlObj,"stopSupporter","[\"com.creditease.uav.apm.supporters.LogTraceSupporter\"]");
+	};
+	
+	
 }
 
 

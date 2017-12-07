@@ -8,6 +8,10 @@ function NewLogTool(app) {
 	
 	this.appInfo={};
 	
+	this.LogInfo = {
+		comeFrom : ""
+	};
+	
 	/**
 	 * TODO：日志搜索列表配置
 	 */
@@ -179,7 +183,7 @@ function NewLogTool(app) {
 			this.appSelector.init();
 			this.ipSelector.init();
 			this.logSelector.init();
-			_this.callAppProfile();
+			_this.callAppProfile(sObj);
 		}
 		
 		
@@ -193,7 +197,7 @@ function NewLogTool(app) {
 		 * 点击打开日志滚动窗口
 		 */
 		this.mainList.cellClickUser = function(id,pNode) {
-			app.controller.showWindow({l_timestamp:id, node:pNode},"AppNewLogRollWnd","buildAppNewLogRollWnd","runAppNewLogRollWnd");
+			app.controller.showWindow({l_timestamp:id, node:pNode , comeFrom:"NewLog",logfile:appLog.appInfo["logfile"]},"AppNewLogRollWnd","buildAppNewLogRollWnd","runAppNewLogRollWnd");
 		};
 		
 		/**
@@ -298,13 +302,16 @@ function NewLogTool(app) {
 	 */
 	this.getCurTimeRange=function() {
 		
-		var timeRange=HtmlHelper.id("AppNewLogWnd_TimeRange").value;
-		var timeUnit=this.timeRangeSelector.value();
+		var timeRange = "";
+		if(HtmlHelper.id("AppNewLogWnd_TimeRange")!=undefined){
+			timeRange=HtmlHelper.id("AppNewLogWnd_TimeRange").value;
+		}
 		
 		//全部时间
 		if (timeRange=="") {
 			return undefined;
 		}
+		var timeUnit=this.timeRangeSelector.value();
 		
 		var date;
 		var plus;
@@ -378,6 +385,11 @@ function NewLogTool(app) {
 	 */
 	this.rendLog=function(content,keywords) {
 		
+		//去除调用链的traceId
+		if(content.slice(0,4)=='uav_'){
+			var traceid = content.split(" ")[0].slice(4);
+			content = content.substring(traceid.length+4,content.length);
+		}
 		if (keywords==undefined||keywords.length==0) {
 			return content.replace(/</g,"&lt;").replace(/>/g,"&gt;");
 		}
@@ -434,7 +446,7 @@ function NewLogTool(app) {
 		
 		var keys="";
 		
-		if (HtmlHelper.id("AppNewLogWnd_KeyWord").value!="") {
+		if (HtmlHelper.id("AppNewLogWnd_KeyWord")!=undefined&&HtmlHelper.id("AppNewLogWnd_KeyWord").value!="") {
 			keys=HtmlHelper.id("AppNewLogWnd_KeyWord").value;
 		}
 		
@@ -611,9 +623,24 @@ function NewLogTool(app) {
 	/**
 	 * 全局视图需要单独取该用户可查看的profile信息
 	 */
-	this.callAppProfile=function() {
+	this.callAppProfile=function(sObj) {
 		this.profileDAO.callAppProfile(function(jsonData) {
 			_this.loadAppSelector(jsonData);
+			if(sObj != undefined){
+				if(sObj["appid"]){
+					$("select#AppNewLogWnd_AppSelector").val(sObj["appid"]); 
+					appLog.onChangeAppSelector();
+				}
+				if(sObj["ipport"]){
+					$("select#AppNewLogWnd_IPSelector").val(sObj["ipport"]);
+				}
+				if(sObj["logfile"]){
+					$("select#AppNewLogWnd_LogSelector").val(sObj["logfile"]);
+				}
+				if(sObj["ctn"]){
+					$("#AppNewLogWnd_KeyWord").val("\"" + sObj["ctn"] + "\"");
+				}
+			}
 		});
 	};
 	
@@ -784,28 +811,48 @@ function NewLogTool(app) {
 				curELine:0,
 				_lock:false
 		};
-		this.logRollInfo["ipport"]=sObj["node"].getElementsByTagName("td")[0].id;
-		this.logRollInfo["appid"]=this.appInfo["appid"];
-		this.logRollInfo["logtype"]=this.appInfo["logtype"];
+		if(sObj!=undefined&&"ipport" in sObj&&"appid" in sObj&&"logfile" in sObj&&"ctn" in sObj){
+			this.logRollInfo["ipport"]=sObj.ipport;
+			this.logRollInfo["appid"]=sObj.appid;
+			this.logRollInfo["logtype"]=sObj.logfile;
+			this.logRollInfo["ctn"]=sObj.ctn;
+		}else{
+			this.logRollInfo["ipport"]=sObj["node"].getElementsByTagName("td")[0].id;
+			this.logRollInfo["appid"]=this.appInfo["appid"];
+			this.logRollInfo["logtype"]=this.appInfo["logtype"];
+		}
+		console.log(this.logRollInfo);
 		/**
 		 * 记录从那个时间戳以及哪行进来的
 		 */
 		this.logRollInfo["entry"]={
 				timestamp:sObj["l_timestamp"],
-				line:parseInt(sObj["node"].getElementsByTagName("td")[2].id)
+				line:(sObj["node"]!=undefined)?parseInt(sObj["node"].getElementsByTagName("td")[2].id):''
 		};
 				
 		var html="<div id=\"AppNewLogRollWnd_Top\" class=\"appDetailContent\" style='background:#333;' >" +
         "<div class=\"topDiv\" >" +
         "<span class=\"tagTitle\">"+this.logRollInfo["appid"]+"("+this.logRollInfo["ipport"]+")</span><br/>"+
-        "<span class=\"idTitle\" >"+this.appInfo["logfile"]+"</span>" +
-        "<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppNewLogRollWnd','destroyAppNewLogRollWnd','AppNewLogWnd')\"></div>" +
-        "</div></div>";
+        "<span class=\"idTitle\" >"+sObj["logfile"]+"</span>";
+        if(sObj!=undefined&&"comeFrom" in sObj){
+        	this.LogInfo["comeFrom"] = sObj["comeFrom"];
+        	if(sObj["comeFrom"] == "IVC"){
+        		html +=
+        			"<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppNewLogRollWnd','destroyAppNewLogRollWnd','AppIVCTraceWnd')\"></div>" +
+        			"<div class=\"icon-link\" style=\"cursor:pointer\" title=\"转到日志搜索\" onclick=\"app.controller.showWindow({'winmode':'standalone','logfile':'"+sObj["logfile"]+"','appid':'"+sObj["appid"]+"','ctn':'"+sObj["ctn"].replace("\"","").replace("\"","")+"\','ipport':'"+sObj["ipport"]+"'},'AppNewLogWnd','buildAppNewLogWnd','runAppNewLogWnd');\"></div>";
+        	}else{
+            	html+=
+            		"<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppNewLogRollWnd','destroyAppNewLogRollWnd','AppNewLogWnd')\"></div>";
+            }
+        }else{
+        	html+=
+        		"<div class=\"icon-signout\" onclick=\"javascript:app.controller.closeWindow('AppNewLogRollWnd','destroyAppNewLogRollWnd','AppNewLogWnd')\"></div>";
+        }
 		//控制面板
 //		html+="<div class=\"AppHubMVCSearchBar\" style=\"padding-top:0px;height:40px;\">";
 //		html+="</div>";
 		//向前滚动
-		html+="<div id='NewLogRollButton_UP' class=\"btn btn-success NewLogRollButton\" onclick='appLog.callLogRollQuery(\"qroll\",{action:\"up\"})'>";
+		html+="</div></div><div id='NewLogRollButton_UP' class=\"btn btn-success NewLogRollButton\" onclick='appLog.callLogRollQuery(\"qroll\",{action:\"up\"})'>";
 		html+="<span class=\"glyphicon glyphicon-chevron-up\"></span>向前滚动日志&nbsp;<span id=\"AppNewLogRollWnd_CurSLine\" style='font-size:12px;color:blue;'></span></div>";
 		//日志内容
 		html+="<div  id='AppNewLogRollWnd_TContainer' class=\"NewLogRollContentCtn\" ></div>";
@@ -865,12 +912,12 @@ function NewLogTool(app) {
 		/**
 		 * Step 2: 记录这次成功的日志的开始和结束
 		 */
-		if(this.logRollInfo["curSLine"]>=lineRange.sline) {
+		if(lineRange.sline==undefined||this.logRollInfo["curSLine"]>=lineRange.sline) {
 			this.logRollInfo["curSLine"]=datas[0]["l_num"];
 			HtmlHelper.id("AppNewLogRollWnd_CurSLine").innerHTML=this.logRollInfo["curSLine"];
 		}
 		
-		if (this.logRollInfo["curELine"]<=lineRange.eline) {
+		if (lineRange.eline==undefined||this.logRollInfo["curELine"]<=lineRange.eline) {
 			this.logRollInfo["curELine"]=datas[datas.length-1]["l_num"];
 			HtmlHelper.id("AppNewLogRollWnd_CurELine").innerHTML=this.logRollInfo["curELine"];
 		}
@@ -898,7 +945,11 @@ function NewLogTool(app) {
 				var podSLine=this.logRollInfo.pods.get(0);
 				this.logRollInfo.pods.remove(0);
 				HtmlHelper.del("NewLogPod_"+podSLine);
-				this.logRollInfo["curSLine"]=podSLine+this.logRollInfo["rollsize"]+1;
+				if(this.logRollInfo["fromIVC"] == true){
+					this.logRollInfo["curSLine"] = this.logRollInfo.pods.get(0);
+				}else{
+					this.logRollInfo["curSLine"]=podSLine+this.logRollInfo["rollsize"]+1;
+				}
 				HtmlHelper.id("AppNewLogRollWnd_CurSLine").innerHTML=this.logRollInfo["curSLine"];
 			}
 			else {
@@ -950,8 +1001,27 @@ function NewLogTool(app) {
 	 */
 	this.buildLogLine=function(logBuffer,data) {
 		
-		var keywords=this.getHighlightKeywords();
-		var content=this.rendLog(data["content"], keywords);
+		var content=data["content"];
+		//为拥有traceId的日志添加超链接
+		if(content.slice(0,4)=='uav_'){
+			var traceid = content.split(" ")[0].slice(4);
+			content = content.substring(traceid.length+4,content.length);
+			var params = {};
+			params.traceid = traceid;
+			params.appuuid = "http://"+this.logRollInfo["ipport"]+"/"+this.logRollInfo["appid"]+"---"+this.logRollInfo["appid"];
+			params.comeFrom = this.LogInfo["comeFrom"];
+			params.appname = this.logRollInfo["appid"];
+			params.ipport = this.logRollInfo["ipport"];
+			params.appid = this.logRollInfo["appid"];
+			params = JSON.stringify(params);
+			var keywords=this.getHighlightKeywords();
+			content=this.rendLog(content, keywords);
+			content = "<a href='javascript:void(0)' onclick='app.controller.showWindow("+params+",\"AppIVCTraceWnd\",\"buildAppIVCTraceWnd\",\"runAppIVCTraceWnd\")'>"+content+"</a>";
+		}else{
+			var keywords=this.getHighlightKeywords();
+			content=this.rendLog(content, keywords);
+		}
+		
 		
 		var lnum=data["l_num"];
 		var highlight="";
@@ -1014,11 +1084,19 @@ function NewLogTool(app) {
 		
 		if (action=="up") {
 			eline=this.logRollInfo["curSLine"];
-			sline=eline-rollsize-1;			
+			sline=eline-rollsize-1;	
+			//如果从调用链界面进来，则向上翻页的时候不用sline
+			if(this.logRollInfo["fromIVC"] == true){
+				sline = NaN;
+			}
 		}
 		else if (action=="down") {
 			sline=this.logRollInfo["curELine"]+1;
 			eline=sline+rollsize+1;
+			//如果从调用链界面进来，则向下翻页的时候不用eline
+			if(this.logRollInfo["fromIVC"] == true){
+				eline = NaN;
+			}
 		}
 		
 		return {sline:sline,eline:eline};
@@ -1037,7 +1115,6 @@ function NewLogTool(app) {
 		this.logRollInfo["_lock"]=true;
 		
 		var data={intent:"qContent",request:{}};
-		
 		/**
 		 * Step 1: 默认使用_def, 但是稍后可以允许用户自己选自己的Rule
 		 */
@@ -1045,9 +1122,15 @@ function NewLogTool(app) {
 		
 		//取appid和logtype,ipport
 		data["request"]["appid"]=this.logRollInfo["appid"];
-		data["request"]["logtype"]=this.logRollInfo["logtype"]+currentLogRuleName;	
+		data["request"]["logtype"]=this.logRollInfo["logtype"]+currentLogRuleName;
 		data["request"]["ipport"]=this.logRollInfo["ipport"];
-		
+		if(this.logRollInfo["ctn"] != undefined && this.logRollInfo["ctn"] != "");{
+			data["request"]["ctn"]=this.logRollInfo["ctn"];
+		}
+		//第一次进入页面的line为“ ”说明是从IVC界面进来的
+		if(this.logRollInfo["entry"]["line"] == ""){
+			this.logRollInfo["fromIVC"] = true;
+		}
 		/**
 		 * Step 2: 定位拉去的行范围，按行号
 		 */
@@ -1059,8 +1142,12 @@ function NewLogTool(app) {
 			lineRange=this.getNextRollRange(undefined,pObj["action"]);
 		}
 		
-		data["request"]["sline"]=lineRange["sline"]+"";
-		data["request"]["eline"]=lineRange["eline"]+"";
+		if(!isNaN(lineRange["sline"])){
+			data["request"]["sline"]=lineRange["sline"]+"";
+		}
+		if(!isNaN(lineRange["eline"])){
+			data["request"]["eline"]=lineRange["eline"]+"";
+		}
 		
 		/**
 		 * Step 3: 时间区段
@@ -1073,10 +1160,24 @@ function NewLogTool(app) {
 					data["request"]["indexdate"]=timeRange["indexdate"]+"";
 					data["request"]["stime"]=timeRange["stime"]+"";
 					data["request"]["etime"]=timeRange["etime"]+"";
+				}else{
+					 //如果在日志搜索时没有选择时间区间，则在newLogRoll窗口中将仅通过sline和eline限定，此时会将符合行号范围的历史数据全部加载出来，
+					 //为了避免此种情况这里设定一个时间区间，将日志范围限制到当日0点到现在区间，这里仅是一个workaround 
+					if(this.logRollInfo["fromIVC"] != true){
+						data["request"]["stime"]=new Date().setHours(0,0,0,0)+"";
+						data["request"]["etime"]=new Date().getTime()+"";
+					}
 				}
 				data["request"]["sort"]="l_timestamp=ASC,l_num=ASC";
 				data["request"]["from"]=0+"";
 				data["request"]["size"]=1000+"";
+				//如果当前页面来源于IVC那么通过pagesize控制拉去日志的数量
+				if(this.logRollInfo["fromIVC"] == true){
+					var traceid = data["request"]["ctn"];
+					var indexdate = TimeHelper.getTime(Number(traceid.split('_')[3]),"FD");
+					data["request"]["indexdate"] = indexdate;
+					data["request"]["size"]=100+"";
+				}
 				break;
 		}
 		
@@ -1110,6 +1211,17 @@ function NewLogTool(app) {
                     
                     var datas=eval(res);
                     try {
+                    	if (datas.length > 0) {
+	                    	if(isNaN(lineRange.sline)){
+	                    		lineRange.sline = datas[0].l_num;
+	                    	}
+	                    	if(isNaN(lineRange.eline)){
+	                    		lineRange.eline = datas[datas.length - 1].l_num;
+	                    	}
+	                    	if(_this.logRollInfo["entry"]["line"] == ""){
+	                    		_this.logRollInfo["entry"]["line"] = datas[0].l_num;
+	                    	}
+                    	}
                     	_this.loadRollLog(datas,lineRange,pObj["action"]);
                     }catch(e) {
             		
