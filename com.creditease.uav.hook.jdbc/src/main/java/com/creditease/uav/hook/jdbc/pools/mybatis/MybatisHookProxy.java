@@ -49,7 +49,6 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
     protected DynamicProxyInstaller dpInstall;
 
     private ClassLoader webapploaderForMybatis = null;
-    private boolean isInit = false;
 
     @SuppressWarnings("rawtypes")
     public MybatisHookProxy(String id, Map config) {
@@ -65,6 +64,7 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
         webapploaderForMybatis = webapploader;
         Event event = context.get(Event.class);
         switch (event) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_RESOURCE_INIT:
             case WEBCONTAINER_INIT:
                 InsertInterceptToClients(context, webapploader);
@@ -111,16 +111,14 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
 
     private void InsertInterceptToClients(HookContext context, ClassLoader webapploader) {
 
+        if (isHookEventDone("InsertInterceptToClients")) {
+            return;
+        }
+
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
         String basePath = (String) ic.get(InterceptConstants.BASEPATH);
         appid = MonitorServerUtil.getApplicationId(contextPath, basePath);
-
-        if (isInit == true) {
-            return;
-        }
-
-        isInit = true;
 
         dpInstall.setTargetClassLoader(webapploader);
 
@@ -157,7 +155,7 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
                     ReflectHelper.invoke(className, pds, prefix + collectMtrx[i], null, null, webapploader));
         }
 
-        Object poolState = ReflectHelper.invoke(className, pds, "getPoolState", null, null,webapploader);
+        Object poolState = ReflectHelper.invoke(className, pds, "getPoolState", null, null, webapploader);
 
         for (; i < collectMtrx.length; i++) {
 

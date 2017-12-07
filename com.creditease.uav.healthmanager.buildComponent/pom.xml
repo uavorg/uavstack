@@ -27,6 +27,7 @@
 		<module>../com.creditease.uav.invokechain</module>
 		<module>../com.creditease.uav.elasticsearch.client</module>
 		<module>../com.creditease.uav.threadanalysis</module>
+		<module>../org.uavstack.resources.common</module>
 	</modules>
 
 	<build>

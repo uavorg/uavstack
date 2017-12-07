@@ -29,10 +29,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.creditease.agent.feature.common.messaging.StandardMessagingBuilder;
+import org.uavstack.resources.common.messaging.StandardMessagingBuilder;
+
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
+import com.creditease.agent.profile.api.StandardProfileModeler;
 import com.creditease.agent.spi.AgentFeatureComponent;
+import com.creditease.agent.spi.IActionEngine;
 import com.creditease.agent.spi.IConfigurationManager;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManagerFactory;
@@ -195,6 +198,15 @@ public class HealthManager extends AgentFeatureComponent {
 
         // start profileDataConsumer
         if (this.profileDataConsumer != null) {
+
+            /**
+             * INIT StandardProfileModelingEngine & StandardProfileModeler
+             */
+            IActionEngine engine = this.getActionEngineMgr().newActionEngine("StandardProfileModelingEngine", feature);
+
+            new StandardProfileModeler("StandardProfileModeler", feature, engine);
+
+            // start profile consumer
             profileDataConsumer.start();
 
             this.getConfigManager().registerComponent(this.feature, HealthManagerConstants.COMSUMER_PROFILE,
@@ -254,6 +266,10 @@ public class HealthManager extends AgentFeatureComponent {
 
         // stop profileDataConsumer
         if (this.profileDataConsumer != null) {
+
+            // shut down StandardProfileModelingEngine
+            this.getActionEngineMgr().shutdown("StandardProfileModelingEngine");
+
             profileDataConsumer.shutdown();
             this.getConfigManager().unregisterComponent(this.feature, HealthManagerConstants.COMSUMER_PROFILE);
             if (log.isTraceEnable()) {

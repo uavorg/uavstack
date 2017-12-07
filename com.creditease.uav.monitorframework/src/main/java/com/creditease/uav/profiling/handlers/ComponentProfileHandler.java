@@ -20,10 +20,12 @@
 
 package com.creditease.uav.profiling.handlers;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -52,6 +54,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.creditease.agent.helpers.JSONHelper;
@@ -211,6 +215,22 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
      */
     public static abstract class DescriptorProcessor extends BaseComponent {
 
+        public class NoOpEntityResolver implements EntityResolver {
+
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) {
+
+                InputSource is = null;
+                try {
+                    is = new InputSource(new ByteArrayInputStream(new String().getBytes("utf-8")));
+                }
+                catch (UnsupportedEncodingException e) {
+                    // ignore
+                }
+                return is;
+            }
+        }
+
         public interface XMLParseHandler {
 
             /**
@@ -268,6 +288,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
                 try {
                     db = dbf.newDocumentBuilder();
+                    // keep the DTD from loading
+                    db.setEntityResolver(new NoOpEntityResolver());
                 }
                 catch (ParserConfigurationException e) {
                     this.logger.error(

@@ -1,3 +1,23 @@
+/*-
+ * <<
+ * UAVStack
+ * ==
+ * Copyright (C) 2016 - 2017 UAVStack
+ * ==
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * >>
+ */
+
 package com.creditease.uav.opentsdb;
 
 import java.io.IOException;
@@ -28,22 +48,15 @@ public class OpenTSDBRestAgentServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1441879223883391706L;
 
-    private static Map<String, String> info = null;
-
     private static String url;
 
     @SuppressWarnings("unchecked")
     @Override
     public void init() throws ServletException {
 
-        if (null == info) {
-            String esInfo = this.getInitParameter("db.info");
-            info = JSONHelper.toObject(esInfo, Map.class);
-        }
-
         if (null == httpAsyncClient) {
             Map<String, Integer> httpParamsMap = JSONHelper
-                    .toObject(getServletContext().getInitParameter("uav.app.es.http.client.params"), Map.class);
+                    .toObject(getServletContext().getInitParameter("uav.app.opentsdb.http.client.params"), Map.class);
             httpAsyncClient = HttpAsyncClientFactory.build(httpParamsMap.get("max.con"),
                     httpParamsMap.get("max.tot.con"), httpParamsMap.get("sock.time.out"),
                     httpParamsMap.get("con.time.out"), httpParamsMap.get("req.time.out"));

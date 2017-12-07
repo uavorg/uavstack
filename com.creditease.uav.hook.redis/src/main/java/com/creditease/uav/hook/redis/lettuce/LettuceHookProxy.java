@@ -46,6 +46,10 @@ public class LettuceHookProxy extends HookProxy {
 
     protected void insertIntercepter(HookContext context, ClassLoader webapploader) {
 
+        if (isHookEventDone("insertIntercepter")) {
+            return;
+        }
+
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
 
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
@@ -94,6 +98,7 @@ public class LettuceHookProxy extends HookProxy {
         Event evt = context.get(Event.class);
 
         switch (evt) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_INIT:
                 insertIntercepter(context, webapploader);
                 break;

@@ -51,6 +51,7 @@ public class JaxWSHookProxy extends HookProxy {
 
         Event event = context.get(Event.class);
         switch (event) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_INIT:
                 insertIntercepter(context, webapploader);
                 break;
@@ -70,6 +71,10 @@ public class JaxWSHookProxy extends HookProxy {
 
     private void insertIntercepter(HookContext context, ClassLoader webapploader) {
 
+        if (isHookEventDone("InsertInterceptToClients")) {
+            return;
+        }
+
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
 
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
@@ -87,7 +92,7 @@ public class JaxWSHookProxy extends HookProxy {
         dpInstall.setTargetClassLoader(webapploader);
 
         /**
-         * install proxy to InternalHttpAsyncClient
+         * install proxy to javax.xml.ws.Service
          */
         dpInstall.installProxy("javax.xml.ws.Service", new String[] { "com.creditease.uav.hook.jaxws.interceptors" },
                 new DynamicProxyProcessor() {

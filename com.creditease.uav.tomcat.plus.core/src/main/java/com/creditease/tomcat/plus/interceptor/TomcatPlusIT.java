@@ -448,7 +448,7 @@ public class TomcatPlusIT {
     @SuppressWarnings("unused")
     public void onDeployUAVApp(Object... args) {
 
-    	if (System.getProperty("com.creditease.uav.iapp.install") != null) {
+        if (System.getProperty("com.creditease.uav.iapp.install") != null) {
             return;
         }
 
@@ -485,7 +485,7 @@ public class TomcatPlusIT {
 
                 ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
                         new Class<?>[] { String.class, File.class, String.class },
-                        new Object[] { "com.creditease.uav", dir, mofRoot + "/com.creditease.uav" },
+                        new Object[] { "/com.creditease.uav", dir, mofRoot + "/com.creditease.uav" },
                         hc.getClass().getClassLoader());
                 break;
             case 1:

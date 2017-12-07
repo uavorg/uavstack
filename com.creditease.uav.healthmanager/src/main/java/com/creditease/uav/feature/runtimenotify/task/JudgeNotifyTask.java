@@ -197,12 +197,12 @@ public class JudgeNotifyTask extends Abstract1NTask {
         String appgroup = this.curSlice.getMdf().getExt("appgroup");
         appgroup = (appgroup == null) ? "" : appgroup;
 
-        StringBuilder description = new StringBuilder();
-        StringBuffer conditionIndex = new StringBuffer();
+        StringBuilder desc = new StringBuilder();
+        StringBuilder conditionIndex = new StringBuilder();
 
         for (Map.Entry<String, String> cause : result.entrySet()) {
             // description
-            description.append("触发条件[" + cause.getKey() + "]：").append(cause.getValue()).append("\r\n");
+            desc.append("触发条件[" + cause.getKey() + "]：").append(cause.getValue()).append("\r\n");
             // condition index
             conditionIndex.append(" " + cause.getKey());
         }
@@ -210,8 +210,11 @@ public class JudgeNotifyTask extends Abstract1NTask {
         String title = ip + "[" + this.curSlice.getKey() + "]触发" + result.size() + "个报警(条件序号："
                 + conditionIndex.toString() + ")";
 
-        NotificationEvent ne = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_THRESHOLD, title,
-                description.toString(), curSlice.getTime(), ip, host);
+        // fix &nbsp(\u00A0) can be shown in email
+        String description = desc.toString().replace('\u00A0', ' ');
+
+        NotificationEvent ne = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_THRESHOLD, title, description,
+                curSlice.getTime(), ip, host);
 
         // add appgroup
         ne.addArg("appgroup", appgroup);
