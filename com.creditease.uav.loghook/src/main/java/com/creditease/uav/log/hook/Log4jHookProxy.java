@@ -35,9 +35,12 @@ import org.apache.log4j.SimpleLayout;
 import org.apache.log4j.TTCCLayout;
 import org.apache.log4j.spi.LoggerRepository;
 
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.UAVServer.ServerVendor;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.appfra.hook.spi.HookProxy;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
@@ -121,16 +124,16 @@ public class Log4jHookProxy extends HookProxy {
 
         // figureout root logger
         figureoutLogConfiguration(logger4j.getRootLogger(), list, appid);
-		
-        // figureour norootlogger		
-		LoggerRepository lr = null;
+
+        // figureour norootlogger
+        LoggerRepository lr = null;
         try {
-           lr = logger4j.getLoggerRepository();
+            lr = logger4j.getLoggerRepository();
         }
         catch (NoSuchMethodError err) {
-           // for log4j-over-slf4j, doesn't have this method
-           return;
-		}
+            // for log4j-over-slf4j, doesn't have this method
+            return;
+        }
 
         Enumeration logEnum = lr.getCurrentLoggers();
 
@@ -205,6 +208,14 @@ public class Log4jHookProxy extends HookProxy {
 
     private void InsertIntercept(HookContext context, ClassLoader webapploader) {
 
+        if (isHookEventDone("insertLog4jIntercepter")) {
+            return;
+        }
+
+        ServerVendor vendor = (ServerVendor) UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR);
+        if (vendor == ServerVendor.SPRINGBOOT) {
+            return;
+        }
         /**
          * set the webapploader is the target classloader
          */
