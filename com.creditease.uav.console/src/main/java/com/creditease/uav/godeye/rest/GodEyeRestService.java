@@ -989,21 +989,28 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @GET
     @Path("profile/q/cache")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void loadAppProfileList(@Suspended AsyncResponse response) {
+    public void loadAppProfileList(@QueryParam("fkey") String fkey, @QueryParam("fvalue") String fvalue,
+            @Suspended AsyncResponse response) {
 
         UAVHttpMessage message = new UAVHttpMessage();
         message.setIntent("profile");
-
-        String groups = getUserGroupsByFilter(request);
-        if ("NOMAPPING".equals(groups)) {
-            response.resume("{\"rs\":\"{}\"}");
-        }
-        else if ("ALL".equals(groups)) {
-            loadAppProfileListFromHttp(message, response);
+        if (StringHelper.isEmpty(fkey) || StringHelper.isEmpty(fvalue)) {
+            String groups = getUserGroupsByFilter(request);
+            if ("NOMAPPING".equals(groups)) {
+                response.resume("{\"rs\":\"{}\"}");
+            }
+            else if ("ALL".equals(groups)) {
+                loadAppProfileListFromHttp(message, response);
+            }
+            else {
+                message.putRequest("fkey", "appgroup");
+                message.putRequest("fvalue", groups);
+                loadAppProfileListFromHttp(message, response);
+            }
         }
         else {
-            message.putRequest("fkey", "appgroup");
-            message.putRequest("fvalue", groups);
+            message.putRequest("fkey", fkey);
+            message.putRequest("fvalue", fvalue);
             loadAppProfileListFromHttp(message, response);
         }
 

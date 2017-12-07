@@ -21,6 +21,7 @@
 package com.creditease.uav.healthmanager.newlog.http;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import com.creditease.agent.ConfigurationManager;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.JSONHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.http.api.UAVHttpMessage;
 import com.creditease.agent.spi.AbstractHttpHandler;
 import com.creditease.uav.elasticsearch.client.ESClient;
@@ -104,13 +106,19 @@ public class NewLogQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
         }
 
         /**
-         * 如果有日志行号
+         * 如果有日志行号 有可能只有sline或eline也有可能都有
          */
         long startLine = DataConvertHelper.toLong(data.getRequest("sline"), -1);
         long endLine = DataConvertHelper.toLong(data.getRequest("eline"), -1);
 
         if (startLine > -1 && endLine > -1 && endLine > startLine) {
             queryBuilder.must(QueryBuilders.rangeQuery("l_num").gte(startLine).lt(endLine));
+        }
+        else if (startLine > -1) {
+            queryBuilder.must(QueryBuilders.rangeQuery("l_num").gte(startLine));
+        }
+        else if (endLine > -1) {
+            queryBuilder.must(QueryBuilders.rangeQuery("l_num").lt(endLine));
         }
 
         /**
@@ -168,6 +176,13 @@ public class NewLogQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
         String content = data.getRequest("ctn");
 
         if (content == null) {
+            return;
+        }
+        // 如果查询内容使用""包裹,则使用matchphrase
+        if (content.startsWith("\"") && content.endsWith("\"")) {
+            // 去除两端的""
+            content = content.substring(1, content.length() - 1);
+            queryBuilder.must(QueryBuilders.matchPhraseQuery("content", content));
             return;
         }
 
@@ -275,6 +290,13 @@ public class NewLogQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
             records.add(record);
         }
 
+        // 如果只存在eline则需要把结果逆序，保证其原始顺序
+        long startLine = DataConvertHelper.toLong(data.getRequest("sline"), -1);
+        long endLine = DataConvertHelper.toLong(data.getRequest("eline"), -1);
+        if (startLine == -1 && endLine > -1) {
+            Collections.reverse(records);
+        }
+
         data.putResponse("rs", JSONHelper.toString(records));
         // 返回总条数
         data.putResponse("count", shits.getTotalHits() + "");
@@ -298,16 +320,32 @@ public class NewLogQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
         }
 
         // get logtype for search
-        String logType = data.getRequest("logtype").replace('.', '_');
+        SearchRequestBuilder srb = null;
+        if (StringHelper.isEmpty(data.getRequest("logtype"))) {
 
-        SearchRequestBuilder srb = client.getClient().prepareSearch(currentIndex).setTypes(logType)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+            srb = client.getClient().prepareSearch(currentIndex).setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+        }
+        else {
+            String logType = data.getRequest("logtype").replace('.', '_');
+
+            srb = client.getClient().prepareSearch(currentIndex).setTypes(logType)
+                    .setSearchType(SearchType.DFS_QUERY_THEN_FETCH);
+        }
 
         int from = DataConvertHelper.toInt(data.getRequest("from"), -1);
         int size = DataConvertHelper.toInt(data.getRequest("size"), -1);
 
         if (from != -1 && size != -1) {
-            srb = srb.setFrom(from).setSize(size);
+            long startLine = DataConvertHelper.toLong(data.getRequest("sline"), -1);
+            long endLine = DataConvertHelper.toLong(data.getRequest("eline"), -1);
+            // 判断如果只有endline则需要将结果倒序，取其前100行，然后在返回响应时再逆序回来，从而取到endline前的100行
+            if (startLine == -1 && endLine > -1) {
+                srb = srb.addSort("l_timestamp", SortOrder.DESC).addSort("l_num", SortOrder.DESC).setFrom(from)
+                        .setSize(size);
+            }
+            else {
+                srb = srb.setFrom(from).setSize(size);
+            }
         }
 
         srb.setQuery(queryBuilder);
