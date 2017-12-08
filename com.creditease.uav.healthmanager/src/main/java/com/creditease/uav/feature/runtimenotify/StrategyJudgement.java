@@ -20,8 +20,10 @@
 
 package com.creditease.uav.feature.runtimenotify;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -29,17 +31,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.JsHelper;
 import com.creditease.agent.helpers.StringHelper;
+import com.creditease.agent.http.api.UAVHttpMessage;
+import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.agent.spi.AbstractComponent;
+import com.creditease.agent.spi.AbstractSystemInvoker;
+import com.creditease.agent.spi.ISystemInvokerMgr.InvokerType;
+import com.creditease.uav.cache.api.CacheManager;
+import com.creditease.uav.feature.RuntimeNotifyCatcher;
+import com.creditease.uav.feature.runtimenotify.NotifyStrategy.Expression;
 
 public class StrategyJudgement extends AbstractComponent {
 
     private static final int MIN_SAMPLING_COUNT = 3;
 
+    private static final String TIMER_JUDGE_RESULT = "strategy.timer.result";
+
+    private CacheManager cm;
+
+    @SuppressWarnings("rawtypes")
+    private AbstractSystemInvoker invoker;
+
+    private String queryServiceName;
+
     public StrategyJudgement(String cName, String feature) {
         super(cName, feature);
+        cm = (CacheManager) this.getConfigManager().getComponent(feature, RuntimeNotifyCatcher.CACHE_MANAGER_NAME);
+        invoker = this.getSystemInvokerMgr().getSystemInvoker(InvokerType.HTTP);
+        queryServiceName = this.getConfigManager().getFeatureConfiguration(feature, "queryservice");
     }
 
     /**
@@ -77,14 +99,19 @@ public class StrategyJudgement extends AbstractComponent {
         List<NotifyStrategy.Expression> exprs = cond.getExpressions();
         ConditionResult cr = new ConditionResult(cond);
         for (NotifyStrategy.Expression expr : exprs) {
-            judgeExpression(cr, expr, cur, slices);
+            if (expr.getType() == NotifyStrategy.Type.TIMER) {
+                judgeTimerExpression(cr, expr, cur);
+            }
+            else if (expr.getType() == NotifyStrategy.Type.STREAM) {
+                judgeExpression(cr, expr, cur, slices);
+            }
         }
 
         re.add(cr);
     }
 
     /**
-     * judge single expression
+     * judge stream expression
      * 
      * @param re
      * @param expr
@@ -94,14 +121,17 @@ public class StrategyJudgement extends AbstractComponent {
     private void judgeExpression(ConditionResult re, NotifyStrategy.Expression expr, Slice cur, List<Slice> slices) {
 
         boolean fire = false;
-
+        String showActualValue = "";
+        if (cur.getKey().indexOf('@') == -1) {
+            fire = false;
+            re.setIsJudgeTime(true);
+            re.addExprResult(fire, expr, showActualValue);
+            return;
+        }
         long range = expr.getRange();
         String func = expr.getFunc();
         List<Slice> rangeSlices = rangeSlices(slices, cur, range);
         List<Slice> samplingSlices = samplingSlice(rangeSlices, expr.getSampling());
-
-        String showActualValue = "";
-
         /**
          * Step 1: collect all possible arg keys for this expression
          */
@@ -176,8 +206,273 @@ public class StrategyJudgement extends AbstractComponent {
 
             fire = true;
         }
-
+        re.setIsJudgeTime(true);
         re.addExprResult(fire, expr, showActualValue);
+
+    }
+
+    /**
+     * * judge timer expression
+     * 
+     * @param re
+     * @param expr
+     * @param cur
+     * @param slices
+     */
+
+    private void judgeTimerExpression(ConditionResult cr, NotifyStrategy.Expression expr, Slice slice) {
+
+        // get this expr's last judgeResult from cache
+        Map<String, Object> judgeResult = getJudgeResult(slice.getKey(), expr);
+
+        if (judgeResult == null) {
+            judgeResult = new HashMap<String, Object>();
+            judgeResult.put("fire", false);
+        }
+
+        // if the judge is called by slice stream, just return the last result
+        if (slice.getKey().indexOf('@') > -1) {
+            if (judgeResult.get("time_to") != null) {
+                Date date = DateTimeHelper.dateFormat(String.valueOf(judgeResult.get("time_to")), "yyyy-MM-dd HH:mm");
+                // if the time is not the time expr's judge time,return false
+                if (slice.getTime() - date.getTime() > 120000) {
+                    judgeResult.put("fire", false);
+                }
+            }
+        }
+
+        // if the judge is called by timerTask
+        else {
+            Map<String, Long> timeMap = getJudgeTime(expr, slice.getTime());
+
+            // if it's not the judge time ,return the last result. if the last result is out of time,return false.
+            if (timeMap == null && judgeResult.get("time_to") != null
+                    && isOverdue(DateTimeHelper
+                            .dateFormat(String.valueOf(judgeResult.get("time_to")), "yyyy-MM-dd HH:mm").getTime(),
+                            slice.getTime(), expr)) {
+
+                judgeResult.put("fire", false);
+            }
+            else if (timeMap != null) {
+                caculateJudgeResult(timeMap, judgeResult, slice.getKey(), expr, cr);
+            }
+
+        }
+
+        cr.addTimerExprResult((Boolean) judgeResult.get("fire"), expr, judgeResult);
+    }
+
+    private void caculateJudgeResult(Map<String, Long> timeMap, Map<String, Object> judgeResult, String instance,
+            Expression expr, ConditionResult cr) {
+
+        // if this time's judge has been done, return the last result.
+        if (judgeResult.get("time_to") != null && judgeResult.get("time_to")
+                .equals(DateTimeHelper.toFormat("yyyy-MM-dd HH:mm", timeMap.get("time_to")))) {
+            return;
+        }
+
+        Double currentValue = queryOpentsdb(instance, expr.getArg(), expr.getFunc(), timeMap.get("time_from"),
+                timeMap.get("time_to"));
+        Double lastValue = 0.0;
+
+        // if the last judgeResult is really the last judgeTime's result, use it's currentValue as lastValue.
+        if (judgeResult.get("time_to") != null
+                && judgeResult.get("time_to")
+                        .equals(DateTimeHelper.toFormat("yyyy-MM-dd HH:mm", timeMap.get("last_time_to")))
+                && judgeResult.get("currentValue") != null) {
+            lastValue = Double.parseDouble(String.valueOf(judgeResult.get("currentValue")));
+        }
+        else {
+            lastValue = queryOpentsdb(instance, expr.getArg(), expr.getFunc(), timeMap.get("last_time_from"),
+                    timeMap.get("last_time_to"));
+        }
+
+        judgeResult.put("instance", instance);
+
+        for (String key : timeMap.keySet()) {
+            judgeResult.put(key, DateTimeHelper.dateFormat(new Date(timeMap.get(key)), "yyyy-MM-dd HH:mm"));
+
+        }
+        judgeResult.put("currentValue", currentValue);
+        judgeResult.put("lastValue", lastValue);
+
+        if (currentValue == null || lastValue == null) {
+            judgeResult.put("fire", false);
+        }
+        else {
+            judgeResult.put("fire", caculate(currentValue, lastValue, expr, judgeResult));
+        }
+
+        // cache the judgeResult
+        cm.putHash(RuntimeNotifyCatcher.UAV_CACHE_REGION, TIMER_JUDGE_RESULT, instance + expr.getHashCode(),
+                JSONHelper.toString(judgeResult));
+
+        // set there is a judge event
+        cr.setIsJudgeTime(true);
+
+    }
+
+    private boolean isOverdue(long time, long currentTime, Expression expr) {
+
+        long interval = expr.getInterval() == 0 ? 24 * 3600 * 1000 : expr.getInterval();
+        return (currentTime - time > interval);
+    }
+
+    /**
+     * caculate and judge if the expr's result is true.
+     */
+    private boolean caculate(double currentValue, double lastValue, NotifyStrategy.Expression expr,
+            Map<String, Object> judgeResult) {
+
+        boolean result = false;
+
+        String limitString = null;
+
+        double diff = currentValue - lastValue;
+
+        String prefix = (diff > 0) ? "" : "-";
+
+        diff = (diff > 0) ? diff : 0 - diff;
+
+        limitString = (diff >= 0) ? expr.getUpperLimit() : expr.getLowerLimit();
+
+        double limit;
+        String suffix = "";
+        if (limitString.endsWith("%")) {
+            limit = Double.parseDouble(limitString.substring(0, limitString.length() - 1));
+            diff = diff * 100 / lastValue;
+            suffix = "%";
+        }
+        else {
+            limit = Double.parseDouble(limitString);
+        }
+
+        if (!"-1".equals(limitString) && diff > limit) {
+            result = true;
+        }
+
+        judgeResult.put("actualValue", prefix + String.format("%.2f", diff) + suffix);
+        judgeResult.put("expectedValue", limitString);
+
+        return result;
+
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Double queryOpentsdb(String instance, String metric, String func, Long startTime, Long endTime) {
+
+        Double result = null;
+        for (int i = 0; i < 3 && result == null; i++) {
+
+            try {
+                UAVHttpMessage message = new UAVHttpMessage();
+
+                String data = String.format(
+                        "{\"start\":%d,\"end\":%d,\"queries\":[{\"aggregator\":\"avg\",\"downsample\":\"%s\",\"metric\":\"%s\",\"filters\":[{\"filter\":\"%s\",\"tagk\":\"instid\",\"type\":\"regexp\",\"groupBy\":false}]}]}",
+                        startTime, endTime, func, metric,
+                        instance.replace(":", "/u003a").replace("%", "/u0025").replace("#", "/u0023"));
+                message.putRequest("opentsdb.query.json", data);
+                message.putRequest("datastore.name", MonitorDataFrame.MessageType.Monitor.toString());
+
+                String queryResponse = String.valueOf(invoker.invoke(queryServiceName, message, String.class));
+
+                if (queryResponse.equals("null") || queryResponse.equals("{}")
+                        || queryResponse.equals("{\"rs\":\"[]\"}")) {
+                    continue;
+                }
+
+                Map<Object, Object> responseMap = JSONHelper.toObject(queryResponse, Map.class);
+
+                List<Map> rsList = JSONHelper.toObjectArray((String) responseMap.get(UAVHttpMessage.RESULT), Map.class);
+
+                for (Object value : ((Map) rsList.get(0).get("dps")).values()) {
+                    result = ((BigDecimal) value).doubleValue();
+                }
+            }
+            catch (Exception e) {
+                log.err(this, "TimerExpression judgement query opentsdb failed ", e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * get judgeResult from redis
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getJudgeResult(String instance, Expression expr) {
+
+        if (instance.contains("@")) {
+            instance = instance.substring(instance.lastIndexOf('@') + 1);
+            if (instance.endsWith("_")) {
+                instance = instance.substring(0, instance.length() - 1);
+            }
+        }
+        Map<String, String> resultMap = cm.getHash(RuntimeNotifyCatcher.UAV_CACHE_REGION, TIMER_JUDGE_RESULT,
+                instance + expr.getHashCode());
+
+        String result = resultMap.get(instance + expr.getHashCode());
+
+        return JSONHelper.toObject(result, Map.class);
+    }
+
+    /**
+     * judge if this time is the expr's judge time. if it's the judge time, return the time slot and last time slot,
+     * else return null;
+     */
+    private Map<String, Long> getJudgeTime(Expression expr, long time) {
+
+        Map<String, Long> timeMap = new HashMap<String, Long>();
+        long time_to = time;
+        long time_from = time - (expr.getTime_to() - expr.getTime_from());
+        timeMap.put("time_from", time_from);
+        timeMap.put("time_to", time_to);
+        long last_time_to;
+        if (expr.getInterval() != 0) {
+
+            if ((time_to - expr.getTime_to()) % expr.getInterval() == 0) {
+
+                timeMap.put("last_time_from", time_from - expr.getInterval());
+                timeMap.put("last_time_to", time_to - expr.getInterval());
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            if ((time_to - expr.getTime_to()) % (24 * 3600 * 1000) == 0) {
+                switch (expr.getUnit()) {
+                    case DateTimeHelper.INTERVAL_DAY:
+
+                        timeMap.put("last_time_from", time_from - 24 * 3600 * 1000);
+                        timeMap.put("last_time_to", time_to - 24 * 3600 * 1000);
+                        break;
+                    case DateTimeHelper.INTERVAL_WEEK:
+
+                        timeMap.put("last_time_from", time_from - 7 * 24 * 3600 * 1000);
+                        timeMap.put("last_time_to", time_to - 7 * 24 * 3600 * 1000);
+                        break;
+                    case DateTimeHelper.INTERVAL_MONTH:
+
+                        last_time_to = DateTimeHelper.getMonthAgo(new Date(time_to)).getTime();
+                        timeMap.put("last_time_to", last_time_to);
+                        timeMap.put("last_time_from", last_time_to - (time_to - time_from));
+                        break;
+                    case DateTimeHelper.INTERVAL_YEAR:
+
+                        last_time_to = DateTimeHelper.getYearAgo(new Date(time_to)).getTime();
+                        timeMap.put("last_time_to", last_time_to);
+                        timeMap.put("last_time_from", last_time_to - (time_to - time_from));
+                        break;
+                }
+            }
+            else {
+                return null;
+            }
+
+        }
+
+        return timeMap;
     }
 
     private List<Slice> rangeSlices(List<Slice> slices, Slice cur, long range) {
@@ -254,7 +549,7 @@ public class StrategyJudgement extends AbstractComponent {
                     for (boolean b : cr.getCondResult()) {
                         fire = fire || b;
                     }
-                    if (fire) {
+                    if (fire && cr.isJudgeTime()) {
                         map.put(String.valueOf(cond.getIndex()), toReadable(cr.getExprResult(), null));
                     }
                 }
@@ -269,7 +564,7 @@ public class StrategyJudgement extends AbstractComponent {
                         continue;
                     }
 
-                    if (Boolean.parseBoolean(result.toString())) {
+                    if (Boolean.parseBoolean(result.toString()) && cr.isJudgeTime()) {
                         map.put(String.valueOf(cond.getIndex()), toReadable(cr.getExprResult(), cond.getRelation()));
                     }
                 }
@@ -309,18 +604,30 @@ public class StrategyJudgement extends AbstractComponent {
 
         private String makeReadableString(Map<String, String> m) {
 
-            String description = null;
-            long range = Long.parseLong(m.get("range"));
-            if (range > 0 && m.get("func") != null) {
-                // convert to seconds
-                long sencodRange = range / 1000;
-                description = String.format("%s秒内%s的%s值%s%s，当前值：%s", sencodRange, m.get("actualArg"), m.get("func"),
-                        m.get("operator"), m.get("expectedValue"), m.get("actualValue"));
+            String description = "";
+            if (NotifyStrategy.Type.STREAM.toString().equals(m.get("type"))) {
+                long range = Long.parseLong(m.get("range"));
+                if (range > 0 && m.get("func") != null) {
+                    // convert to seconds
+                    long sencodRange = range / 1000;
+                    description = String.format("%s秒内%s的%s值%s%s，当前值：%s", sencodRange, m.get("actualArg"), m.get("func"),
+                            m.get("operator"), m.get("expectedValue"), m.get("actualValue"));
+                }
+                else {
+                    description = String.format("%s%s%s，当前值：%s", m.get("actualArg"), m.get("operator"),
+                            m.get("expectedValue"), m.get("actualValue"));
+                }
             }
-            else {
-                description = String.format("%s%s%s，当前值：%s", m.get("actualArg"), m.get("operator"),
-                        m.get("expectedValue"), m.get("actualValue"));
+            else if (NotifyStrategy.Type.TIMER.toString().equals(m.get("type"))) {
+
+                description = ("true".equals(m.get("fire"))) ? String.format(
+                        "%s在%s至%s时间段的%s值%s比%s至%s%s超过%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"), m.get("time_from"),
+                        m.get("time_to"), m.get("func"), m.get("tag"), m.get("last_time_from"), m.get("last_time_to"),
+                        (m.get("actualValue").contains("-")) ? "降幅" : "增幅", m.get("expectedValue"),
+                        (m.get("actualValue").contains("-")) ? m.get("actualValue").substring(1) : m.get("actualValue"),
+                        m.get("lastValue"), m.get("currentValue")) : "false";
             }
+
             return description;
         }
     }
@@ -331,6 +638,7 @@ public class StrategyJudgement extends AbstractComponent {
         private boolean[] condResult;
         private Map<String, String>[] exprResult;
         private int idx = 0;
+        private boolean isJudgeTime = false;
 
         @SuppressWarnings("unchecked")
         private ConditionResult(NotifyStrategy.Condition cond) {
@@ -346,6 +654,20 @@ public class StrategyJudgement extends AbstractComponent {
             exprResult[i] = reMap;
         }
 
+        public void addTimerExprResult(boolean result, NotifyStrategy.Expression expr, Map<String, Object> reMap) {
+
+            Map<String, String> m = new HashMap<>();
+            for (String key : reMap.keySet()) {
+                m.put(key, String.valueOf(reMap.get(key)));
+            }
+
+            m.put("tag", expr.getInterval() == 0 ? "同" : "环");
+            m.put("metric", expr.getArg());
+            m.put("func", expr.getFunc());
+            m.put("type", NotifyStrategy.Type.TIMER.toString());
+            addExprResult(idx++, result, m);
+        }
+
         public void addExprResult(boolean result, NotifyStrategy.Expression expr, String actualValue) {
 
             Map<String, String> m = new HashMap<>();
@@ -355,6 +677,7 @@ public class StrategyJudgement extends AbstractComponent {
             m.put("expectedValue", expr.getExpectedValue());
             m.put("actualArg", expr.getArg());
             m.put("actualValue", actualValue);
+            m.put("type", NotifyStrategy.Type.STREAM.toString());
             addExprResult(idx++, result, m);
         }
 
@@ -373,6 +696,15 @@ public class StrategyJudgement extends AbstractComponent {
             return exprResult;
         }
 
+        public boolean isJudgeTime() {
+
+            return isJudgeTime;
+        }
+
+        public void setIsJudgeTime(boolean isJudgeTime) {
+
+            this.isJudgeTime = isJudgeTime;
+        }
     }
 
     private static class Function {
