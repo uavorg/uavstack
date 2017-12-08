@@ -47,6 +47,24 @@ public class HealthManagerProfileDataLifeKeeper extends AbstractTimerWork {
 
     private CacheLock lock;
 
+    private static List<String> profileKeyList = new ArrayList<String>();
+
+    static {
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_JARLIB);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_DUBBOPROVIDER);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_MSCPHTTP);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_MSCPTIMEWORKER);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_FILTER);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_LISTENER);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_SERVLET);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_JAXWS);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_JAXWSP);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_JAXRS);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_SPRINGMVC);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_SPRINGMVCREST);
+        profileKeyList.add(HealthManagerConstants.STORE_KEY_PROFILEINFO_STRUTS2);
+    }
+
     public HealthManagerProfileDataLifeKeeper(String cName, String feature) {
         super(cName, feature);
 
@@ -152,9 +170,11 @@ public class HealthManagerProfileDataLifeKeeper extends AbstractTimerWork {
                 // delete profile data
                 cm.delHash(HealthManagerConstants.STORE_REGION_UAV, HealthManagerConstants.STORE_KEY_PROFILEINFO,
                         nodeId);
-                // delete profile jarlib data
-                cm.delHash(HealthManagerConstants.STORE_REGION_UAV, HealthManagerConstants.STORE_KEY_PROFILEINFO_JARLIB,
-                        nodeId);
+
+                for (String key : profileKeyList) {
+                    cm.delHash(HealthManagerConstants.STORE_REGION_UAV, key, nodeId);
+                }
+
                 // delete client profile data
                 cm.delHash(HealthManagerConstants.STORE_REGION_UAV,
                         HealthManagerConstants.STORE_KEY_PROFILEINFO_APPCLIENT, "C@" + nodeId);

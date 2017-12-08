@@ -45,6 +45,8 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
     protected IStandardProfileModelListener listener;
 
+    protected static final String LAZY_INFO = "@LAZY";
+
     public StandardProfileModeler(String cName, String feature, IActionEngine engine) {
         this(cName, feature, engine, null);
     }
@@ -286,8 +288,7 @@ public class StandardProfileModeler extends AbstractBaseAction {
         /**
          * lib
          */
-
-        pi.put("jars.lib", "@LAZY");
+        pi.put("jars.lib", LAZY_INFO);
 
         /**
          * logs
@@ -340,8 +341,7 @@ public class StandardProfileModeler extends AbstractBaseAction {
         if (comps == null || comps.size() == 0) {
             return;
         }
-
-        pi.put("cpt.dubbo.provider", JSONHelper.toString(comps));
+        pi.put("cpt.dubbo.provider", LAZY_INFO);
 
         for (String compName : comps.keySet()) {
 
@@ -429,7 +429,7 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
         if (mscpHttp != null && mscpHttp.size() > 0) {
 
-            pi.put("cpt.mscp.http", JSONHelper.toString(mscpHttp));
+            pi.put("cpt.mscp.http", LAZY_INFO);
 
             for (String mscpCompName : mscpHttp.keySet()) {
                 Map<String, Object> info = (Map<String, Object>) mscpHttp.get(mscpCompName);
@@ -461,10 +461,10 @@ public class StandardProfileModeler extends AbstractBaseAction {
         // timer work
         Map<String, Object> mscpTimeWork = mdf.getElemInstValues(appid, "cpt",
                 "com.creditease.agent.spi.AbstractTimerWork");
-
         if (mscpTimeWork != null && mscpTimeWork.size() > 0) {
-            pi.put("cpt.mscp.timework", JSONHelper.toString(mscpTimeWork));
+            pi.put("cpt.mscp.timework", LAZY_INFO);
         }
+
     }
 
     /**
@@ -479,25 +479,22 @@ public class StandardProfileModeler extends AbstractBaseAction {
     private void buildJEEServiceComponents(MonitorDataFrame mdf, Map<String, Object> pi, String appid, String appurl,
             Map<String, Set<String>> compServices) {
 
-        Map<String, Object> filters = mdf.getElemInstValues(appid, "cpt", "javax.servlet.annotation.WebFilter");
-
-        Map<String, Object> listeners = mdf.getElemInstValues(appid, "cpt", "javax.servlet.annotation.WebListener");
-
-        pi.put("cpt.filters", JSONHelper.toString(filters));
-
-        pi.put("cpt.listeners", JSONHelper.toString(listeners));
-
         Map<String, Object> servlets = mdf.getElemInstValues(appid, "cpt", "javax.servlet.annotation.WebServlet");
 
         // all servlet based tech
         if (servlets == null || servlets.size() == 0) {
             return;
         }
+        pi.put("cpt.servlets", LAZY_INFO);
 
         // get servlets URLs
         Map<String, String> serviceServlets = getServletsURLs(appurl, compServices, servlets);
 
         Map<String, Object> jaxws = mdf.getElemInstValues(appid, "cpt", "javax.jws.WebService");
+
+        if (jaxws != null && jaxws.size() > 0) {
+            pi.put("cpt.jaxws", LAZY_INFO);
+        }
 
         String jaxwsBaseURL = serviceServlets.get("jaxws");
 
@@ -506,10 +503,20 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
         Map<String, Object> jaxwsProviders = mdf.getElemInstValues(appid, "cpt", "javax.xml.ws.WebServiceProvider");
 
+        if (jaxwsProviders != null && jaxwsProviders.size() > 0) {
+            pi.put("cpt.jaxwsP", LAZY_INFO);
+
+        }
+
         // get jaxws provider urls
         getJAXWSProviderURLs(jaxwsBaseURL, compServices, jaxwsProviders);
 
         Map<String, Object> jaxrs = mdf.getElemInstValues(appid, "cpt", "javax.ws.rs.Path");
+
+        if (jaxrs != null && jaxrs.size() > 0) {
+            pi.put("cpt.jaxrs", LAZY_INFO);
+
+        }
 
         // get jaxrs urls
         String jaxrsBaseURL = serviceServlets.get("jaxrs");
@@ -518,9 +525,17 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
         Map<String, Object> springMVC = mdf.getElemInstValues(appid, "cpt",
                 "org.springframework.stereotype.Controller");
+        if (springMVC != null && springMVC.size() > 0) {
+            pi.put("cpt.springmvc", LAZY_INFO);
+
+        }
 
         Map<String, Object> springMVCRest = mdf.getElemInstValues(appid, "cpt",
                 "org.springframework.web.bind.annotation.RestController");
+        if (springMVCRest != null && springMVCRest.size() > 0) {
+            pi.put("cpt.springmvcRest", LAZY_INFO);
+
+        }
 
         // get spring mvc urls
         String springmvcBaseURL = serviceServlets.get("springmvc");
@@ -531,15 +546,25 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
         // get struts2 urls
         Map<String, Object> strutsAction = mdf.getElemInstValues(appid, "cpt", "com.opensymphony.xwork2.Action");
+        if (strutsAction != null && strutsAction.size() > 0) {
+            pi.put("cpt.struts2", LAZY_INFO);
+
+        }
         getStruts2URLs(appurl, compServices, strutsAction);
 
-        pi.put("cpt.servlets", JSONHelper.toString(servlets));
-        pi.put("cpt.jaxws", JSONHelper.toString(jaxws));
-        pi.put("cpt.jaxwsP", JSONHelper.toString(jaxwsProviders));
-        pi.put("cpt.jaxrs", JSONHelper.toString(jaxrs));
-        pi.put("cpt.springmvc", JSONHelper.toString(springMVC));
-        pi.put("cpt.springmvcRest", JSONHelper.toString(springMVCRest));
-        pi.put("cpt.struts2", JSONHelper.toString(strutsAction));
+        // get filters and listeners
+        Map<String, Object> filters = mdf.getElemInstValues(appid, "cpt", "javax.servlet.annotation.WebFilter");
+        if (filters != null && filters.size() > 0) {
+            pi.put("cpt.filters", LAZY_INFO);
+
+        }
+
+        Map<String, Object> listeners = mdf.getElemInstValues(appid, "cpt", "javax.servlet.annotation.WebListener");
+        if (listeners != null && listeners.size() > 0) {
+            pi.put("cpt.listeners", LAZY_INFO);
+
+        }
+
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
