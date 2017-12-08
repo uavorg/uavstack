@@ -144,9 +144,9 @@ build结果
 
 # 文档中心 Documents
 ## 全维监控UAV.Monitor+APM
-* [用户指南](https://uavorg.github.io/main/uavdoc_useroperation/index.html)
-* [安装部署](https://uavorg.github.io/main/uavdoc_deploydocs/index.html)
-* [架构说明](https://uavorg.github.io/main/uavdoc_architecture/index.html)
+* [用户指南](https://uavorg.github.io/documents/uavdoc_useroperation/index.html)
+* [安装部署](https://uavorg.github.io/documents/uavdoc_deploydocs/index.html)
+* [架构说明](https://uavorg.github.io/documents/uavdoc_architecture/index.html)
 
 # 下载中心 Downloads
 ## 全维监控UAV.Monitor+APM

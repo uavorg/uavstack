@@ -22,6 +22,9 @@ package com.creditease.uav.threadanalysis.client;
 
 import com.creditease.agent.spi.AgentFeatureComponent;
 import com.creditease.agent.spi.IActionEngine;
+import com.creditease.uav.threadanalysis.client.action.CountCtrlAction;
+import com.creditease.uav.threadanalysis.client.action.DumpThreadAction;
+import com.creditease.uav.threadanalysis.client.action.SuspendAction;
 import com.creditease.uav.threadanalysis.client.action.ThreadAnalysisAction;
 
 /**
@@ -32,6 +35,8 @@ import com.creditease.uav.threadanalysis.client.action.ThreadAnalysisAction;
  */
 public class ThreadAnalysisAgent extends AgentFeatureComponent {
 
+    private IActionEngine actionEngine;
+
     public ThreadAnalysisAgent(String cName, String feature) {
         super(cName, feature);
     }
@@ -39,9 +44,22 @@ public class ThreadAnalysisAgent extends AgentFeatureComponent {
     @Override
     public void start() {
 
-        IActionEngine engine = this.getActionEngineMgr().getActionEngine("NodeOperActionEngine");
+        actionEngine = getActionEngineMgr().newActionEngine("JTAActionEngine", feature);
+        new DumpThreadAction("DumpThreadAction", feature, actionEngine);
+        new CountCtrlAction("CountCtrlAction", feature, actionEngine);
+        new SuspendAction("SuspendAction", feature, actionEngine);
+
         // setup actions
+        IActionEngine engine = this.getActionEngineMgr().getActionEngine("NodeOperActionEngine");
         new ThreadAnalysisAction("threadanalysis", feature, engine);
+    }
+
+    @Override
+    public void stop() {
+
+        actionEngine.clean();
+
+        super.stop();
     }
 
     @Override

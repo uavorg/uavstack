@@ -231,6 +231,40 @@ body {
     height: 34px;
 }
 
+/**时间控件按钮样式**/
+.control-group {
+	margin-bottom: 10px;
+}
+
+.control-group input {
+	background-color: #eeeeee;
+	border:1px solid #cccccc;
+  	border-radius:4px 0 0 4px;
+  	padding: 4px 6px;
+  	color:#333333
+}
+.control-group .add-on {
+	background-color: #eeeeee;
+	border:1px solid #cccccc;
+  	border-radius:0 4px 4px 0;
+  	padding: 4.5px 6px;
+  	color:#333333
+}
+
+/**
+*条件定义 
+*/
+.btn-default.active:focus{
+    color: #333;
+    background-color: #d4d4d4;
+    border-color: #8c8c8c;
+}
+
+.btn-default.active, .btn-default:active{
+    color: #333;
+    background-color: #d4d4d4;
+    border-color: #337ab7;
+}
 
 /**
 *触发策略 begin

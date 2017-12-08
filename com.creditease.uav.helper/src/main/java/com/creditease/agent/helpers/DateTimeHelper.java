@@ -976,4 +976,24 @@ public class DateTimeHelper {
         tomorrow.set(Calendar.SECOND, 0);
         return Long.valueOf(String.valueOf(tomorrow.getTimeInMillis()).substring(0, 10));
     }
+
+    public static Date getMonthAgo(Date date) {
+
+        Calendar now = Calendar.getInstance();
+        now.setTime(date);
+
+        now.add(Calendar.MONTH, -1);
+
+        return now.getTime();
+    }
+
+    public static Date getYearAgo(Date date) {
+
+        Calendar now = Calendar.getInstance();
+        now.setTime(date);
+
+        now.add(Calendar.YEAR, -1);
+
+        return now.getTime();
+    }
 }

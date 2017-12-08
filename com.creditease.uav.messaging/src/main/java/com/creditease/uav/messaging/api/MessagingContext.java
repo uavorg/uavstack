@@ -44,6 +44,7 @@ public class MessagingContext extends HashMap<String, Object> {
     public static final String CONSUMER_HANDLER_INSTANCES = "ConsumerHandlerInstances"; // ext MessageHandler instances
     public static final String MESSAGE_SIZE_LIMIT = "msgSizeLimit";
     public static final long DEFAULT_MSG_SIZE_LIMIT = 262000L;
+    public static final String ConsumerHandlerClassLoaders = "ConsumerHandlerClassLoaders";
 
     private static final long serialVersionUID = -8774944359586955221L;
     protected final static ISystemLogger log = SystemLogger.getLogger(MessagingContext.class);
@@ -82,5 +83,10 @@ public class MessagingContext extends HashMap<String, Object> {
     public static void putConsumerHandlers(List<MessageHandler> handlers) {
 
         context.put(CONSUMER_HANDLER_INSTANCES, handlers);
+    }
+
+    public static void setClassLoaders(ClassLoader... classLoaders) {
+
+        context.put(ConsumerHandlerClassLoaders, classLoaders);
     }
 }
