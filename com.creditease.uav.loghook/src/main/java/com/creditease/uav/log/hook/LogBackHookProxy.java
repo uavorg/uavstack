@@ -28,9 +28,12 @@ import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.UAVServer.ServerVendor;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.appfra.hook.spi.HookProxy;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
@@ -186,6 +189,15 @@ public class LogBackHookProxy extends HookProxy {
     }
 
     private void InsertIntercept(HookContext context, ClassLoader webapploader) {
+
+        if (isHookEventDone("insertLogbackIntercepter")) {
+            return;
+        }
+
+        ServerVendor vendor = (ServerVendor) UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR);
+        if (vendor == ServerVendor.SPRINGBOOT) {
+            return;
+        }
 
         /**
          * set the webapploader is the target classloader
