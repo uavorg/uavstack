@@ -50,6 +50,21 @@ public class StrategyJudgement extends AbstractComponent {
 
     private static final String TIMER_JUDGE_RESULT = "strategy.timer.result";
 
+    private static final Map<String, String> readable = new HashMap<String, String>();
+
+    static {
+        readable.put("all-avg", "平均");
+        readable.put("all-max", "最大");
+        readable.put("all-min", "最小");
+        readable.put("all-sum", "总和");
+        readable.put("avg", "平均");
+        readable.put("max", "最大");
+        readable.put("min", "最小");
+        readable.put("sum", "总和");
+        readable.put("diff", "差");
+        readable.put("count", "计数");
+    }
+
     private CacheManager cm;
 
     @SuppressWarnings("rawtypes")
@@ -610,8 +625,9 @@ public class StrategyJudgement extends AbstractComponent {
                 if (range > 0 && m.get("func") != null) {
                     // convert to seconds
                     long sencodRange = range / 1000;
-                    description = String.format("%s秒内%s的%s值%s%s，当前值：%s", sencodRange, m.get("actualArg"), m.get("func"),
-                            m.get("operator"), m.get("expectedValue"), m.get("actualValue"));
+                    description = String.format("%s秒内%s的%s值%s%s，当前值：%s", sencodRange, m.get("actualArg"),
+                            readable.get(m.get("func")), m.get("operator"), m.get("expectedValue"),
+                            m.get("actualValue"));
                 }
                 else {
                     description = String.format("%s%s%s，当前值：%s", m.get("actualArg"), m.get("operator"),
@@ -620,12 +636,15 @@ public class StrategyJudgement extends AbstractComponent {
             }
             else if (NotifyStrategy.Type.TIMER.toString().equals(m.get("type"))) {
 
-                description = ("true".equals(m.get("fire"))) ? String.format(
-                        "%s在%s至%s时间段的%s值%s比%s至%s%s超过%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"), m.get("time_from"),
-                        m.get("time_to"), m.get("func"), m.get("tag"), m.get("last_time_from"), m.get("last_time_to"),
-                        (m.get("actualValue").contains("-")) ? "降幅" : "增幅", m.get("expectedValue"),
-                        (m.get("actualValue").contains("-")) ? m.get("actualValue").substring(1) : m.get("actualValue"),
-                        m.get("lastValue"), m.get("currentValue")) : "false";
+                description = ("true".equals(m.get("fire")))
+                        ? String.format("%s在%s至%s时间段的%s值%s比%s至%s%s超过%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"),
+                                m.get("time_from"), m.get("time_to"), readable.get(m.get("func")), m.get("tag"),
+                                m.get("last_time_from"), m.get("last_time_to"),
+                                (m.get("actualValue").contains("-")) ? "降幅" : "增幅",
+                                m.get("expectedValue"), (m.get("actualValue").contains("-"))
+                                        ? m.get("actualValue").substring(1) : m.get("actualValue"),
+                                m.get("lastValue"), m.get("currentValue"))
+                        : "false";
             }
 
             return description;
@@ -662,7 +681,7 @@ public class StrategyJudgement extends AbstractComponent {
             }
 
             m.put("tag", expr.getInterval() == 0 ? "同" : "环");
-            m.put("metric", expr.getArg());
+            m.put("metric", expr.getArg().substring(expr.getArg().indexOf('.') + 1));
             m.put("func", expr.getFunc());
             m.put("type", NotifyStrategy.Type.TIMER.toString());
             addExprResult(idx++, result, m);
