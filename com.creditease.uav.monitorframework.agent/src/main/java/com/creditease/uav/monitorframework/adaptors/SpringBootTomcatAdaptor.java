@@ -89,7 +89,70 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
         final AbstractAdaptor aa = this;
 
-        if (className.equals("org.springframework.context.support.AbstractApplicationContext"))
+        // log4j劫持
+        if (className.equals("org.apache.log4j.helpers.QuietWriter")) {
+            try {
+                aa.installHookJars(clsLoader, "com.creditease.uav.loghook-1.0.jar", uavMofRoot);
+                aa.installUAVJars(clsLoader, "com.creditease.uav.monitorframework-1.0.jar", uavMofRoot);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "org.apache.log4j.helpers.QuietWriter", "new LogIT()");
+                aa.defineField("uavLogHookLineSep", "java.lang.String", "org.apache.log4j.helpers.QuietWriter",
+                        "System.getProperty(\"line.separator\")");
+            }
+            catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
+                e.printStackTrace();
+            }
+            return this.inject(className, new String[] { "com.creditease.uav.log.hook.interceptors" },
+                    new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "write";
+                        }
+
+                    });
+        }
+
+        // 进行logback的劫持
+        else if (className.equals("ch.qos.logback.core.encoder.LayoutWrappingEncoder")) {
+            try {
+                aa.installHookJars(clsLoader, "com.creditease.uav.loghook-1.0.jar", uavMofRoot);
+                aa.installUAVJars(clsLoader, "com.creditease.uav.monitorframework-1.0.jar", uavMofRoot);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "ch.qos.logback.core.encoder.LayoutWrappingEncoder", "new LogIT()");
+            }
+            catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
+                e.printStackTrace();
+            }
+            return this.inject(className,
+                    new String[] { "com.creditease.uav.log.hook", "com.creditease.uav.log.hook.interceptors" },
+                    new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            m.insertBefore("{$1=uavLogHook.formatLog($1);}");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "convertToBytes";
+                        }
+
+                    });
+        }
+
+        else if (className.equals("org.springframework.context.support.AbstractApplicationContext"))
 
         {
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
