@@ -1,0 +1,166 @@
+@CHARSET "UTF-8";
+/**原子布局 BEGINI**/
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 14px;
+	font-family: "微软雅黑";
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	height: 100%;
+}
+
+.win {
+	background: white;
+	color: black;
+	font-size: 14px;
+}
+
+table{width: 100%;}
+td{padding-top: 5px;padding-bottom: 5px;}
+.title{text-align: right;width: 15%;}
+.userinput{text-align: left;width: 85%;}
+.errorMsg{color: red;margin-right: 10px;}
+.confirmMsg{color: red;}
+input{width: 100%;}
+select{width: 100%;}
+.groupLayer0{color: #800000;}
+
+.checkboxHeight{
+	height:300px;
+}
+.checkboxDivTitle{
+	color:#0080c0;
+}
+.checkboxDiv{
+	margin-top:5px;
+	overflow:auto;
+	text-align: left;
+}
+.checkboxDiv input{
+	width: 15px;
+	height:15px;
+	vertical-align: sub;
+}
+.checkboxDiv span input:hover,.checkboxDiv span span:hover{
+	cursor: pointer;
+}
+.glyphicon-cog{
+	margin:0px 0 0 10px;
+	font-size:12px;
+	color:#0080c0;
+}
+
+
+/**重写json css**/
+.jsonOutter {
+    overflow: hidden;
+}
+
+/**重写css**/
+.modal-body {
+    position: relative;
+    max-height: 450px;
+    padding: 5px;
+    overflow-y: auto;
+}
+
+
+.icon-myout {
+	float: right;
+	margin-top: 10px;
+	margin-right: 0px;
+	font-size: 2em;
+}
+
+.icon-myout:hover {
+	cursor: pointer;
+	border-radius: 3px;
+	box-shadow: 0 0 2px 2px #000000;
+}
+.icon-myout_right {
+    float: right;
+    margin-top: 13px;
+    margin-right: 6px;
+    font-size: 1em;
+}
+.headDiv {
+  	font-size: 16px;
+  	background-color: #eeeeee;
+  	height: 43px;
+  	line-height:42px;   
+}
+
+/**标题**/
+.titleDiv{
+  	font-size: 14px;
+  	color: #ffffff;
+  	background-color: #0088bb;
+  	height: 27px;
+  	text-align: left;
+  	padding:2px;
+}
+.titleAddDiv{
+  	font-size: 14px;
+  	color: #ffffff;
+  	background-color: #0088bb;
+  	height: 27px;
+  	text-align: center;
+  	padding:2px;
+}
+.titleDiv2{
+  	font-size: 14px;
+  	color: #000000;
+  	background-color: #eeeeee;
+  	text-align: left;
+  	padding:2px;
+  	margin:8px 2px 0px 5px;
+  	border-radius: 3px;
+ 	border:solid 0.5px #eeeeee;
+  	word-wrap: break-word;
+  	word-break: break-all;
+}
+.titleDiv2:hover,.titleDiv3:hover{
+  	cursor: pointer;
+  	border:solid 1px #008000;
+}
+.titleDiv3{
+  	font-size: 14px;
+  	color: #000000;
+ 	background-color: #ffffff;
+  	text-align: left;
+  	padding:2px;
+  	margin:0px 2px 0px 20px;
+  	border-radius: 1px;
+  	border:solid 1px #ffffff;
+  	word-wrap: break-word;
+  	word-break: break-all;
+}
+
+/**用户选中**/
+.userSelect{
+  	border:solid 1px #ffffff;
+  	background-color: #008000;
+}
+.beforeTitleSelect{
+  	border:solid 1px #ffffff;
+  	background-color: #bbbbbb;
+}
+.beforeSelect{
+  	color : #ff0000;
+ 	border:solid 1px #eeee;
+}
+.userSelectUrl{
+ 	background-color: #b8f5b8;
+  	color: black;
+}
+.labelDivIndex .titleSelect{
+  	border-radius:4px;
+  	padding:2px 5px 2px 5px;
+  	color: #ffffff;
+}

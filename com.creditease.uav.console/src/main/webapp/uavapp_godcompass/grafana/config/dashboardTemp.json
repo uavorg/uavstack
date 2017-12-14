@@ -128,7 +128,7 @@
                 "downsampleInterval": "",
                 "filters": [
                   {
-                    "filter": "servId",
+                    "filter": "servIds",
                     "groupBy": false,
                     "tagk": "instid",
                     "type": "regexp"
@@ -229,7 +229,7 @@
                 "explicitTags": false,
                 "filters": [
                   {
-                    "filter": "servId",
+                    "filter": "servIds",
                     "groupBy": false,
                     "tagk": "instid",
                     "type": "regexp"
@@ -333,7 +333,7 @@
                 "downsampleInterval": "",
                 "filters": [
                   {
-                    "filter": "servId",
+                    "filter": "servIds",
                     "groupBy": false,
                     "tagk": "instid",
                     "type": "regexp"
@@ -432,7 +432,7 @@
                 "downsampleInterval": "",
                 "filters": [
                   {
-                    "filter": "appId",
+                    "filter": "appIds",
                     "groupBy": false,
                     "tagk": "instid",
                     "type": "regexp"
@@ -532,7 +532,7 @@
                 "downsampleInterval": "1m",
                 "filters": [
                   {
-                    "filter": "appId",
+                    "filter": "appIds",
                     "groupBy": false,
                     "tagk": "instid",
                     "type": "regexp"
@@ -631,7 +631,7 @@
                 "downsampleInterval": "1m",
                 "filters": [
                   {
-                    "filter": "appId",
+                    "filter": "appIds",
                     "groupBy": false,
                     "tagk": "instid",
                     "type": "regexp"
@@ -709,6 +709,10 @@
             "targets": [
               {
                 "aggregator": "avg",
+                "currentFilterGroupBy": true,
+                "currentFilterKey": "",
+                "currentFilterType": "literal_or",
+                "currentFilterValue": "",
                 "currentTagKey": "",
                 "currentTagValue": "",
                 "downsampleAggregator": "avg",
@@ -716,9 +720,14 @@
                 "downsampleInterval": "",
                 "metric": "appResp.tavg",
                 "refId": "A",
-                "tags": {
-                  "instid": "app*Id"
-                }
+                "filters": [
+                  {
+                    "filter": "appIds",
+                    "groupBy": true,
+                    "tagk": "instid",
+                    "type": "regexp"
+                  }
+                ]
               }
             ],
             "thresholds": [
@@ -794,6 +803,10 @@
             "targets": [
               {
                 "aggregator": "avg",
+                "currentFilterGroupBy": true,
+                "currentFilterKey": "",
+                "currentFilterType": "literal_or",
+                "currentFilterValue": "",
                 "currentTagKey": "",
                 "currentTagValue": "",
                 "downsampleAggregator": "avg",
@@ -801,9 +814,14 @@
                 "downsampleInterval": "",
                 "metric": "appResp.count",
                 "refId": "A",
-                "tags": {
-                  "instid": "app*Id"
-                }
+                "filters": [
+                  {
+                    "filter": "appIds",
+                    "groupBy": true,
+                    "tagk": "instid",
+                    "type": "regexp"
+                  }
+                ]
               }
             ],
             "thresholds": [
@@ -879,6 +897,10 @@
             "targets": [
               {
                 "aggregator": "avg",
+                "currentFilterGroupBy": true,
+                "currentFilterKey": "",
+                "currentFilterType": "literal_or",
+                "currentFilterValue": "",
                 "currentTagKey": "",
                 "currentTagValue": "",
                 "downsampleAggregator": "avg",
@@ -886,9 +908,14 @@
                 "downsampleInterval": "",
                 "metric": "appResp.err",
                 "refId": "A",
-                "tags": {
-                  "instid": "app*Id"
-                }
+                "filters": [
+                  {
+                    "filter": "appIds",
+                    "groupBy": true,
+                    "tagk": "instid",
+                    "type": "regexp"
+                  }
+                ]
               }
             ],
             "thresholds": [
@@ -937,267 +964,7 @@
         "collapse": false,
         "height": 200,
         "panels": [
-          {
-            "aliasColors": {
-              
-            },
-            "bars": false,
-            "dashLength": 10,
-            "dashes": false,
-            "datasource": "OPENTSDB",
-            "description": "",
-            "fill": 1,
-            "id": 4,
-            "legend": {
-              "alignAsTable": false,
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "rightSide": false,
-              "show": false,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 1,
-            "links": [
-              
-            ],
-            "nullPointMode": "null",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [
-              
-            ],
-            "spaceLength": 10,
-            "span": 4,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "aggregator": "avg",
-                "currentTagKey": "",
-                "currentTagValue": "",
-                "downsampleAggregator": "avg",
-                "downsampleFillPolicy": "none",
-                "downsampleInterval": "",
-                "metric": "urlResp.tavg",
-                "refId": "A",
-                "tags": {
-                  "instid": "url*Id"
-                }
-              }
-            ],
-            "thresholds": [
-              
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "urlStr服务访问平均响应时间",
-            "tooltip": {
-              "shared": true,
-              "sort": 0,
-              "value_type": "individual"
-            },
-            "type": "graph",
-            "xaxis": {
-              "buckets": null,
-              "mode": "time",
-              "name": null,
-              "show": true,
-              "values": [
-                
-              ]
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              }
-            ]
-          },
-          {
-            "aliasColors": {
-              
-            },
-            "bars": false,
-            "dashLength": 10,
-            "dashes": false,
-            "datasource": "OPENTSDB",
-            "description": "",
-            "fill": 1,
-            "id": 20,
-            "legend": {
-              "alignAsTable": false,
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "rightSide": false,
-              "show": false,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 1,
-            "links": [
-              
-            ],
-            "nullPointMode": "null",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [
-              
-            ],
-            "spaceLength": 10,
-            "span": 4,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "aggregator": "avg",
-                "currentTagKey": "",
-                "currentTagValue": "",
-                "downsampleAggregator": "avg",
-                "downsampleFillPolicy": "none",
-                "downsampleInterval": "",
-                "metric": "urlResp.count",
-                "refId": "A",
-                "tags": {
-                  "instid": "url*Id"
-                }
-              }
-            ],
-            "thresholds": [
-              
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "urlStr服务访问量",
-            "tooltip": {
-              "shared": true,
-              "sort": 0,
-              "value_type": "individual"
-            },
-            "type": "graph",
-            "xaxis": {
-              "buckets": null,
-              "mode": "time",
-              "name": null,
-              "show": true,
-              "values": [
-                
-              ]
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              }
-            ]
-          },
-          {
-            "aliasColors": {
-              
-            },
-            "bars": false,
-            "dashLength": 10,
-            "dashes": false,
-            "datasource": "OPENTSDB",
-            "fill": 1,
-            "id": 6,
-            "legend": {
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "show": false,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 1,
-            "links": [
-              
-            ],
-            "nullPointMode": "null",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [
-              
-            ],
-            "spaceLength": 10,
-            "span": 4,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "aggregator": "avg",
-                "currentTagKey": "",
-                "currentTagValue": "",
-                "downsampleAggregator": "avg",
-                "downsampleFillPolicy": "none",
-                "downsampleInterval": "",
-                "metric": "urlResp.err",
-                "refId": "A",
-                "tags": {
-                  "instid": "url*Id"
-                }
-              }
-            ],
-            "thresholds": [
-              
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "urlStr服务错误数",
-            "tooltip": {
-              "shared": true,
-              "sort": 0,
-              "value_type": "individual"
-            },
-            "type": "graph",
-            "xaxis": {
-              "buckets": null,
-              "mode": "time",
-              "name": null,
-              "show": true,
-              "values": [
-                
-              ]
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              }
-            ]
-          }
+          
         ],
         "repeat": null,
         "repeatIteration": null,
@@ -1210,261 +977,7 @@
         "collapse": false,
         "height": "200",
         "panels": [
-          {
-            "aliasColors": {
-              
-            },
-            "bars": false,
-            "dashLength": 10,
-            "dashes": false,
-            "datasource": "OPENTSDB",
-            "fill": 1,
-            "id": 7,
-            "legend": {
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "show": false,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 1,
-            "links": [
-              
-            ],
-            "nullPointMode": "null",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [
-              
-            ],
-            "spaceLength": 10,
-            "span": 4,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "aggregator": "avg",
-                "currentTagKey": "",
-                "currentTagValue": "",
-                "downsampleAggregator": "avg",
-                "downsampleFillPolicy": "none",
-                "downsampleInterval": "",
-                "metric": "clientResp.tavg",
-                "refId": "A",
-                "tags": {
-                  "instid": "client*Id"
-                }
-              }
-            ],
-            "thresholds": [
-              
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "clientStr调用平均响应时间",
-            "tooltip": {
-              "shared": true,
-              "sort": 0,
-              "value_type": "individual"
-            },
-            "type": "graph",
-            "xaxis": {
-              "buckets": null,
-              "mode": "time",
-              "name": null,
-              "show": true,
-              "values": [
-                
-              ]
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              }
-            ]
-          },
-          {
-            "aliasColors": {
-              
-            },
-            "bars": false,
-            "dashLength": 10,
-            "dashes": false,
-            "datasource": "OPENTSDB",
-            "fill": 1,
-            "id": 21,
-            "legend": {
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "show": false,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 1,
-            "links": [
-              
-            ],
-            "nullPointMode": "null",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [
-              
-            ],
-            "spaceLength": 10,
-            "span": 4,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "aggregator": "avg",
-                "currentTagKey": "",
-                "currentTagValue": "",
-                "downsampleAggregator": "avg",
-                "downsampleFillPolicy": "none",
-                "downsampleInterval": "",
-                "metric": "clientResp.count",
-                "refId": "A",
-                "tags": {
-                  "instid": "client*Id"
-                }
-              }
-            ],
-            "thresholds": [
-              
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "clientStr调用量",
-            "tooltip": {
-              "shared": true,
-              "sort": 0,
-              "value_type": "individual"
-            },
-            "type": "graph",
-            "xaxis": {
-              "buckets": null,
-              "mode": "time",
-              "name": null,
-              "show": true,
-              "values": [
-                
-              ]
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              }
-            ]
-          },
-          {
-            "aliasColors": {
-              
-            },
-            "bars": false,
-            "dashLength": 10,
-            "dashes": false,
-            "datasource": "OPENTSDB",
-            "fill": 1,
-            "id": 22,
-            "legend": {
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "show": false,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 1,
-            "links": [
-              
-            ],
-            "nullPointMode": "null",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [
-              
-            ],
-            "spaceLength": 10,
-            "span": 4,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "aggregator": "avg",
-                "currentTagKey": "",
-                "currentTagValue": "",
-                "downsampleAggregator": "avg",
-                "downsampleFillPolicy": "none",
-                "downsampleInterval": "",
-                "metric": "clientResp.err",
-                "refId": "A",
-                "tags": {
-                  "instid": "client*Id"
-                }
-              }
-            ],
-            "thresholds": [
-              
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "clientStr调用错误数",
-            "tooltip": {
-              "shared": true,
-              "sort": 0,
-              "value_type": "individual"
-            },
-            "type": "graph",
-            "xaxis": {
-              "buckets": null,
-              "mode": "time",
-              "name": null,
-              "show": true,
-              "values": [
-                
-              ]
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "show": true
-              }
-            ]
-          }
+          
         ],
         "repeat": null,
         "repeatIteration": null,
@@ -1565,4 +1078,4 @@
       "value": "OPENTSDB"
     }
   ]
-}
+}            

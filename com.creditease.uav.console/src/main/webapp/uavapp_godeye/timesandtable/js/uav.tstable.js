@@ -1120,7 +1120,10 @@ var PageClass = {
 		});
 		return resultArray;
 	},
-	encodeForOpenTSDB:function(s) { 	
+	encodeForOpenTSDB:function(s) { 
+		if(s==undefined) {
+			return;
+		}
 		// DataStoreHelper.class
     	s=s.replace(/:/g,"/u003a");
     	s=s.replace(/#/g,"/u0023");
