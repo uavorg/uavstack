@@ -35,19 +35,30 @@ import org.apache.log4j.SimpleLayout;
 import org.apache.log4j.TTCCLayout;
 import org.apache.log4j.spi.LoggerRepository;
 
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.UAVServer.ServerVendor;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.appfra.hook.spi.HookProxy;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
+import com.creditease.uav.log.hook.interceptors.LogIT;
+import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
+import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
 import com.creditease.uav.profiling.handlers.log.LogProfileInfo;
 
+import javassist.CtMethod;
+
 public class Log4jHookProxy extends HookProxy {
+
+    private final DynamicProxyInstaller dpInstall;
 
     @SuppressWarnings("rawtypes")
     public Log4jHookProxy(String id, Map config) {
         super(id, config);
+        dpInstall = new DynamicProxyInstaller();
     }
 
     @Override
@@ -58,7 +69,7 @@ public class Log4jHookProxy extends HookProxy {
         switch (evt) {
             case WEBCONTAINER_RESOURCE_INIT:
             case WEBCONTAINER_INIT:
-
+                InsertIntercept(context, webapploader);
                 break;
             // when servlet init
             case AFTER_SERVET_INIT:
@@ -193,5 +204,43 @@ public class Log4jHookProxy extends HookProxy {
             list.add(logProfileInfo);
 
         }
+    }
+
+    private void InsertIntercept(HookContext context, ClassLoader webapploader) {
+
+        if (isHookEventDone("insertLog4jIntercepter")) {
+            return;
+        }
+
+        ServerVendor vendor = (ServerVendor) UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR);
+        if (vendor == ServerVendor.SPRINGBOOT) {
+            return;
+        }
+        /**
+         * set the webapploader is the target classloader
+         */
+        dpInstall.setTargetClassLoader(webapploader);
+
+        // 定义一个类里面的hook变量并初始化，防止每次拦截write时都初始化对象
+        dpInstall.defineField("uavLogHook", LogIT.class, "org.apache.log4j.helpers.QuietWriter", "new LogIT()");
+        // 定义换行符变量(与log4j中保持一致)
+        dpInstall.defineField("uavLogHookLineSep", String.class, "org.apache.log4j.helpers.QuietWriter",
+                "System.getProperty(\"line.separator\")");
+
+        dpInstall.installProxy("org.apache.log4j.helpers.QuietWriter",
+                new String[] { "com.creditease.uav.log.hook.interceptors" }, new DynamicProxyProcessor() {
+
+                    @Override
+                    public void process(CtMethod m) throws Exception {
+
+                        if ("write".equals(m.getName())) {
+                            m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
+
+                        }
+                    }
+                }, false);
+
+        // release loader
+        dpInstall.releaseTargetClassLoader();
     }
 }

@@ -70,6 +70,18 @@ public class HealthManagerConstants {
      * STORE KEY for profile info jar lib
      */
     public static final String STORE_KEY_PROFILEINFO_JARLIB = "profile.info.jarlib";
+    public static final String STORE_KEY_PROFILEINFO_DUBBOPROVIDER = "profile.info.dubboprovider";
+    public static final String STORE_KEY_PROFILEINFO_MSCPHTTP = "profile.info.mscphttp";
+    public static final String STORE_KEY_PROFILEINFO_MSCPTIMEWORKER = "profile.info.mscptimeworker";
+    public static final String STORE_KEY_PROFILEINFO_FILTER = "profile.info.filter";
+    public static final String STORE_KEY_PROFILEINFO_LISTENER = "profile.info.listener";
+    public static final String STORE_KEY_PROFILEINFO_SERVLET = "profile.info.servlet";
+    public static final String STORE_KEY_PROFILEINFO_JAXWS = "profile.info.jaxws";
+    public static final String STORE_KEY_PROFILEINFO_JAXWSP = "profile.info.jaxwsp";
+    public static final String STORE_KEY_PROFILEINFO_JAXRS = "profile.info.jaxrs";
+    public static final String STORE_KEY_PROFILEINFO_SPRINGMVC = "profile.info.springmvc";
+    public static final String STORE_KEY_PROFILEINFO_SPRINGMVCREST = "profile.info.springmvcrest";
+    public static final String STORE_KEY_PROFILEINFO_STRUTS2 = "profile.info.struts2";
 
     /**
      * STORE KEY for monitor

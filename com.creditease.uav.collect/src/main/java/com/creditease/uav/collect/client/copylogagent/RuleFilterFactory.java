@@ -230,7 +230,8 @@ public class RuleFilterFactory {
             LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectHelper.newInstance(
                     "com.creditease.agent.feature.logagent.far." + classname + "LogFilterAndRule",
                     new Class[] { String.class, String.class, JSONObject.class, int.class, int.class },
-                    new Object[] { filterregex, separator, assignFields, timestampNumber, version });
+                    new Object[] { filterregex, separator, assignFields, timestampNumber, version },
+                    ConfigurationManager.getInstance().getFeatureClassLoader("collectclient"));
             // LogFilterAndRule mainLogFAR = new DefaultLogFilterAndRule(filterregex, separator, assignFields,
             // timestampNumber);
             LogFilterAndRule aid = null;
@@ -333,4 +334,3 @@ public class RuleFilterFactory {
         }
     }
 }
-

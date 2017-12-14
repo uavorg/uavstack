@@ -28,12 +28,18 @@ import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.UAVServer.ServerVendor;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.appfra.hook.spi.HookProxy;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
 import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
+import com.creditease.uav.log.hook.interceptors.LogIT;
+import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
+import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
 import com.creditease.uav.profiling.handlers.log.LogProfileInfo;
 
 import ch.qos.logback.classic.Logger;
@@ -47,12 +53,16 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
+import javassist.CtMethod;
 
 public class LogBackHookProxy extends HookProxy {
+
+    private final DynamicProxyInstaller dpInstall;
 
     @SuppressWarnings("rawtypes")
     public LogBackHookProxy(String id, Map config) {
         super(id, config);
+        dpInstall = new DynamicProxyInstaller();
     }
 
     @Override
@@ -61,6 +71,9 @@ public class LogBackHookProxy extends HookProxy {
         Event evt = context.get(Event.class);
 
         switch (evt) {
+            case WEBCONTAINER_INIT:
+                InsertIntercept(context, webapploader);
+                break;
             // when servlet init
             case AFTER_SERVET_INIT:
                 break;
@@ -173,5 +186,42 @@ public class LogBackHookProxy extends HookProxy {
             list.add(logProfileInfo);
 
         }
+    }
+
+    private void InsertIntercept(HookContext context, ClassLoader webapploader) {
+
+        if (isHookEventDone("insertLogbackIntercepter")) {
+            return;
+        }
+
+        ServerVendor vendor = (ServerVendor) UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR);
+        if (vendor == ServerVendor.SPRINGBOOT) {
+            return;
+        }
+
+        /**
+         * set the webapploader is the target classloader
+         */
+        dpInstall.setTargetClassLoader(webapploader);
+
+        // 定义一个类里面的hook变量并初始化，防止每次拦截write时都初始化对象
+        dpInstall.defineField("uavLogHook", LogIT.class, "ch.qos.logback.core.encoder.LayoutWrappingEncoder",
+                "new LogIT()");
+
+        dpInstall.installProxy("ch.qos.logback.core.encoder.LayoutWrappingEncoder",
+                new String[] { "com.creditease.uav.log.hook.interceptors" }, new DynamicProxyProcessor() {
+
+                    @Override
+                    public void process(CtMethod m) throws Exception {
+
+                        if ("convertToBytes".equals(m.getName())) {
+                            m.insertBefore("{$1=uavLogHook.formatLog($1);}");
+
+                        }
+                    }
+                }, false);
+
+        // release loader
+        dpInstall.releaseTargetClassLoader();
     }
 }

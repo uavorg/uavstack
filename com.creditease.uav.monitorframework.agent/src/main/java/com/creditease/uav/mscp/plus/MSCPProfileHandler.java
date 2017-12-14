@@ -20,6 +20,7 @@
 
 package com.creditease.uav.mscp.plus;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,27 +92,31 @@ public class MSCPProfileHandler extends BaseComponent implements ProfileHandler 
 
             Map<String, Object> info = new HashMap<String, Object>();
 
-            Class<?> c = null;
-            try {
-                c = this.getClass().getClassLoader().loadClass(MSCPComponent);
-            }
-            catch (ClassNotFoundException e) {
-                // ignore
-            }
+            Class<?> c = ConfigurationManager.getInstance().loadClassFromFeatureClassLoaders(MSCPComponent);
 
             if (c == null) {
                 return;
             }
 
-            Set comps = ConfigurationManager.getInstance().getComponents(c);
+            Set comps = ConfigurationManager.getInstance().getComponents();
 
             if (comps.isEmpty()) {
                 return;
             }
 
-            AbstractBaseHttpServComponent abhsc = (AbstractBaseHttpServComponent) comps.iterator().next();
+            Object tcomp = null;
 
-            if (abhsc == null) {// || !abhsc.getFeature().equals(featureName)) {
+            for (Object comp : comps) {
+
+                if (comp.getClass().getName().equals(MSCPComponent)) {
+                    tcomp = comp;
+                    break;
+                }
+            }
+
+            AbstractBaseHttpServComponent abhsc = (AbstractBaseHttpServComponent) tcomp;
+
+            if (abhsc == null) {
                 return;
             }
 
@@ -229,11 +234,17 @@ public class MSCPProfileHandler extends BaseComponent implements ProfileHandler 
             return;
         }
 
+        Collection<ClassLoader> clList = ConfigurationManager.getInstance().getFeatureClassLoader();
+        clList.add(webappclsLoader);
+
+        ClassLoader[] allcl = new ClassLoader[clList.size()];
+        allcl = clList.toArray(allcl);
+
         /**
          * 2. see what kind of components we could get via annotations or interface or parentClass
          */
-        FastClasspathScanner fcs = new FastClasspathScanner(new ClassLoader[] { webappclsLoader }, "com.creditease.uav",
-                "com.creditease.agent");
+        FastClasspathScanner fcs = new FastClasspathScanner(allcl, "com.creditease.uav", "com.creditease.agent",
+                "org.uavstack");
         fcs.scan();
 
         /**

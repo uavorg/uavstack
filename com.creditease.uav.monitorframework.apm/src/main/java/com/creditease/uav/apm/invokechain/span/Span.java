@@ -107,6 +107,11 @@ public class Span implements Cloneable {
 
     public int getSpanMethodSeqCounter() {
 
+        return this.spanMethodSeqCounter.get();
+    }
+
+    public int incrementAndGetSpanMethodSeqCounter() {
+
         return this.spanMethodSeqCounter.incrementAndGet();
     }
 
