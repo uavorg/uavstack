@@ -114,7 +114,7 @@ function saveNotify(checkIsExist){
 		});
 
 		
-		if(conditions.length ==  0){
+		if(conditions.length == 0 && mName != "procCrash"){
 			$("#addNotifyErrMSG").text("条件不能为空");
 			return false;
 		}
@@ -124,7 +124,7 @@ function saveNotify(checkIsExist){
 		 */
 		//校验
 		var stgyExpHtmlObjs = document.getElementsByName("stgy_exp_html"),stgyExpCheck=true;
-		if(stgyExpHtmlObjs.length==0){
+		if(stgyExpHtmlObjs.length==0 && mName != "procCrash"){
 			$("#addNotifyErrMSG").text("触发策略不能为空");
 			return false;
 		}
