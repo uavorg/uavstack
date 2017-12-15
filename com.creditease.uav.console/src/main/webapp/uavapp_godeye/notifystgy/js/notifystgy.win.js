@@ -533,8 +533,14 @@ function showCon(thisObj,type){
 			}
 			$("#condType").val(type);
 			typeChangeShow(type);
-			$("#time_from").val(jsonValue.time_from);
-			$("#time_to").val(jsonValue.time_to);
+				
+			var hour=jsonValue.time_from.split(':')[0];
+			var min=jsonValue.time_from.split(':')[1];
+			$('#time_start').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			hour=jsonValue.time_to.split(':')[0];
+			min=jsonValue.time_to.split(':')[1];
+			$('#time_end').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			
 			$("#conMetric").val(jsonValue.metric);
 			$("#conUpperLimit").val(jsonValue.upperLimit);
 			$("#conLowerLimit").val(jsonValue.lowerLimit);
@@ -617,22 +623,19 @@ function showCondDiv(thisObj,type) {
 		 * 同环比预警条件编辑
 		 */
 		sb.append( '<div id="timer" style="max-height:4000px;padding:5px;display:none;" >');		
-	
 		sb.append('<div class="control-group">');
-		sb.append('<div class="controls input-append date form_datetime_start"');
-		sb.append('data-date-format="hh:ii">');
+		sb.append('<div id="time_start" class="controls input-append">');
 		sb.append('<span style="color:#333333;">开始时间：');
-		sb.append('<input size="16" type="text" placeholder="开始时间" readonly id="time_from"> ');
-		sb.append('<span class="add-on"><i class="icon-th"></i></span>');
+		sb.append('<input size="16" data-format="hh:mm"  type="text" placeholder="开始时间" id="time_from"> ');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
 		sb.append('</div>');
 		sb.append('</div>');
 		
 		sb.append('<div class="control-group">');
-		sb.append('<div class="controls input-append date form_datetime_end"');
-		sb.append('data-date-format="hh:ii">');
+		sb.append('<div id="time_end" class="controls input-append">');
 		sb.append('<span style="color:#333333;">结束时间：');
-		sb.append('<input size="16" type="text" placeholder="结束时间" readonly id="time_to"> ');
-		sb.append('<span class="add-on"><i class="icon-th"></i></span>');
+		sb.append('<input size="16" data-format="hh:mm"  type="text" placeholder="结束时间" id="time_to"> ');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
 		sb.append('</div>');
 		sb.append('</div>');
 		
@@ -725,50 +728,18 @@ function typeChangeShow(type){
  * 初始化时间控件
  */
 function initTimeControl(){
-	$('.form_datetime').datetimepicker({
-		language : 'zh-CN',
-		autoclose : true,
-		minuteStep : 1,
-		todayBtn : true,
-	});
-	
-	$('.form_datetime_start').datetimepicker({
-		language : 'zh-CN',
-		autoclose : true,
-		minuteStep : 1,
-		todayBtn : true,
-	});
-	
-	$('.form_datetime_end').datetimepicker({
-		language : 'zh-CN',
-		autoclose : true,
-		minuteStep : 1,
-		todayBtn : true,
-	});
-	
+	  $('#time_start').datetimepicker({
+	      pickDate: false,
+	      pickSeconds: false
+	  });
 
-	 //事件绑定
-	 $(".form_datetime").on('show', function(ev){
-		/*背景灰层添加*/
-    	var hideBg = '<div id="hideBg" style="position: fixed;top: 0;right: 0;bottom: 0;left: 0;background-color: #777;width:100%;height: 100%;filter:alpha(opacity=60);opacity:0.6;display:block;z-Index: 1000;"></div>';
-    	$('body').append(hideBg);
-    	//document.body.innerHTML += hideBg;
-    	
-    });
-    $(".form_datetime").on('hide', function(ev){
-    	/*背景灰层移除*/
-    	document.getElementById("hideBg").style.display="none";
-    	var removeObj = document.getElementById("hideBg");
-    	removeObj.parentNode.removeChild(removeObj); 
-    });
-    
-    $('.my_datetime_pick').datetimepicker({
-		language : 'zh-CN',
-		autoclose : true,
-		minuteStep : 1,
-		minView: 1,
-		todayBtn : true,
-	});
+
+	  $('#time_end').datetimepicker({
+	      pickDate: false,
+	      pickSeconds: false
+	  });
+
+
 }
 
 function changeTimeUnit(value){
