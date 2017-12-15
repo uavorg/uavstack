@@ -19,4 +19,4 @@ if not exist C:\Windows\System32\drivers\npf.sys (move lib\npf.sys C:\Windows\Sy
 set CLASSPATH=bin/com.creditease.uav.base-1.0-boot.jar
 set javaAgent="-javaagent:../uavmof/com.creditease.uav.agent/com.creditease.uav.monitorframework.agent-1.0-agent.jar"
 set javaOpts=-server -Xms64m -Xmx256m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:CMSIncrementalDutyCycle=10 -XX:+UseParNewGC
-java %javaAgent% %javaOpts% -Djava.library.path=./lib -DNetCardIndex=0 -DJAppID=%appID% -DJAppGroup=UAV -classpath "%CLASSPATH%" com.creditease.mscp.boot.MSCPBoot -p %profile%
+%executeJava% %javaAgent% %javaOpts% -Djava.library.path=./lib -DNetCardIndex=0 -DJAppID=%appID% -DJAppGroup=UAV -classpath "%CLASSPATH%" com.creditease.mscp.boot.MSCPBoot -p %profile%
