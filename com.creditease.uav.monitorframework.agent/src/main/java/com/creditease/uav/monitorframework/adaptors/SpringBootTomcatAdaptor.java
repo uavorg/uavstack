@@ -92,8 +92,11 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
         // log4j劫持
         if (className.equals("org.apache.log4j.helpers.QuietWriter")) {
             try {
-                aa.installHookJars(clsLoader, "com.creditease.uav.loghook-1.0.jar", uavMofRoot);
-                aa.installUAVJars(clsLoader, "com.creditease.uav.monitorframework-1.0.jar", uavMofRoot);
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
                 aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
                         "org.apache.log4j.helpers.QuietWriter", "new LogIT()");
                 aa.defineField("uavLogHookLineSep", "java.lang.String", "org.apache.log4j.helpers.QuietWriter",
@@ -124,8 +127,11 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
         // 进行logback的劫持
         else if (className.equals("ch.qos.logback.core.encoder.LayoutWrappingEncoder")) {
             try {
-                aa.installHookJars(clsLoader, "com.creditease.uav.loghook-1.0.jar", uavMofRoot);
-                aa.installUAVJars(clsLoader, "com.creditease.uav.monitorframework-1.0.jar", uavMofRoot);
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
                 aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
                         "ch.qos.logback.core.encoder.LayoutWrappingEncoder", "new LogIT()");
             }

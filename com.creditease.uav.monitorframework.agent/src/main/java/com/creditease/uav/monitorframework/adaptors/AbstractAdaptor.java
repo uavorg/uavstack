@@ -192,22 +192,14 @@ public abstract class AbstractAdaptor {
 
     }
 
-    public void installHookJars(ClassLoader webapploader, String loaderName, String uavMofRoot) throws Exception {
-
-        String loaderPath = uavMofRoot + "/com.creditease.uav.appfrk/" + loaderName;
+    public void installJar(ClassLoader webapploader, String jarPath, boolean isEnableInject) throws Exception {
 
         ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
-                new Object[] { new URL("file:///" + loaderPath) }, this.getClass().getClassLoader());
+                new Object[] { new URL("file:///" + jarPath) }, this.getClass().getClassLoader());
 
-    }
-
-    public void installUAVJars(ClassLoader webapploader, String loaderName, String uavMofRoot) throws Exception {
-
-        String loaderPath = uavMofRoot + "/com.creditease.uav/" + loaderName;
-
-        ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
-                new Object[] { new URL("file:///" + loaderPath) }, this.getClass().getClassLoader());
-
+        if (isEnableInject) {
+            pool.appendClassPath(jarPath);
+        }
     }
 
     public abstract byte[] onStartup(ClassLoader clsLoader, String uavMofRoot, String className);
