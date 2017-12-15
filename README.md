@@ -87,9 +87,9 @@ uavstack is the All in One source repository of UAVStack.
 * 服务授权（代码整理中，陆续更新...）
 
 # 如何构建 How to Build
-如果由于缺少jar包或某些依赖jar无法下载导致Maven Build Failure，可下载[参考Maven依赖仓库](http://pan.baidu.com/s/1i5veR33)，使用该Maven仓库或将其复制到你正在使用的Maven仓库中。
+如果由于缺少jar包或某些依赖jar无法下载导致Maven Build Failure，可下载[参考Maven依赖仓库](https://pan.baidu.com/s/1gfeY8pH)，使用该Maven仓库或将其复制到你正在使用的Maven仓库中。
 
-If you are unable to build because of the lack of jar packages or certain dependency jar, pleaser refer this [Maven Repository](http://pan.baidu.com/s/1i5veR33), use the Maven repository, or copy it to the Maven warehouse you are using.
+If you are unable to build because of the lack of jar packages or certain dependency jar, pleaser refer this [Maven Repository](https://pan.baidu.com/s/1gfeY8pH), use the Maven repository, or copy it to the Maven warehouse you are using.
 
 1. build com.creditease.uav.superpom
 ```
