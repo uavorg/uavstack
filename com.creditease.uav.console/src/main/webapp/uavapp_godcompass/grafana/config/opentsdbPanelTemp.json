@@ -5,7 +5,7 @@
   "bars": false,
   "dashLength": 10,
   "dashes": false,
-  "datasource": "",
+  "datasource": "OPENTSDB",
   "fill": 1,
   "id": 24,
   "legend": {
@@ -13,7 +13,7 @@
     "current": false,
     "max": false,
     "min": false,
-    "show": true,
+    "show": false,
     "total": false,
     "values": false
   },
@@ -37,7 +37,7 @@
   "targets": [
     {
       "aggregator": "avg",
-      "currentFilterGroupBy": false,
+      "currentFilterGroupBy": true,
       "currentFilterKey": "",
       "currentFilterType": "literal_or",
       "currentFilterValue": "",
@@ -47,7 +47,7 @@
       "filters": [
         {
           "filter": "",
-          "groupBy": false,
+          "groupBy": true,
           "tagk": "instid",
           "type": "regexp"
         }
