@@ -1,22 +1,36 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>1.5.0.BUILD-SNAPSHOT</version>
-  </parent>
-  <groupId>com.example</groupId>
-  <artifactId>starter</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
-  <name>springbootStart</name>
-     <!-- Add typical dependencies for a web application -->
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.alibaba/dubbo -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.0.BUILD-SNAPSHOT</version>
+		<!-- <version>1.3.5.RELEASE</version> 测试springboot下的log4j情况，高版本不支持 -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>starter</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>springbootStart</name>
+	<!-- Add typical dependencies for a web application -->
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<!-- 测试springboot下的log4j情况
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions> -->
+		</dependency>
+		<!-- 测试springboot下的log4j情况
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j</artifactId>
+		</dependency> -->
+		<!-- https://mvnrepository.com/artifact/com.alibaba/dubbo -->
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>dubbo</artifactId>
@@ -32,29 +46,29 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-               
-        <dependency>
-   			 <groupId>junit</groupId>
-    		 <artifactId>junit</artifactId>
-    		 <version>4.4</version>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.4</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.cxf</groupId>
-		    <artifactId>cxf-rt-frontend-jaxws</artifactId>
-		    <version>3.1.6</version>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+			<version>3.1.6</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.cxf</groupId>
-		    <artifactId>cxf-rt-transports-http</artifactId>
-		    <version>3.1.6</version>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+			<version>3.1.6</version>
 		</dependency>
-		 <dependency>
-        <groupId>org.glassfish.jersey.core</groupId>
-        	<artifactId>jersey-server</artifactId>
-       	 	<version>2.7</version> 
-        </dependency>
-                
-        <dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>2.7</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.creditease.moniter</groupId>
 			<artifactId>com.creditease.uav.httpasync</artifactId>
 			<version>1.5</version>
@@ -64,65 +78,65 @@
 			<artifactId>com.creditease.uav.annoscan</artifactId>
 			<version>1.0</version>
 		</dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.containers</groupId>
-        <artifactId>jersey-container-servlet-core</artifactId>
-        <version>2.7</version>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.containers</groupId>
-        <artifactId>jersey-container-servlet</artifactId>
-        <version>2.7</version>
-    </dependency>
 		<dependency>
-    <groupId>com.fasterxml.jackson.jaxrs</groupId>
-    <artifactId>jackson-jaxrs-json-provider</artifactId>
-    <version>2.4.1</version>
-</dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet-core</artifactId>
+			<version>2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>2.4.1</version>
+		</dependency>
 
-		
+
 
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.40</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>2.8.1</version>
 		</dependency>
-		
-		
+
+
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver</artifactId>
 			<version>3.0.4</version>
-		</dependency>  
-		
+		</dependency>
+
 		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
 			<version>4.0.0</version>
-		</dependency> 
-		
+		</dependency>
+
 		<dependency>
 			<groupId>com.alibaba.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
 			<version>3.2.6</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.creditease.moniter</groupId>
 			<artifactId>com.creditease.uav.cache.redis</artifactId>
-			 <version>1.0</version>
-			 <exclusions>
-			 	<exclusion>
-			 		<artifactId>commons-logging</artifactId>
-			 		<groupId>commons-logging</groupId>
-			 	</exclusion>
-			 </exclusions>
+			<version>1.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>biz.paluch.redis</groupId>
@@ -149,25 +163,11 @@
 					<groupId>io.netty</groupId>
 					<artifactId>netty-transport-native-epoll</artifactId>
 				</exclusion>
-				<!-- 
-				<exclusion>
-					<groupId>io.reactivex</groupId>
-					<artifactId>rxjava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.latencyutils</groupId>
-					<artifactId>LatencyUtils</artifactId>
-				</exclusion>
-				
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-pool2</artifactId>
-				</exclusion>
-				 -->
+				<!-- <exclusion> <groupId>io.reactivex</groupId> <artifactId>rxjava</artifactId> 
+					</exclusion> <exclusion> <groupId>org.latencyutils</groupId> <artifactId>LatencyUtils</artifactId> 
+					</exclusion> <exclusion> <groupId>com.google.guava</groupId> <artifactId>guava</artifactId> 
+					</exclusion> <exclusion> <groupId>org.apache.commons</groupId> <artifactId>commons-pool2</artifactId> 
+					</exclusion> -->
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -175,17 +175,17 @@
 			<artifactId>netty-all</artifactId>
 			<version>4.1.6.Final</version>
 		</dependency>
-		
-    </dependencies>
-    
 
-    <!-- Package as an executable jar -->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+	</dependencies>
+
+
+	<!-- Package as an executable jar -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -194,31 +194,33 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-        </plugins>
-    </build>
+		</plugins>
+	</build>
 
-    <!-- Add Spring repositories -->
-    <!-- (you don't need this if you are using a .RELEASE version) -->
-    <repositories>
-        <repository>
-            <id>spring-snapshots</id>
-            <url>http://repo.spring.io/snapshot</url>
-            <snapshots><enabled>true</enabled></snapshots>
-        </repository>
-        <repository>
-            <id>spring-milestones</id>
-            <url>http://repo.spring.io/milestone</url>
-        </repository>
-       		
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>spring-snapshots</id>
-            <url>http://repo.spring.io/snapshot</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>spring-milestones</id>
-            <url>http://repo.spring.io/milestone</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<!-- Add Spring repositories -->
+	<!-- (you don't need this if you are using a .RELEASE version) -->
+	<repositories>
+		<repository>
+			<id>spring-snapshots</id>
+			<url>http://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-milestones</id>
+			<url>http://repo.spring.io/milestone</url>
+		</repository>
+
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-snapshots</id>
+			<url>http://repo.spring.io/snapshot</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-milestones</id>
+			<url>http://repo.spring.io/milestone</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>
