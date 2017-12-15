@@ -221,6 +221,56 @@ public class NetworkHelper {
         return defaultLocalhostIp;
     }
 
+    /*
+     * Try command line to get IP address
+     */
+    public static String getLocalIPByCL() {
+
+        if (JVMToolHelper.isWindows()) {
+            return defaultLocalhostIp;
+        }
+
+        String ip = null;
+
+        String[] cmd = null;
+
+        Pattern pattern = Pattern.compile(IPREGEX);
+
+        String index = System.getProperty("NetCardIndex");
+
+        try {
+
+            if (!StringHelper.isEmpty(index)) {
+                int i = Integer.parseInt(index);
+                cmd = new String[] { "/bin/bash", "-c",
+                        "ip route list|grep -Po 'src \\K[\\d.]+'|awk 'NR==" + (i + 1) + "'" };
+
+                ip = RuntimeHelper.exec(5000, cmd).trim();
+
+                if (!StringHelper.isEmpty(ip) && pattern.matcher(ip).matches() && !defaultLocalhostIp.equals(ip)) {
+                    return ip;
+                }
+            }
+
+            String name = System.getProperty("NetCardName");
+
+            if (!StringHelper.isEmpty(name)) {
+                cmd = new String[] { "/bin/bash", "-c", "ip route list|grep " + name + "|grep -Po 'src \\K[\\d.]+'" };
+
+                ip = RuntimeHelper.exec(5000, cmd).trim();
+
+                if (!StringHelper.isEmpty(ip) && pattern.matcher(ip).matches() && !defaultLocalhostIp.equals(ip)) {
+                    return ip;
+                }
+            }
+        }
+        catch (Exception e) {
+            // ignore
+        }
+
+        return defaultLocalhostIp;
+    }
+
     public static boolean isIPV4(String ip) {
 
         if (ip == null || ip.length() == 0)
