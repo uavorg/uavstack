@@ -23,6 +23,7 @@ package com.creditease.uav.monitorframework.dproxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URLClassLoader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -293,13 +294,13 @@ public class DynamicProxyInstaller extends BaseComponent {
 
                             }
 
-                            int pIndex = (Integer) cfg.get("target") + 1;
-
-                            if (pIndex > 0) {
-                                m.insertBefore("{$" + pIndex + "=DynamicProxyInstaller.adapt($" + pIndex + ");}");
+                            // simple unwrapping or defined operation
+                            if (cfg.get("defined") == null) {
+                                unwrap(m, cfg);
                             }
                             else {
-                                m.insertAfter("{$_=DynamicProxyInstaller.adapt($_);}");
+                                definedOperate(m, (String) cfg.get("before"), (String) cfg.get("after"),
+                                        (Map<String, String>) cfg.get("localVariable"));
                             }
                         }
 
@@ -308,4 +309,101 @@ public class DynamicProxyInstaller extends BaseComponent {
         }
     }
 
+	/**
+     * Unwrap dynamic proxy, Maybe "arguments", "return" or "field".<br>
+     * if "field", unwrapping is temporary, so must to wrap at the end again.
+     * 
+     * @param m
+     * @param cfg
+     * @throws CannotCompileException
+     * @throws ClassNotFoundException
+     */
+    private void unwrap(CtMethod m, @SuppressWarnings("rawtypes") Map cfg)
+            throws ClassNotFoundException, CannotCompileException {
+
+        String before = null;
+        String after = null;
+        Map<String, String> localVar = null;
+
+        /*
+         * proxy to unwrap. Maybe "arguments", "return" or "field"
+         */
+        String proxy = "";
+        boolean isUnwrapField = false;
+        Object target = cfg.get("target");
+        if (target instanceof Integer) {
+            int pIndex = (Integer) cfg.get("target") + 1;
+            // if target >= 0 "arguments"; else "return"
+            proxy = pIndex > 0 ? "$" + pIndex : "$_";
+        }
+        else {
+            proxy = (String) target;
+            isUnwrapField = true;
+        }
+
+        /*
+         * unwrapping code
+         */
+        String unwrappingSrc = buildUnwrapSrc(proxy, (String) cfg.get("class"), (String) cfg.get("preMethod"));
+
+        if (isUnwrapField) { // unwrapping is temporary
+            localVar = new HashMap<String, String>();
+            localVar.put("varName", "_tmpObj");
+            localVar.put("varClass", (String) cfg.get("class"));
+            before = "{_tmpObj=" + target + ";" + unwrappingSrc + "}";
+            after = "{" + target + "=_tmpObj;}";
+        }
+        else {
+            if ("$_".equals(proxy)) {
+                after = "{" + unwrappingSrc + "}";
+            }
+            else {
+                before = "{" + unwrappingSrc + "}";
+            }
+        }
+
+        definedOperate(m, before, after, localVar);
+    }
+
+    private String buildUnwrapSrc(String proxy, String klass, String preMethod) {
+
+        if (StringHelper.isEmpty(klass)) {
+            // eg: "$1=DynamicProxyInstaller.adapt($1);"
+            return proxy + "=DynamicProxyInstaller.adapt(" + proxy + ");";
+        }
+        else {
+            // eg: "if($1 instanceof com.xxx.Xxx)"
+            StringBuilder sb = new StringBuilder();
+            sb.append("if(" + proxy + " instanceof " + klass + ")");
+            sb.append("{");
+
+            if (StringHelper.isEmpty(preMethod)) {
+                sb.append(proxy + "=DynamicProxyInstaller.adapt(" + proxy + ");");
+            }
+            else {
+                // eg: "((com.xxx.Xxx) $1).preMehtod()"
+                sb.append("Object _preObj=((" + klass + ")" + proxy + ")" + "." + preMethod + ";");
+                sb.append(proxy + "=DynamicProxyInstaller.adapt(_preObj);");
+            }
+
+            sb.append("}");
+            return sb.toString();
+        }
+    }
+
+    private void definedOperate(CtMethod m, String before, String after, Map<String, String> localVar)
+            throws ClassNotFoundException, CannotCompileException {
+
+        if (localVar != null && !localVar.isEmpty()) {
+            this.defineLocalVal(m, localVar.get("varName"), Class.forName(localVar.get("varClass")));
+        }
+
+        if (!StringHelper.isEmpty(before)) {
+            m.insertBefore(before);
+        }
+
+        if (!StringHelper.isEmpty(after)) {
+            m.insertAfter(after);
+        }
+    }
 }
