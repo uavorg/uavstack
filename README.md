@@ -150,13 +150,13 @@ build结果
 
 # 下载中心 Downloads
 ## 全维监控UAV.Monitor+APM
-* [MOF探针](http://pan.baidu.com/s/1c1P0rni)
-* [监控代理程序](http://pan.baidu.com/s/1cD9tuu)
-* [健康管理服务](http://pan.baidu.com/s/1eROaqEA)
-* [AppHub](http://pan.baidu.com/s/1dEBlhwX)
+* [MOF探针](https://pan.baidu.com/s/1cg4J0q)
+* [监控代理程序](https://pan.baidu.com/s/1ge5MJ9h)
+* [健康管理服务](https://pan.baidu.com/s/1i4HnV85)
+* [AppHub](https://pan.baidu.com/s/1dFxtDZV)
 
 ## 第三方下载 Thirdparty Downloads
-* [rocket.war](http://pan.baidu.com/s/1pKCmJ3P)
+* [rocket.war](https://pan.baidu.com/s/1dF6NeHN)
 
 ## AllInOne开发演示版 AllInOne Install Downloads
 开发演示版的健康管理服务(HM)仅适合开发环境，演示环境，小规模测试环境。
@@ -164,9 +164,9 @@ build结果
 
 The health management service (HM) in AllInOne Install Package is only suitable for development environments, demos, and small scale testing environments. [A distributed deployment](https://uavorg.github.io/main/uavdoc_deploydocs/healmanagerInstall/healmanagerInstall/microservice.html) is recommended for the production environment
 
-* [Windows64位](http://pan.baidu.com/s/1boA9p75)
-* [Mac](http://pan.baidu.com/s/1boOMZ2f)
-* [Linux(CentOS)](http://pan.baidu.com/s/1qYSG5QW)
+* [Windows64位](https://pan.baidu.com/s/1jIF0wNs)
+* [Mac](https://pan.baidu.com/s/1mhCykp6)
+* [Linux(CentOS)](https://pan.baidu.com/s/1nvj6jW1)
 
 
 
