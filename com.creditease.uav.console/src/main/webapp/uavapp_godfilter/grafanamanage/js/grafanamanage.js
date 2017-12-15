@@ -59,13 +59,12 @@ var modalConfig = {
 };
 
 var jsonConfig = {
-		   "attribute"   :  {frontSize:14,color:'#008000'},
-		   "showLayerNum"   :   3,
-		   "model1"      :	[   
-						       {keyT:"{}",onClick:""},   
-						       {keyT:"<div class='groupLayer0'>{@key}</div>",onClick:""}
-					        ]
-					        
+		"attribute":{frontSize:14,color:'#008000'},
+		"showLayerNum":3,
+		"model1":[
+		   			{keyT:"{}",onClick:""},   
+					{keyT:"<div class='groupLayer0'>{@key}</div>",onClick:""}
+				]					        
 };
 
 
