@@ -49,8 +49,7 @@ public class HostNewworkInfo {
                 while (ips.hasMoreElements()) {
                     ip = ips.nextElement();
 
-                    if (!ni.isVirtual() && ip.isSiteLocalAddress() && !ip.isLoopbackAddress()
-                            && ip.getHostAddress().indexOf(":") == -1) {
+                    if (!ni.isVirtual() && !ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {
 
                         if (name != null) {
 
@@ -104,8 +103,7 @@ public class HostNewworkInfo {
                 while (ips.hasMoreElements()) {
                     InetAddress ip = ips.nextElement();
 
-                    if (!ni.isVirtual() && ip.isSiteLocalAddress() && !ip.isLoopbackAddress()
-                            && ip.getHostAddress().indexOf(":") == -1) {
+                    if (!ni.isVirtual() && !ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {
 
                         if (ip.equals(ipAddr)) {
 
