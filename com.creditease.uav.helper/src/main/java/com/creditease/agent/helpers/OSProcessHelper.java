@@ -93,7 +93,9 @@ public class OSProcessHelper {
                 pidString = new StringBuffer();
             }
         }
-        commands.add(String.format("top -p %s -bn 2", pidString.substring(0, pidString.length() - 1)));
+        if (count != 0) {
+            commands.add(String.format("top -p %s -bn 2", pidString.substring(0, pidString.length() - 1)));
+        }
         // conn obtain command
         String connCommand = String.format("netstat -pnat |grep -E 'LISTEN +(%s)' | awk '{print $4,$7}'",
                 sb.substring(0, sb.length() - 2));
