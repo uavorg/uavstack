@@ -20,15 +20,18 @@
 
 package com.creditease.uav.httpasync;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.concurrent.FutureCallback;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
 
-import java.io.*;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.concurrent.FutureCallback;
 
 /**
  * Created by lijunteng on 15/7/21.
@@ -62,7 +65,10 @@ public class AsyncReqProcWithHttpClientCallback implements AsyncListener, Future
         else {
             InputStream is = null;
             try {
-                is = response.getEntity().getContent();
+                HttpEntity entry = response.getEntity();
+                if (entry != null) {
+                    is = entry.getContent();
+                }
                 HttpClientCallbackResult result = new HttpClientCallbackResult(is, null);
                 result.setRetCode(getStatusCode());
                 callback.completed(result);
