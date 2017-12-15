@@ -22,6 +22,7 @@ package com.creditease.uav.grafana;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,12 +35,16 @@ import com.creditease.uav.httpasync.HttpAsyncClient;
 import com.creditease.uav.httpasync.HttpAsyncClientFactory;
 
 @SuppressWarnings("unchecked")
-public class GrafanaHttpUtils {
+public class GrafanaClient {
 
-    private static HttpAsyncClient httpAsyncClient = null;
-    private static Map<String, String> configMap = new HashMap<String, String>();
+    private HttpAsyncClient httpAsyncClient = null;
+    private Map<String, String> configMap = new HashMap<String, String>();
 
-    public static void init(HttpServletRequest request) {
+    GrafanaClient(HttpServletRequest request) {
+        init(request);
+    }
+
+    public void init(HttpServletRequest request) {
 
         if (configMap.isEmpty()) {
             configMap = JSONHelper.toObject(
@@ -65,13 +70,12 @@ public class GrafanaHttpUtils {
      *            :包含配置信息，请求参数，传递参数，请求类型，请求地址
      * @return
      */
-    public static Future<HttpResponse> doAsyncHttp(String type, String path, String dataStr,
-            GrafanaHttpCallBack callback) {
+    public Future<HttpResponse> doAsyncHttp(String type, String path, String dataStr, GrafanaHttpCallBack callback) {
 
         return doAsyncHttp(type, path, dataStr, null, callback);
     }
 
-    public static Future<HttpResponse> doAsyncHttp(String type, String path, String dataStr, Map<String, String> head,
+    public Future<HttpResponse> doAsyncHttp(String type, String path, String dataStr, Map<String, String> head,
             GrafanaHttpCallBack callback) {
 
         Future<HttpResponse> response = null;
@@ -109,7 +113,7 @@ public class GrafanaHttpUtils {
         return response;
     }
 
-    public static String getConfigValue(String key) {
+    public String getConfigValue(String key) {
 
         if (!configMap.containsKey(key)) {
             return null;
@@ -119,17 +123,17 @@ public class GrafanaHttpUtils {
 
     }
 
-    private static String getAuthLoginId() {
+    private String getAuthLoginId() {
 
         return getConfigValue("authorization.loginId");
     }
 
-    private static String getAuthLoginPwd() {
+    private String getAuthLoginPwd() {
 
         return getConfigValue("authorization.loginPwd");
     }
 
-    private static Map<String, String> getHttpReqHead() {
+    private Map<String, String> getHttpReqHead() {
 
         Map<String, String> header = new HashMap<String, String>();
         String authorInfo = getAuthLoginId() + ":" + getAuthLoginPwd();
@@ -140,10 +144,34 @@ public class GrafanaHttpUtils {
         return header;
     }
 
-    private static String getApiHttpReqUrl(String methodPath) {
+    private String getApiHttpReqUrl(String methodPath) {
 
         return getConfigValue("api.url") + methodPath;
 
     }
 
+    public HttpResponse doHttp(String type, String path, String dataStr, GrafanaHttpCallBack callback) {
+
+        HttpResponse response = null;
+        try {
+            response = doAsyncHttp(type, path, dataStr, null, callback).get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+        }
+
+        return response;
+    }
+
+    public HttpResponse doHttp(String type, String path, String dataStr, Map<String, String> head,
+            GrafanaHttpCallBack callback) {
+
+        HttpResponse response = null;
+        try {
+            response = doAsyncHttp(type, path, dataStr, head, callback).get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+        }
+
+        return response;
+    }
 }

@@ -53,7 +53,8 @@ var selUiConf = {
 			          ["hostState","应用容器状态指标系"],
 			          ["urlResp","服务状态指标系"],
 			          ["appResp","应用状态指标系"],
-			          ["serverResp","应用服务器状态指标系"]
+			          ["serverResp","应用服务器状态指标系"],
+			          ["procCrash","进程死亡指标系"]
 				     ],
 		"client":[
 			          ["clientResp","调用状态指标系"]
@@ -432,6 +433,7 @@ function showEditNotifyDiv(jsonObjParam) {
 	window.winmgr.hide("notifyList");
 	window.winmgr.show("objectDiv");
 
+	hideShowConStgy(names[1]);
 }
 
 
@@ -768,6 +770,8 @@ function selServerChangeShow(type,value,text){
 	$("#"+selId).html(text);
 	$("#"+selId).css("padding-left","2px");
 	$("#"+type+"_notifyNameF").css("color","black");
+	
+	hideShowConStgy("show");
 
 	if(text == "自定义指标"){
 		$("#"+type+"_appName_div").hide();
@@ -825,8 +829,20 @@ function changeJTAStat(text){
 	}
 }
 
+function hideShowConStgy(value){
+	if(value == "procCrash"){
+		 $("#conFatDiv").hide();
+		 $("#stgyFatDiv").hide();
+	 }
+	 else{
+		 $("#conFatDiv").show();
+		 $("#stgyFatDiv").show();
+	 }
+}
+
 function selIndexChangeShow(type,value,text){
 	 changeJTAStat(text);
+	 hideShowConStgy(value);
 	 
 	 $("#"+type+"_notifyNameM").html(text);
 	 $("#"+type+"_notifyNameM").css("padding-left","2px");
