@@ -114,6 +114,7 @@ public class NetworkHelper {
     public static String getLocalIP(String cardName) {
 
         HostNewworkInfo hni = new HostNewworkInfo();
+
         try {
             return hni.getIPs(cardName).get(0).getHostAddress();
         }
@@ -136,12 +137,20 @@ public class NetworkHelper {
      */
     public static String getLocalIP() {
 
-        String ipIndex = System.getProperty("NetCardIndex");
+        String ip = null;
 
-        if (!StringHelper.isEmpty(ipIndex)) {
+        String index = System.getProperty("NetCardIndex");
+
+        if (!StringHelper.isEmpty(index)) {
             try {
-                int i = Integer.parseInt(ipIndex);
-                return getLocalIP(i);
+                int i = Integer.parseInt(index);
+
+                ip = getLocalIP(i);
+
+                if (!StringHelper.isEmpty(ip) && (!ip.equals(defaultLocalhostIp))) {
+                    return ip;
+                }
+
             }
             catch (NumberFormatException e) {
                 // ignore
@@ -152,11 +161,14 @@ public class NetworkHelper {
 
         if (!StringHelper.isEmpty(name)) {
 
-            return getLocalIP(name);
+            ip = getLocalIP(name);
+
+            if (!StringHelper.isEmpty(ip) && (!ip.equals(defaultLocalhostIp))) {
+                return ip;
+            }
         }
 
         return getLocalIP(0);
-
     }
 
     /*
@@ -305,6 +317,7 @@ public class NetworkHelper {
     public static String getMACAddress(int index) {
 
         HostNewworkInfo hni = new HostNewworkInfo();
+
         try {
             InetAddress ia = hni.getIPs().get(index);
             return getMacAddressAsString(ia);
@@ -318,6 +331,7 @@ public class NetworkHelper {
     public static String getMACAddress(String cardName) {
 
         HostNewworkInfo hni = new HostNewworkInfo();
+
         try {
             InetAddress ia = hni.getIPs(cardName).get(0);
             return getMacAddressAsString(ia);
@@ -414,5 +428,24 @@ public class NetworkHelper {
         catch (Exception ex) {
             return false;
         }
+    }
+
+    public static boolean isLocalIP(String ip) {
+
+        HostNewworkInfo hni = new HostNewworkInfo();
+
+        for (InetAddress localIP : hni.getIPs()) {
+            if (localIP.getHostAddress().equals(ip)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static List<InetAddress> getAllIP() {
+
+        HostNewworkInfo hni = new HostNewworkInfo();
+
+        return hni.getIPs();
     }
 }

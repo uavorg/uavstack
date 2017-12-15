@@ -497,6 +497,9 @@ function initActionDiv(isOwner) {
  */
 function showCon(thisObj,type){
 	actionConf.actionObj=thisObj.parentNode;
+	if(selUiConf["userInput"]["notifyNameM"]=="log"){
+		$("#condType").attr("disabled","disabled");
+	}
 	 $("#pageType").val(type);
 	if("EDIT" == type){
 		var jsonValue = JSON.parse(thisObj.parentNode.getElementsByTagName("span")[0].textContent);
@@ -1202,7 +1205,7 @@ function closeObjectDiv() {
 }
 
 function openHelpDiv() {
- 	window.open("file/help.htm","apphub.help");	
+ 	window.open("https://uavorg.github.io/documents/uavdoc_useroperation/28.html#%E5%88%9B%E5%BB%BA","apphub.help");	
 }
 
 
