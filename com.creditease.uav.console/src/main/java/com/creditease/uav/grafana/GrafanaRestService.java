@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.inject.Singleton;
 import javax.servlet.http.HttpSession;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -36,9 +37,11 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
-import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.agent.helpers.JSONHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.uav.apphub.core.AppHubBaseRestService;
+import com.creditease.uav.cache.api.CacheManager;
+import com.creditease.uav.cache.api.CacheManagerFactory;
 
 /**
  * 
@@ -54,10 +57,26 @@ public class GrafanaRestService extends AppHubBaseRestService {
         success, fail
     }
 
+    private CacheManager cm = null;
+
+    private DashboardManagement dashboardManagement = null;
+    private GrafanaClient grafanaClient = null;
+
+    @SuppressWarnings("unchecked")
     @Override
     protected void init() {
 
-        GrafanaHttpUtils.init(request);
+        grafanaClient = new GrafanaClient(request);
+        dashboardManagement = new DashboardManagement();
+        dashboardManagement.setGrafanaClient(grafanaClient);
+        // cache manager
+        String redisAddrStr = request.getServletContext().getInitParameter("uav.app.godeye.redis.store.addr");
+        Map<String, Object> redisParamsMap = JSONHelper
+                .toObject(request.getServletContext().getInitParameter("uav.app.godeye.redis.store.params"), Map.class);
+        cm = CacheManagerFactory.build(redisAddrStr, Integer.valueOf(String.valueOf(redisParamsMap.get("min"))),
+                Integer.valueOf(String.valueOf(redisParamsMap.get("max"))),
+                Integer.valueOf(String.valueOf(redisParamsMap.get("queue"))),
+                String.valueOf(redisParamsMap.get("pwd")));
     }
 
     @SuppressWarnings("unchecked")
@@ -86,7 +105,8 @@ public class GrafanaRestService extends AppHubBaseRestService {
         /**
          * 避免删除api admin用户
          */
-        if (GrafanaHttpUtils.getConfigValue("authorization.loginId").equals(userName) || "admin".equals(userName)) {
+        if (dashboardManagement.getGrafanaClient().getConfigValue("authorization.loginId").equals(userName)
+                || "admin".equals(userName)) {
             userName = userName + "Apphub";
         }
         /**
@@ -94,7 +114,7 @@ public class GrafanaRestService extends AppHubBaseRestService {
          */
 
         this.logger.info("GrafanaRestService register [delOrAddUser]", userName);
-        delOrAddUser(userName);
+        dashboardManagement.delOrAddUser(userName, request);
 
         Map<String, String> userGroups = getGroupListByReqData(data);
 
@@ -106,11 +126,11 @@ public class GrafanaRestService extends AppHubBaseRestService {
 
         List<GrafanaHttpCallBack> callbacks = new ArrayList<GrafanaHttpCallBack>();
         if ("ALL".equals(data)) {
-            GrafanaHttpCallBack cbObj = addUserOrgsAll(userName, "Editor");
+            GrafanaHttpCallBack cbObj = dashboardManagement.addUserOrgsAll(userName, "Editor");
             callbacks.add(cbObj);
         }
         else {
-            callbacks = addUserOrgs(userName, userGroups);
+            callbacks = dashboardManagement.addUserOrgs(userName, userGroups);
         }
 
         /**
@@ -231,9 +251,10 @@ public class GrafanaRestService extends AppHubBaseRestService {
     private Map createGarfanaInfo(String userName) {
 
         Map<String, Object> loginInfo = new HashMap<String, Object>();
-        loginInfo.put("url", GrafanaHttpUtils.getConfigValue("web.url"));
+        loginInfo.put("url", dashboardManagement.getGrafanaClient().getConfigValue("web.url"));
         loginInfo.put("loginid", userName);
-        loginInfo.put("password", GrafanaHttpUtils.getConfigValue("authorization.register.defPwd"));
+        loginInfo.put("password",
+                dashboardManagement.getGrafanaClient().getConfigValue("authorization.register.defPwd"));
 
         return loginInfo;
     }
@@ -250,136 +271,64 @@ public class GrafanaRestService extends AppHubBaseRestService {
         return JSONHelper.toString(result);
     }
 
-    private void threadSleep() {
-
-        try {
-            Thread.sleep(Long.valueOf(GrafanaHttpUtils.getConfigValue("authorization.register.sleep.time")));
-        }
-        catch (InterruptedException e) {
-            this.logger.err(this, e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 指定组织架构添加用户访问权限
-     * 
-     * 先添加组织架构：详情处理见ApiOrgsCallBack
-     * 
-     * @param userName
-     * @param organNames
-     */
-    public List<GrafanaHttpCallBack> addUserOrgs(String userName, Map userGroups) {
-
-        Object[] groups = userGroups.keySet().toArray();
-        List<GrafanaHttpCallBack> listCallBack = new ArrayList<GrafanaHttpCallBack>();
-        for (Object group : groups) {
-            // 回调参数
-            String role = String.valueOf(userGroups.get(group));
-            Map<String, String> cbParams = new HashMap<String, String>();
-            cbParams.put("userName", userName);
-            cbParams.put("orgName", String.valueOf(group));
-            cbParams.put("orgRole", role);
-
-            GrafanaHttpCallBack callback = new ApiOrgsCallBack(cbParams);
-            listCallBack.add(callback);
-
-            GrafanaHttpUtils.doAsyncHttp("get", "/api/orgs", null, callback);
-        }
-
-        threadSleep();
-        return listCallBack;
-
-    }
-
-    /**
-     * 添加用户到所有组织架构
-     * 
-     * @param userName
-     * @param orgRole
-     * @return
-     */
-    public GrafanaHttpCallBack addUserOrgsAll(String userName, String orgRole) {
-
-        Map<String, String> cbParams = new HashMap<String, String>();
-        cbParams.put("userName", userName);
-        cbParams.put("orgRole", orgRole);
-
-        GrafanaHttpCallBack callback = new ApiOrgsAllCallBack(cbParams);
-        GrafanaHttpUtils.doAsyncHttp("get", "/api/orgs", null, callback);
-
-        threadSleep();
-        return callback;
-    }
-
-    /**
-     * 存在则删除，不存在直接添加
-     * 
-     * @param userName
-     */
-    @SuppressWarnings("unchecked")
-    public void delOrAddUser(String userName) {
-
-        Map params = new HashMap();
-        params.put("request", request);
-        params.put("userName", userName);
-        params.put("password", GrafanaHttpUtils.getConfigValue("authorization.register.defPwd")); // 自动注册用户密码都统一一样
-
-        // 获取用户信息：回调处理详情见ApiUsersCallBack
-        GrafanaHttpUtils.doAsyncHttp("get", "/api/users", null, new DelOrAddUserCallBack(params));
-        threadSleep();
-    }
-
     /**
      * 根据配置创建dashboard
      */
     @POST
     @Path("dashboard/create")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public String dashboardCreate(String data) {
+    public void createDashboards(String data, @Suspended AsyncResponse response) {
 
-        DashboardManagement.getInstance().dashboardCreate(data,
-                request.getServletContext().getRealPath("/uavapp_godcompass/grafana"));
-        return createResult(code.success, ",");
+        dashboardManagement.createDashboards(data,
+                request.getServletContext().getRealPath("/uavapp_godcompass/grafana"), request, this.cm, response);
     }
 
     /**
-     * 根据配置在指定组织中创建datasource
+     * 根据配置修改dashboard
      */
     @POST
-    @Path("dashboard/datasource/create")
+    @Path("dashboard/modify")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public String datasourceCreate(String data) {
+    public void modifyDashboard(String data, @Suspended AsyncResponse response) {
 
-        @SuppressWarnings("unchecked")
-        Map<String, String> dataMap = JSONHelper.toObject(data, Map.class);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("contextPath", request.getServletContext().getRealPath("/uavapp_godcompass/grafana"));
-        params.put("usage", "datasourceCreate");
-        params.put("dataMap", dataMap);
-        GrafanaHttpUtils.doAsyncHttp("get", "/api/orgs/name/" + EncodeHelper.urlEncode(dataMap.get("orgName")), null,
-                new GetOrgIdbyNameCallBack(params));
-
-        return createResult(code.success, ",");
+        dashboardManagement.modifyDashboard(data, request.getServletContext().getRealPath("/uavapp_godcompass/grafana"),
+                request, this.cm, response);
     }
 
     /**
-     * 根据配置添加panel到指定dashboard
+     * 根据配置得到所有dashboards
+     */
+    @GET
+    @Path("dashboard/getdashboards")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    @SuppressWarnings("unchecked")
+    public void getDashboards(@Suspended AsyncResponse response) {
+
+        CacheManager cacheManager = this.cm;
+        String result = dashboardManagement.getDashboards(cacheManager);
+        Map resultMap = new HashMap();
+        String codeString = "00";
+        String msgString = "获取配置信息成功";
+        if (StringHelper.isEmpty(result)) {
+            codeString = "01";
+            msgString = "获取配置信息失败或配置信息不存在";
+        }
+        resultMap.put("code", codeString);
+        resultMap.put("msg", msgString);
+        resultMap.put("data", result);
+        String resultMsg = JSONHelper.toString(resultMap);
+        response.resume(resultMsg);
+    }
+
+    /**
+     * 根据配置删除dashboard
      */
     @POST
-    @Path("dashboard/addpanel")
+    @Path("dashboard/delete")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public String addPanel(String data) {
+    public void deleteDashboard(String data, @Suspended AsyncResponse response) {
 
-        @SuppressWarnings("unchecked")
-        Map<String, String> dataMap = JSONHelper.toObject(data, Map.class);
-
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("contextPath", request.getServletContext().getRealPath("/uavapp_godcompass/grafana"));
-        params.put("usage", "addPanel");
-        params.put("dataMap", dataMap);
-        GrafanaHttpUtils.doAsyncHttp("get", "/api/orgs/name/" + EncodeHelper.urlEncode(dataMap.get("orgName")), null,
-                new GetOrgIdbyNameCallBack(params));
-
-        return createResult(code.success, ",");
+        dashboardManagement.deleteDashboard(data, this.cm, response);
     }
+
 }
