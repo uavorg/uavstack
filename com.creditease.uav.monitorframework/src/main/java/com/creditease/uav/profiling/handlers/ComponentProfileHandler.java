@@ -876,11 +876,11 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                                 }
                                 // step 2.1.2 if the value is spring bean id
                                 // FIX "implementor" is "#id", substring "#"
-								String classId = sClass.startsWith("#") ? sClass.substring(1) : sClass;
-								Node beanClazz = processor.selectXMLNode("/beans/bean[@id='" + classId + "']/@class");
-								if (beanClazz == null) {
-									beanClazz = processor.selectXMLNode("/beans/bean[@name='" + classId + "']/@class");
-								}
+                                String classId = sClass.startsWith("#") ? sClass.substring(1) : sClass;
+                                Node beanClazz = processor.selectXMLNode("/beans/bean[@id='" + classId + "']/@class");
+                                if (beanClazz == null) {
+                                    beanClazz = processor.selectXMLNode("/beans/bean[@name='" + classId + "']/@class");
+                                }
 
                                 return beanClazz.getNodeValue();
                             }
