@@ -29,11 +29,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.StringHelper;
 
+import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
+import javassist.NotFoundException;
 
 public abstract class AbstractAdaptor {
 
@@ -59,7 +63,7 @@ public abstract class AbstractAdaptor {
 
     protected ClassPool pool;
 
-    protected Map<Integer,String> classLoaderHashCodeMap = new ConcurrentHashMap<Integer,String>();
+    protected Map<Integer, String> classLoaderHashCodeMap = new ConcurrentHashMap<Integer, String>();
 
     protected void addClassPath(ClassLoader cl) {
 
@@ -88,6 +92,25 @@ public abstract class AbstractAdaptor {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    protected void defineField(String fieldName, String fieldClass, String varClass, String initCode)
+            throws CannotCompileException, NotFoundException {
+
+        CtClass cc = pool.get(varClass);
+
+        String fd = "private " + fieldClass + " " + fieldName;
+
+        if (StringHelper.isEmpty(initCode)) {
+            fd += ";";
+        }
+        else {
+            fd += "=" + initCode + ";";
+        }
+
+        CtField f = CtField.make(fd, cc);
+
+        cc.addField(f);
     }
 
     protected byte[] inject(String className, String[] importPackages, AdaptorProcessor... p) {
@@ -169,13 +192,14 @@ public abstract class AbstractAdaptor {
 
     }
 
-    public void installHookJars(ClassLoader webapploader, String loaderName, String uavMofRoot) throws Exception {
-
-        String loaderPath = uavMofRoot + "/com.creditease.uav.appfrk/" + loaderName;
+    public void installJar(ClassLoader webapploader, String jarPath, boolean isEnableInject) throws Exception {
 
         ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
-                new Object[] { new URL("file:///" + loaderPath) }, this.getClass().getClassLoader());
+                new Object[] { new URL("file:///" + jarPath) }, this.getClass().getClassLoader());
 
+        if (isEnableInject) {
+            pool.appendClassPath(jarPath);
+        }
     }
 
     public abstract byte[] onStartup(ClassLoader clsLoader, String uavMofRoot, String className);
