@@ -22,6 +22,7 @@ package com.creditease.agent;
 
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -191,9 +192,21 @@ public class SystemStarter {
                 log.warn(this, "Waiting for network ready: iteration=" + i + ", current IP=" + ipAddr);
             }
             else {
+
                 log.info(this, "Node IP address=" + ipAddr);
 
                 isReady = true;
+
+                StringBuffer ipmsg = new StringBuffer("List NetCardIndex and IP Address:");
+
+                int index = 0;
+
+                for (InetAddress addr : NetworkHelper.getAllIP()) {
+
+                    ipmsg.append("\n").append(index++).append(" ----- ").append(addr.getHostAddress());
+                }
+
+                log.info(this, ipmsg.toString());
 
                 break;
             }

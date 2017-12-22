@@ -1656,8 +1656,11 @@ var mvcObj={
 					/**
 					 * if there is no servlets profiling (may be something wrong), we need use appurl as the main service port
 					 */
-					if (hasPort==false&&obj["appurl"]!=undefined&&obj["appurl"].indexOf("http")>-1) {
+					if (hasPort==false&&obj["appurl"]!=undefined&&obj["appurl"].indexOf("http")==0) {
 						var urlInfo=obj["appurl"].split(":");
+						if (urlInfo.length<3) {
+							return undefined;
+						}
 						var pIndex=urlInfo[2].indexOf("/");
 						var port=urlInfo[2].substring(0,pIndex);
 						var sport=urlInfo[0]+":"+urlInfo[1]+":"+port;
@@ -4589,75 +4592,61 @@ var mvcObj={
 			
             sb.append("<div class=\"kv\"><span class=\"kvField\">服务组件</span><span>：</span>");
             //----------------------MSCP Application-----------------
-            if (jsonObj["cpt.mscp.http"]!=undefined&&jsonObj["cpt.mscp.http"]!="{}") {
-               sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_mscphttp')\">组件[MSCP.Http]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_mscphttp'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.mscp.http",jsonObj,cptservices)+"</div>");
-            }
+            
+            this.buildComponentProfile(sb,jsonObj,"cpt.mscp.http","profile.info.mscphttp","组件[MSCP.Http]",cptservices,"_detail_cpt_mscphttp","cpt_service");
+
             //----------------------Dubbo Application-----------------
-            if (jsonObj["cpt.dubbo.provider"]!=undefined&&jsonObj["cpt.dubbo.provider"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_dubboprovider')\">组件[Dubbo.Provider]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_dubboprovider'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.dubbo.provider",jsonObj,cptservices)+"</div>");
-            }           
+            this.buildComponentProfile(sb,jsonObj,"cpt.dubbo.provider","profile.info.dubboprovider","组件[Dubbo.Provider]",cptservices,"_detail_cpt_dubboprovider","cpt_service");
+
             //----------------------JEE Application---------------------
-            if (jsonObj["cpt.servlets"]!=undefined&&jsonObj["cpt.servlets"]!="{}") {
-               sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_servlets')\">组件[Servlets]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_servlets'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.servlets",jsonObj,cptservices)+"</div>");
-            }
-            
-            if (jsonObj["cpt.jaxws"]!=undefined&&jsonObj["cpt.jaxws"]!="{}") {
-               sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_jaxws')\">组件[JAXWS]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_jaxws'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.jaxws",jsonObj,cptservices)+"</div>");
-            }
-            
-            if (jsonObj["cpt.jaxwsP"]!=undefined&&jsonObj["cpt.jaxwsP"]!="{}") {
-                sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_jaxwsp')\">组件[JAXWSProvider]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_jaxwsp'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.jaxwsP",jsonObj,cptservices)+"</div>");
-            }
-            
-            if (jsonObj["cpt.jaxrs"]!=undefined&&jsonObj["cpt.jaxrs"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_jaxrs')\">组件[JAXRS]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_jaxrs'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.jaxrs",jsonObj,cptservices)+"</div>" );
-            }
-            
-            if (jsonObj["cpt.springmvc"]!=undefined&&jsonObj["cpt.springmvc"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_springmvc')\">组件[SpringMVC]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_springmvc'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.springmvc",jsonObj,cptservices)+"</div>" );
-            }
-            
-            if (jsonObj["cpt.springmvcRest"]!=undefined&&jsonObj["cpt.springmvcRest"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_springmvcRest')\">组件[SpringMVCRest]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_springmvcRest'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.springmvcRest",jsonObj,cptservices)+"</div>" );
-            }
-            
-            if (jsonObj["cpt.struts2"]!=undefined&&jsonObj["cpt.struts2"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_struts2')\">组件[Struts2]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_struts2'>"+this.getAppProfileDetail.cpt_service(jsonObj.id,"cpt.struts2",jsonObj,cptservices)+"</div>" );
-            }
+            this.buildComponentProfile(sb,jsonObj,"cpt.servlets","profile.info.servlet","组件[Servlets]",cptservices,"_detail_cpt_servlets","cpt_service");
+        
+            this.buildComponentProfile(sb,jsonObj,"cpt.jaxws","profile.info.jaxws","组件[JAXWS]",cptservices,"_detail_cpt_jaxws","cpt_service");     
+
+            this.buildComponentProfile(sb,jsonObj,"cpt.jaxwsP","profile.info.jaxwsp","组件[JAXWSProvider]",cptservices,"_detail_cpt_jaxwsp","cpt_service");
+
+            this.buildComponentProfile(sb,jsonObj,"cpt.jaxrs","profile.info.jaxrs","组件[JAXRS]",cptservices,"_detail_cpt_jaxrs","cpt_service");
+
+            this.buildComponentProfile(sb,jsonObj,"cpt.springmvc","profile.info.springmvc","组件[SpringMVC]",cptservices,"_detail_cpt_springmvc","cpt_service");
+
+            this.buildComponentProfile(sb,jsonObj,"cpt.springmvcRest","profile.info.springmvcrest","组件[SpringMVCRest]",cptservices,"_detail_cpt_springmvcRest","cpt_service");
+
+            this.buildComponentProfile(sb,jsonObj,"cpt.struts2","profile.info.struts2","组件[Struts2]",cptservices,"_detail_cpt_struts2","cpt_service");
+
             sb.append("</div>");
             
             sb.append("<div class=\"kv\"><span class=\"kvField\">其他组件</span><span>：</span>");
             
             if (jsonObj["logs.log4j"]!=undefined&&jsonObj["logs.log4j"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_logs')\">日志配置</span><div style='display:none;' id='"+jsonObj.id+"_detail_logs'>"+this.getAppProfileDetail.cpt(jsonObj.id,jsonObj["logs.log4j"])+"</div>");
+            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_logs')\">日志配置</span><div style='display:none;' id='"+jsonObj.id+"_detail_logs'>"+this.getAppProfileDetail.cpt_log(jsonObj.id,jsonObj["logs.log4j"])+"</div>");
             }
-            
-            if (jsonObj["jars.lib"]!=undefined&&jsonObj["jars.lib"]=="@LAZY") {
-            	var obj={appgroup:jsonObj["appgroup"],appurl:jsonObj["o_appurl"],id:jsonObj["id"]};
-            	var objstr=JSON.stringify(obj);
-            	sb.append("<span class=\"componentExpandButton\" onclick='app.controller.getAppProfileDetail.lib("+objstr+");'>类库</span><div style='display:none;' id='"+jsonObj.id+"_detail_lib'></div>");
-            }
+            this.buildComponentProfile(sb,jsonObj,"jars.lib","","类库","","_detail_lib","lib")
+
             
             //---------------------MSCP Application---------------
-            if (jsonObj["cpt.mscp.timework"]!=undefined&&jsonObj["cpt.mscp.timework"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_mscptimework')\">组件[MSCP.TimeWork]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_mscptimework'>"+this.getAppProfileDetail.cpt(jsonObj.id,jsonObj["cpt.mscp.timework"])+"</div>");
-            }
-            
+            this.buildComponentProfile(sb,jsonObj,"cpt.mscp.timework","profile.info.mscptimeworker","组件[MSCP.TimeWork]","","_detail_cpt_mscptimework","cpt")
+
             //---------------------JEE Application--------------------
-            if (jsonObj["cpt.filters"]!=undefined&&jsonObj["cpt.filters"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_filters')\">组件[Filters]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_filters'>"+this.getAppProfileDetail.cpt(jsonObj.id,jsonObj["cpt.filters"])+"</div>");
-            }
-            
-            if (jsonObj["cpt.listeners"]!=undefined&&jsonObj["cpt.listeners"]!="{}") {
-            	sb.append("<span class=\"componentExpandButton\" onclick=\"app.controller.openClose('"+jsonObj.id+"_detail_cpt_listeners')\">组件[Listeners]</span><div style='display:none;' id='"+jsonObj.id+"_detail_cpt_listeners'>"+this.getAppProfileDetail.cpt(jsonObj.id,jsonObj["cpt.listeners"])+"</div>");
-            }
-            
+            this.buildComponentProfile(sb,jsonObj,"cpt.filters","profile.info.filter","组件[Filters]","","_detail_cpt_filters","cpt")
+
+            this.buildComponentProfile(sb,jsonObj,"cpt.listeners","profile.info.listener","组件[Listeners]","","_detail_cpt_listeners","cpt")
+
             sb.append("</div>");
             
             
             
             sb.append("</div>");
 			return sb.toString();
+		},
+		//build component element
+		buildComponentProfile:function(sb,jsonObj,key,targetStr,titleStr,cptservices,detailStr,methodName){
+			 if (jsonObj[key]!=undefined&&jsonObj[key]=="@LAZY") {
+	                
+	            	var obj={appgroup:jsonObj["appgroup"],appurl:jsonObj["o_appurl"],id:jsonObj["id"],target:targetStr,title:titleStr,cpt:cptservices,detail:detailStr};
+	            	var objstr=JSON.stringify(obj);
+	            	sb.append("<span class=\"componentExpandButton\" onclick='app.controller.getAppProfileDetail."+methodName+"("+objstr+");'>"+titleStr+"</span><div style='display:none;' id='"+jsonObj.id+detailStr+"'></div>");
+	            	
+	         }
 		},
 		getAppProfileDetail:{
 			//----------------------fields--------------------
@@ -4764,7 +4753,7 @@ var mvcObj={
 					return "<div class='componentFTab'>"+val+"</div>";
 				}
 			},
-			//-----------------------public-----------------------
+			//-----------------------public-----------------------						
 			//show log config
 			log:function(d) {
 				var logs=eval("("+d+")");
@@ -4798,29 +4787,78 @@ var mvcObj={
 				}
 			},
 			//服务组件显示
-			cpt_service:function(appinstId,type,d,cptservices) {
-				var cpt=eval("("+d[type]+")");
-				var sb=new StringBuffer();
+			cpt_service:function(objstr) {
 				
-				for (var key in cpt) {
-					sb.append("<div class='componentName'>"+key+"</div>");
-					sb.append("<div class='componentTab'>");
-					sb.append("<div class='componentTabHead' onclick=\"app.controller.openClose('"+appinstId+"-"+key+"_urls')\">服务URL</div>");
-					sb.append("<div id='"+appinstId+"-"+key+"_urls' class='componentFTab' style='display:none;'>");
-					sb.append(this.buildServiceURLs(key,cptservices));
-					sb.append("</div>");
-					sb.append("</div>");
-					sb.append("<div class='componentTab'>");
-					sb.append("<div class='componentTabHead' onclick=\"app.controller.openClose('"+appinstId+"-"+key+"_profile')\">服务画像</div>");
-					var vals=cpt[key];
-					sb.append("<div id='"+appinstId+"-"+key+"_profile' class='componentFTab' style='display:none;'>"+this.buildCptItem(vals)+"</div>");
-					sb.append("</div>");
+				var isDisplay=app.controller.openClose(objstr.id+objstr.detail);
+
+				var detailCtn=HtmlHelper.id(objstr.id+objstr.detail);
+				
+				if (isDisplay==true&&detailCtn.innerHTML=="") {
+					var libkey=objstr["appgroup"]+"@"+objstr["appurl"];
+					var target=objstr.target;
+					this.callAppDetail(target, libkey, function(result) {
+						
+						try {
+							var detail=eval("("+result+")");
+							
+							var libs=eval("("+detail[libkey]+")");
+							
+							var sb=new StringBuffer();
+							for(var key in libs) {
+								sb.append("<div class='componentName'>"+key+"</div>");
+								sb.append("<div class='componentTab'>");
+								sb.append("<div class='componentTabHead' onclick=\"app.controller.openClose('"+objstr.id+"-"+key+"_urls')\">服务URL</div>");
+								sb.append("<div id='"+objstr.id+"-"+key+"_urls' class='componentFTab' style='display:none;'>");
+								sb.append(app.controller.getAppProfileDetail.buildServiceURLs(key,objstr.cpt));
+								sb.append("</div>");
+								sb.append("</div>");
+								sb.append("<div class='componentTab'>");
+								sb.append("<div class='componentTabHead' onclick=\"app.controller.openClose('"+objstr.id+"-"+key+"_profile')\">服务画像</div>");
+								var vals=libs[key];
+								sb.append("<div id='"+objstr.id+"-"+key+"_profile' class='componentFTab' style='display:none;'>"+app.controller.getAppProfileDetail.buildCptItem(vals)+"</div>");
+								sb.append("</div>");
+							}
+							detailCtn.innerHTML=sb.toString();
+						}catch(e) {
+							detailCtn.innerHTML="加载"+objstr.title+"失败："+e;
+						}
+					});
 				}
-				
-				return sb.toString();
 			},
+			
 			//其他组件显示
-			cpt:function(appinstId,d) {
+			cpt:function(objstr) {
+				
+				var isDisplay=app.controller.openClose(objstr.id+objstr.detail);
+					detailCtn=HtmlHelper.id(objstr.id+objstr.detail);
+			
+				if (isDisplay==true&&detailCtn.innerHTML=="") {
+					var libkey=objstr["appgroup"]+"@"+objstr["appurl"];
+					var target=objstr.target;
+					this.callAppDetail(target, libkey, function(result) {
+						
+						try {
+							var detail=eval("("+result+")");
+							
+							var libs=eval("("+detail[libkey]+")");
+							
+							var sb=new StringBuffer();
+							for(var key in libs) {
+								sb.append("<div class='componentName'>"+key+"</div>");
+								sb.append("<div class='componentTab'>");
+								sb.append("<div class='componentTabHead' onclick=\"app.controller.openClose('"+objstr.id+"-"+key+"_profile')\">组件画像</div>");
+								var vals=libs[key];
+								sb.append("<div id='"+objstr.id+"-"+key+"_profile' class='componentFTab' style='display:none;'>"+app.controller.getAppProfileDetail.buildCptItem(vals)+"</div>");
+								sb.append("</div>");
+							}
+							detailCtn.innerHTML=sb.toString();
+						}catch(e) {
+							detailCtn.innerHTML="加载"+objstr.title+"失败："+e;
+						}
+					});
+				}
+			},
+			cpt_log:function(appinstId,d) {
 				
 				var cpt=eval("("+d+")");
 				var sb=new StringBuffer();

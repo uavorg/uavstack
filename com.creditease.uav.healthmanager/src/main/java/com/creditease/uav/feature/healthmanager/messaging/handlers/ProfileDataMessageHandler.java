@@ -44,6 +44,56 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler implements
 
     private CacheManager cm;
 
+    private static List<Map<String, String>> profileMsgList = new ArrayList<>();
+
+    static {
+        // jarlib
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_JARLIB, "jars", "lib");
+        // dubboprovider
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_DUBBOPROVIDER, "cpt",
+                "com.alibaba.dubbo.config.spring.ServiceBean");
+        // mscphttp
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_MSCPHTTP, "cpt",
+                "com.creditease.agent.spi.AbstractBaseHttpServComponent");
+        // mscptimeworker
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_MSCPTIMEWORKER, "cpt",
+                "com.creditease.agent.spi.AbstractTimerWork");
+        // filter
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_FILTER, "cpt",
+                "javax.servlet.annotation.WebFilter");
+        // listener
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_LISTENER, "cpt",
+                "javax.servlet.annotation.WebListener");
+        // servlet
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_SERVLET, "cpt",
+                "javax.servlet.annotation.WebServlet");
+        // jaxws
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_JAXWS, "cpt", "javax.jws.WebService");
+        // jaxwsp
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_JAXWSP, "cpt",
+                "javax.xml.ws.WebServiceProvider");
+        // jaxrs
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_JAXRS, "cpt", "javax.ws.rs.Path");
+        // springmvc
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_SPRINGMVC, "cpt",
+                "org.springframework.stereotype.Controller");
+        // springmvcrest
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_SPRINGMVCREST, "cpt",
+                "org.springframework.web.bind.annotation.RestController");
+        // struts2
+        addProfileMsgList(HealthManagerConstants.STORE_KEY_PROFILEINFO_STRUTS2, "cpt",
+                "com.opensymphony.xwork2.Action");
+    }
+
+    private static void addProfileMsgList(String key, String elemId, String instanceId) {
+
+        Map<String, String> map = new HashMap<>();
+        map.put("key", key);
+        map.put("elemId", elemId);
+        map.put("instanceId", instanceId);
+        profileMsgList.add(map);
+    }
+
     public ProfileDataMessageHandler() {
         /**
          * start Caching Process
@@ -172,12 +222,6 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler implements
             Map<String, Object> appProfile) {
 
         /**
-         * NOTE:独立存储，延迟加载
-         */
-        Map<String, Object> libs = mdf.getElemInstValues(appid, "jars", "lib");
-        String jarLib = JSONHelper.toString(libs);
-
-        /**
          * use appgroup + appurl as the cache key, then we can get profile data by appgroup
          */
         String fieldKey = appgroup + "@" + appurl;
@@ -186,10 +230,23 @@ public class ProfileDataMessageHandler extends AbstractMessageHandler implements
                 JSONHelper.toString(appProfile));
 
         /**
-         * NOTE: 独立存储类库，这样可以减少profile的数据量，提升加载速度，需要读取类库时再读取
+         * NOTE: 独立存储profile各组件详细信息，这样可以减少profile的数据量，提升加载速度，需要读取组件详细信息时再读取
          */
-        cm.putHash(HealthManagerConstants.STORE_REGION_UAV, HealthManagerConstants.STORE_KEY_PROFILEINFO_JARLIB,
-                fieldKey, jarLib);
+
+        for (Map<String, String> map : profileMsgList) {
+
+            String elemId = map.get("elemId");
+            String instanceId = map.get("instanceId");
+
+            Map<String, Object> comps = mdf.getElemInstValues(appid, elemId, instanceId);
+
+            if (comps != null && comps.size() > 0) {
+                String key = map.get("key");
+                String compStr = JSONHelper.toString(comps);
+
+                cm.putHash(HealthManagerConstants.STORE_REGION_UAV, key, fieldKey, compStr);
+            }
+        }
 
     }
 
