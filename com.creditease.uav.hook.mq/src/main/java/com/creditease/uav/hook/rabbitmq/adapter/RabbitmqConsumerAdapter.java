@@ -71,6 +71,14 @@ public class RabbitmqConsumerAdapter extends InvokeChainAdapter {
             }
             String url = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL);
             Span span = this.spanFactory.getSpanFromContext(url);
+
+            if (span == null || span.getEndpointInfo() == null) {
+                if (logger.isDebugable()) {
+                    logger.debug("Span of context is null, url=" + url, null);
+                }
+                return;
+            }
+
             Object params[] = { span, slowOperContext };
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
                     span.getEndpointInfo().split(",")[0], InvokeChainConstants.CapturePhase.PRECAP, context, params);
@@ -91,6 +99,13 @@ public class RabbitmqConsumerAdapter extends InvokeChainAdapter {
 
             String url = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL);
             Span span = this.spanFactory.getRemoveSpanFromContext(url);
+
+            if (span == null || span.getEndpointInfo() == null) {
+                if (logger.isDebugable()) {
+                    logger.debug("Span of context is null, url=" + url, null);
+                }
+                return;
+            }
 
             Object params[] = { span };
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
