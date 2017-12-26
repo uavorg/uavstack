@@ -376,6 +376,7 @@ public class RuleFilterFactory {
 
     public void pubLogFilterAndRule(String id, LogFilterAndRule lfar) {
 
+        // 保证路径不存在多余的'/'等
         id = new File(id).getAbsolutePath();
 
         logcollection.put(id, lfar);
