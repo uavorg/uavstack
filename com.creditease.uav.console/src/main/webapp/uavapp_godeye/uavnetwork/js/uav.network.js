@@ -1909,7 +1909,19 @@ var mvcObj={
 		    			 var free="<span class='kvSubValue'>"+CommonHelper.getKB2Human(disk[path]["free"],true)+"</span>";
 		    			 var use="<span class='kvSubValue'>"+CommonHelper.getKB2Human(disk[path]["use"],true)+"</span>";
 		    			 var useRate="<span class='kvSubValue'>"+disk[path]["useRate"]+"</span>";
-		    			 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+path+"</span>"+":&nbsp;使用率"+useRate+",&nbsp;使用量"+use+",&nbsp;剩余量"+free+",&nbsp;总量"+total+"</div>");
+		    			 
+		    			 if(disk[path]["totalInode"]!=undefined){
+		    				 //linux
+		    				 var totalInode="<span class='kvSubValue'>"+disk[path]["totalInode"]+"</span>";
+			    			 var useInode="<span class='kvSubValue'>"+disk[path]["useInode"]+"</span>";
+			    			 var freeInode="<span class='kvSubValue'>"+disk[path]["freeInode"]+"</span>";
+			    			 var useRateInode="<span class='kvSubValue'>"+disk[path]["useRateInode"]+"</span>";
+		    				 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+path+"</span>"+":&nbsp;使用率"+useRate+",&nbsp;使用量"+use+",&nbsp;剩余量"+free+",&nbsp;总量"+total+";&nbsp;&nbsp;&nbsp;inode使用率"+useRateInode+",&nbsp;inode使用量"+useInode+",&nbsp;inode剩余量"+freeInode+",&nbsp;inode总量"+totalInode+"</div>");
+		    				  }
+		    			 else{
+		    				 //windows
+		    				 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+path+"</span>"+":&nbsp;使用率"+useRate+",&nbsp;使用量"+use+",&nbsp;剩余量"+free+",&nbsp;总量"+total+"</div>");		 
+		    			 }
 	    			}
 	    		 }
 	    		 
