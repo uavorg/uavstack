@@ -130,7 +130,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
     private static final String CRASH_PROCS_DETAIL = "rtnotify.dead.procs.detail";
     private static final long LOCK_TIMEOUT = 30 * 1000;
     private static final long DEFAULT_CRASH_TIMEOUT = 5 * 60 * 1000;
-    private static final long MIN_RANDOM_port = 32768;
+    private static final long MIN_RANDOM_PORT = 32768;
 
     private CacheManager cm;
     private CacheLock lock;
@@ -325,7 +325,6 @@ public class NodeInfoWatcher extends AbstractTimerWork {
                 String[] procKeyArray = procKey.split("_", -1);
                 String ip = procKeyArray[0];
                 String name = procKeyArray[1];
-                List<String> ports = new ArrayList<String>(Arrays.asList(procKeyArray[2].split(":")));
 
                 if (procKeyArray[2].equals("")) {
                     // 不存在固定端口的进程
@@ -335,6 +334,8 @@ public class NodeInfoWatcher extends AbstractTimerWork {
                     }
                     continue;
                 }
+
+                List<String> ports = new ArrayList<String>(Arrays.asList(procKeyArray[2].split("#")));
 
                 boolean hasNewProc = false;
                 // 存在固定端口的进程，判断是否有ip、name相同但固定端口不完全相同的进程
@@ -591,10 +592,17 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         StringBuilder psb = new StringBuilder();
         @SuppressWarnings("unchecked")
         List<String> ports = (List<String>) m.get("ports");
+        // 对端口排序，保证端口不变时key相同
         Collections.sort(ports);
         for (String port : ports) {
-            if (Integer.parseInt(port) < MIN_RANDOM_port) {// 过滤随机端口
-                psb.append(port).append(":");
+            String portKey = port;
+            // 考虑Container拼接的端口为ip:port的形式
+            if (port.contains(":")) {
+                port = port.split(":", -1)[1];
+            }
+
+            if (Integer.parseInt(port) < MIN_RANDOM_PORT) {// 过滤随机端口
+                psb.append(portKey).append("#");
             }
         }
 
@@ -635,7 +643,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             Map<String, Object> dv = (Map<String, Object>) disk.get(dk);
             for (String dvk : dv.keySet()) {
                 String dvv = dv.get(dvk).toString();
-                if ("useRate".equals(dvk)) {
+                if ("useRate".equals(dvk) || "useRateInode".equals(dvk)) {
                     dvv = dvv.replace("%", ""); // cut '%'
                 }
                 infoMap.put("os.io.disk" + pk + dvk, dvv);
