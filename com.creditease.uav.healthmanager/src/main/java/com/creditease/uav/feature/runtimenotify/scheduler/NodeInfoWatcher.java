@@ -643,7 +643,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             Map<String, Object> dv = (Map<String, Object>) disk.get(dk);
             for (String dvk : dv.keySet()) {
                 String dvv = dv.get(dvk).toString();
-                if ("useRate".equals(dvk) || "useRateInode".equals(dvk)) {
+                if ("useRate".equals(dvk)) {
                     dvv = dvv.replace("%", ""); // cut '%'
                 }
                 infoMap.put("os.io.disk" + pk + dvk, dvv);
