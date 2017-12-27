@@ -46,8 +46,6 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
 
     protected DynamicProxyInstaller dpInstall;
 
-    private boolean isInit = false;
-
     @SuppressWarnings("rawtypes")
     public DBCPHookProxy(String id, Map config) {
         super(id, config);
@@ -62,6 +60,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
 
         Event event = context.get(Event.class);
         switch (event) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_RESOURCE_INIT:
             case WEBCONTAINER_INIT:
                 InsertInterceptToClients(context, webapploader);
@@ -93,16 +92,15 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
      */
     private void InsertInterceptToClients(HookContext context, ClassLoader webapploader) {
 
+        if (isHookEventDone("InsertInterceptToClients")) {
+            return;
+        }
+
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
         String basePath = (String) ic.get(InterceptConstants.BASEPATH);
         appid = MonitorServerUtil.getApplicationId(contextPath, basePath);
 
-        if (isInit == true) {
-            return;
-        }
-
-        isInit = true;
         /**
          * set the webapploader is the target classloader
          */

@@ -21,8 +21,6 @@
 package com.creditease.uav.apm.supporters;
 
 import java.io.File;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.DateTimeHelper;
@@ -40,18 +38,16 @@ public class ThreadAnalysisSupporter extends Supporter {
 
     private UAVMonitor monitor = new UAVMonitor(logger, 60000);
 
-    // 执行时间map,key为进程号，value为执行时间；用于判断在限定时间段内不需要发起多次请求
-    private volatile Map<String, Long> timeIntervalMap = new ConcurrentHashMap<String, Long>();
+    private static final String SUPPORTED_METHOD = "captureJavaThreadAnalysis";
+
+    private static Object lock = new Object();
+    private static final long FROZON_TIME_LIMIT = 1000L;
+    private static volatile long lastInvokeTime = System.currentTimeMillis();
 
     private final String SYMBOL = "_";
-    private int timeInterval = 60000;
 
     @Override
     public void start() {
-
-        // 从配置文件中获取限定时间段，没有使用默认值
-        timeInterval = DataConvertHelper.toInt(System.getProperty("com.creditease.uav.threadanalysis.timeinterval"),
-                60000);
 
     }
 
@@ -64,51 +60,42 @@ public class ThreadAnalysisSupporter extends Supporter {
     @Override
     public Object run(String methodName, Object... params) {
 
-        if (!"captureJavaThreadAnalysis".equals(methodName) || null == params || params.length < 4) {
+        long now = System.currentTimeMillis();
 
-            return "ERR:METHOD NOT SUPPORT";
+        /**
+         * concurrency control
+         */
+        long lastTime = lastInvokeTime;
+        lastInvokeTime = now;
+        if (now + FROZON_TIME_LIMIT < lastTime) {
+            return "ERR:BE RUNNING";
         }
-        return captureJavaThreadAnalysis(params);
+
+        // valid arguments
+        if (!SUPPORTED_METHOD.equals(methodName) || params == null || params.length < 4) {
+            return "ERR:ILLEGAL ARGUMENT";
+        }
+
+        Object ret = captureJavaThreadAnalysis(params);
+
+        lastInvokeTime = now;
+        monitor.logPerf(now, "THREAD_ANALYSIS");
+        return ret;
     }
 
     private Object captureJavaThreadAnalysis(Object... params) {
 
-        /**
-         * TODO： window系统不支持线程分析功能，以后再做适配
-         *
-         */
-        if (JVMToolHelper.isWindows() == true) {
-            return "ERR:NOT SUPPORT WINDOWNS";
-        }
-
-        long stTime = System.currentTimeMillis();
-
-        // 获取java_home路径
-        String javahome = System.getProperty("java.home");
-        // 路径是否由“/”结束，没有则添加
-        if (!javahome.endsWith("/")) {
-            javahome = javahome + "/";
-        }
-        // 获取java_home bin的路径
-        final String jdk_binpath = javahome + "../bin";
-        // 如果没有获取到java_home，返回结果
-        if (!IOHelper.exists(jdk_binpath)) {
-            return "ERR:NO JDK";
-        }
-
         // 进程号
         String pid = (String) params[0];
-        // 如果没有传入线程分析的进程号，取当前MOF所在程序的PID
         if (StringHelper.isEmpty(pid)) {
+            // 如果没有传入线程分析的进程号，取当前MOF所在程序的PID
             pid = JVMToolHelper.getCurrentProcId();
-            // return "ERR:NO PID";
         }
-        // 执行时间(从请求端获取)，传递long型字符串，然后转化成long型
-        Long exectime = DataConvertHelper.toLong(params[1], -1);
-        // 如果时间值不对，则取MOF所在系统的当前时间
-        if (-1 == exectime) {
-            exectime = System.currentTimeMillis();
-            // return "ERR:EXECTIME ERROR";
+
+        // 执行时间戳(从请求端获取)
+        long execTime = DataConvertHelper.toLong(params[1], -1);
+        if (execTime == -1) {
+            execTime = System.currentTimeMillis();
         }
 
         // IP地址如果没传，则获取MOF所在系统的IP
@@ -116,8 +103,6 @@ public class ThreadAnalysisSupporter extends Supporter {
         if (StringHelper.isEmpty(ip)) {
             ip = NetworkHelper.getLocalIP();
         }
-        // 端口号
-        String port = UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_LISTEN_PORT) + "";
 
         // 文件路径
         String fileBase = (String) params[3];
@@ -125,9 +110,24 @@ public class ThreadAnalysisSupporter extends Supporter {
             return "ERR:NO STORE FILE BASE";
         }
 
-        // 并发控制
-        if (!controlConcurrency(pid, exectime)) {
-            return "ERR:IS RUNNING";
+        // 端口号
+        String port = UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_LISTEN_PORT) + "";
+
+        String jdkBinPath = getJdkBinPath();
+        if (!IOHelper.exists(jdkBinPath)) {
+            // 如果没有获取到java_home，返回结果
+            return "ERR:NO JDK";
+        }
+
+        if (!checkDirPermission(fileBase)) {
+            return "ERR:FILE PERMISSION DENIED";
+        }
+
+        if (JVMToolHelper.isWindows()) {
+            /**
+             * TODO： window系统不支持线程分析功能，以后再做适配
+             */
+            return "ERR:NOT SUPPORT WINDOWNS";
         }
 
         // 生成线程分析文件即将开始运行，在日志中记录开始运行记录
@@ -135,22 +135,20 @@ public class ThreadAnalysisSupporter extends Supporter {
             logger.debug("RUN Java Thread Analysis START: pid=" + pid, null);
         }
 
-        if (!checkDirPermission(fileBase)) {
-            return "ERR:FILE PERMISSION DENIED";
-        }
-
-        String dateTime = DateTimeHelper.toFormat("yyyy-MM-dd_HH-mm-ss.SSS", exectime);
+        String dateTime = DateTimeHelper.toFormat("yyyy-MM-dd_HH-mm-ss.SSS", execTime);
         // 规定线程分析结果文件名
         String name = ip + SYMBOL + port + SYMBOL + dateTime + ".log";
         String file = fileBase + "/" + name;
-        
+
         // 生成线程分析结果文件需要执行的命令
-        String cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jdk_binpath
+        String cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jdkBinPath
                 + "/jstack " + pid + " >>  " + file;
 
         try {
-            // 执行命令
-            RuntimeHelper.exec(10000, "/bin/sh", "-c", cmd);
+            synchronized (lock) {
+                // 执行命令
+                RuntimeHelper.exec(10000, "/bin/sh", "-c", cmd);
+            }
         }
         catch (Exception e) {
             logger.warn("RUN Java Thread Analysis FAIL: ", e);
@@ -168,42 +166,8 @@ public class ThreadAnalysisSupporter extends Supporter {
             return "ERR:FILE PERMISSION DENIED";
         }
 
-        monitor.logPerf(stTime, "THREAD_ANALYSIS");
         return file;
 
-    }
-
-    /**
-     * controlConcurrency
-     * 
-     * @param pid
-     * @param exectime
-     * @return
-     */
-    private boolean controlConcurrency(String pid, Long exectime) {
-
-        // initial
-        if (!timeIntervalMap.containsKey(pid)) {
-            synchronized (timeIntervalMap) {
-                if (!timeIntervalMap.containsKey(pid)) {
-                    // 在exectimeMap记录进程号和执行时间
-                    timeIntervalMap.put(pid, exectime);
-                    return true;
-                }
-            }
-        }
-        // only one can entrance
-        if ((exectime - timeIntervalMap.get(pid)) > timeInterval) {
-            synchronized (timeIntervalMap) {
-                if ((exectime - timeIntervalMap.get(pid)) > timeInterval) {
-                    // 在exectimeMap记录进程号和执行时间
-                    timeIntervalMap.put(pid, exectime);
-                    return true;
-                }
-            }
-        }
-        // thread analysis is running, abandon
-        return false;
     }
 
     /**
@@ -243,5 +207,17 @@ public class ThreadAnalysisSupporter extends Supporter {
         catch (Exception e) {
             return false;
         }
+    }
+
+    private String getJdkBinPath() {
+
+        // 获取java_home路径
+        String javahome = System.getProperty("java.home");
+        // 路径是否由“/”结束，没有则添加
+        if (!javahome.endsWith("/")) {
+            javahome = javahome + "/";
+        }
+        // 获取java_home bin的路径
+        return javahome + "../bin";
     }
 }

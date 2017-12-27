@@ -57,10 +57,15 @@ public class ClientSpanInvokeChainHandler extends InvokeChainCapHandler {
         /**
          * Step 3: get client invoke context info: such as Class, Method, URL
          */
-        int level = Integer.parseInt(String.valueOf(context.get(InvokeChainConstants.CLIENT_IT_KEY)));
-        String clazz = String.valueOf(context.get(InvokeChainConstants.CLIENT_IT_CLASS));
+        try {
+            int level = Integer.parseInt(String.valueOf(context.get(InvokeChainConstants.CLIENT_IT_KEY)));
+            String clazz = String.valueOf(context.get(InvokeChainConstants.CLIENT_IT_CLASS));
 
-        setCallerThreadInfo(span, level, clazz);
+            setCallerThreadInfo(span, level, clazz);
+        }
+        catch (Exception e) {
+            // ignore
+        }
 
         String url = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_URL);
         span.setUrl(url);
@@ -94,10 +99,12 @@ public class ClientSpanInvokeChainHandler extends InvokeChainCapHandler {
             // in async thread
             span = (Span) context.get(InvokeChainConstants.PARAM_SPAN_KEY);
         }
-        context.put(InvokeChainConstants.PARAM_SPAN_KEY, span);
+
         if (span == null) {
             return;
         }
+
+        context.put(InvokeChainConstants.PARAM_SPAN_KEY, span);
 
         String appid = (String) context.get(CaptureConstants.INFO_CLIENT_APPID);
 

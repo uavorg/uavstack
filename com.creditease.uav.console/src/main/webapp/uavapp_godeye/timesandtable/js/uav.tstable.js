@@ -82,6 +82,44 @@ IndexData = {
 			"old_max" : "最大老生代"
 		}
 	},
+	
+	host : {
+		"hostIoDisk" : {
+			"io.disk" :"磁盘使用"
+		},
+		"hostSys" : {
+			"conn.cur" :"系统服务连接数",
+			"cpu.avgload" : "系统cpu平均占用百分比",
+			"cpu.freemem" :"系统空闲内存",
+			"cpu.load" :"系统cpu占用百分比",
+		    "cpu.maxmem" :"系统最大内存"
+		},				
+	},
+	
+	
+	proc : {
+		"procConn" : {
+			"conn" :"进程连接数",
+			"conn_port" :"进程端口连接数"
+				
+		},
+		"procCpuMem" : {
+			"mem" : "进程占用内存",
+			"memRate" :"进程内存占用百分比",
+			"cpu" :"进程占用cpu百分比",
+		},
+		"procIo" : {
+			"in" :"进程入口流量",
+			"out" :"进程出口流量",
+			"in_port" :"进程端口入口流量",
+			"out_port" :"进程端口出口流量",
+		},	
+		"procDisk" : {
+			"disk_read" :"进程读磁盘速度",
+			"disk_write" :"进程写磁盘速度",
+		},
+	},
+	
 	groupDesc : {
 		"jeeRTC" : "响应时间(ms)",
 		"jeeQPS" : "访问计数",
@@ -95,7 +133,13 @@ IndexData = {
 		"jvmCode" : "Code-代码缓存使用(MB)",
 		"jvmEden" : "Eden使用(MB)",
 		"jvmSurv" : "Surv使用(MB)",
-		"jvmOld" : "Old-老生代使用(MB)"
+		"jvmOld" : "Old-老生代使用(MB)",
+		"hostIoDisk" : "容器磁盘信息" , 
+		"hostSys":"容器系统信息" ,
+		"procConn" : "进程连接数", 
+		"procCpuMem" : "进程CPU与内存", 
+		"procIo" : "进程出入口流量", 
+		"procDisk" : "进程读写磁盘速度" 
 	}
 };
 /**
@@ -463,6 +507,84 @@ var Appmetrics_ChartCfg={
 		//indexData:{"SERVICE_SMS_SEND_WILL_REAL_NUM":"title"} 使用者赋值
 //	    , //动态配置，后续的都如此，见showChartByFilterMontiorData
 	};
+
+//容器指标
+var hostSys_ChartCfg={
+		id:"hostSys_ChartCfg",
+		type:"stock",
+		cid:"",
+		title:IndexData.groupDesc["hostSys"],
+		indexType:"hostSys",
+		titleAlign:"left",
+		width:"auto",   //一般是数字，使用auto代表可以随着容器cid，改变宽度
+		height:300,
+		turbothreshold:maxThreshold, 
+		indexData:IndexData.host["hostSys"]
+	};
+
+var hostIoDisk_ChartCfg={
+		id:"hostIoDisk_ChartCfg",
+		type:"stock",
+		cid:"",
+		title:IndexData.groupDesc["hostIoDisk"],
+		indexType:"hostIoDisk",
+		titleAlign:"left",
+		width:"auto",   //一般是数字，使用auto代表可以随着容器cid，改变宽度
+		height:300,
+		turbothreshold:maxThreshold, 
+		indexData:IndexData.host["hostIoDisk"]
+	};
+
+//进程指标
+var procConn_ChartCfg={
+		id:"procConn_ChartCfg",
+		type:"stock",
+		cid:"",
+		title:IndexData.groupDesc["procConn"],
+		indexType:"procConn",
+		titleAlign:"left",
+		width:"auto",   //一般是数字，使用auto代表可以随着容器cid，改变宽度
+		height:300,
+		turbothreshold:maxThreshold, 
+		indexData:IndexData.proc["procConn"]
+	};
+var procCpuMem_ChartCfg={
+		id:"procCpuMem_ChartCfg",
+		type:"stock",
+		cid:"",
+		title:IndexData.groupDesc["procCpuMem"],
+		indexType:"procCpuMem",
+		titleAlign:"left",
+		width:"auto",   //一般是数字，使用auto代表可以随着容器cid，改变宽度
+		height:300,
+		turbothreshold:maxThreshold, 
+		indexData:IndexData.proc["procCpuMem"]
+	};
+var procIo_ChartCfg={
+		id:"procIo_ChartCfg",
+		type:"stock",
+		cid:"",
+		title:IndexData.groupDesc["procIo"],
+		indexType:"procIo",
+		titleAlign:"left",
+		width:"auto",   //一般是数字，使用auto代表可以随着容器cid，改变宽度
+		height:300,
+		turbothreshold:maxThreshold, 
+		indexData:IndexData.proc["procIo"]
+	};
+var procDisk_ChartCfg={
+		id:"procDisk_ChartCfg",
+		type:"stock",
+		cid:"",
+		title:IndexData.groupDesc["procDisk"],
+		indexType:"procDisk",
+		titleAlign:"left",
+		width:"auto",   //一般是数字，使用auto代表可以随着容器cid，改变宽度
+		height:300,
+		turbothreshold:maxThreshold, 
+		indexData:IndexData.proc["procDisk"]
+	};
+
 /**
  * 列表配置
  */
@@ -489,7 +611,7 @@ var listConfig = {
 	}
 };
 var listObj= new AppHubTable(listConfig);
-var profileData,montiorData,urlMoData;
+var profileData,montiorData,urlMoData,nodeData,procInstid;
 /**
  * TODO 当前功能操作类
  */
@@ -537,6 +659,9 @@ var PageClass = {
 					loadAppChartData();
 					loadJvmChartData();
 					loadServiceChartData();
+					
+					loadHostChartData();
+					loadProcChartData();
 					loadAppmetricsChartData();
 					/*
 					 * 服务端组件ULR 、 客户端组件URL 不在这显示，由用户点击触发
@@ -549,6 +674,35 @@ var PageClass = {
 			});
 		}
 	},
+  
+	ajaxGNodeInfoByIp:function(appUrl) {
+		var ip = getIpByAppurl(appUrl);
+		console.log("ajaxGMonitor request->\r\n",ip);
+		AjaxHelper.call({
+			url : "../../rs/godeye/node/q/cache",
+			data : {"fkey" : "ip","fvalue" : ip},
+			async : true,
+			cache : false,
+			type : "GET",
+			dataType : "html",
+			success : function(result) {
+				if(result){
+					console.log("ajaxGNodeInfoByIp response->\r\n",result);
+					nodeData = eval("(" + result + ")");
+					nodeData = eval("(" + nodeData["rs"] + ")");
+					
+					loadRowDiv(appUrl);
+					
+				}else{
+					console.log("result is empty");
+				}
+			},
+			error : function(result) {
+				console.log(result);
+			}
+		  });
+},
+  
 	searchbtnLoadListData:function(inputReset,pageReset) {
 		//用户输入值保存，只有按下查询按钮才会有效。因此用一个隐藏input保存有效值
 		var inputValue = $("#inputValue").val();
@@ -625,7 +779,7 @@ var PageClass = {
 	},
 	
 	
-	
+
 	getMontiorReq:function(){
 		/**
 		 * 时间 计算/格式化 
@@ -687,7 +841,6 @@ var PageClass = {
 		var appid=$("#appidInput").val();
 		var isJse = appurl.indexOf("http:") == -1?true:false;
 		
-		
 		//opentsdb 语法
 		var sample;
 		switch(timeCompany){
@@ -711,6 +864,33 @@ var PageClass = {
 			};
 			
 			queries = this.appendSelectInfo("appServerJvm",data,queries);
+			
+			//容器 选择指标获取
+			var hostTag = {
+					"instid":this.encodeForOpenTSDB(ip)
+					
+			}
+			var hostData = {
+					 "aggregator":"avg",
+					 "downsample":sample,
+					 "metric":"hostState.os.",
+					 "tags":hostTag
+			};
+			
+			queries = this.appendSelectInfo("HostEntity",hostData,queries);
+
+			//进程 选择指标获取
+			var procTag = {
+				"instid":this.encodeForOpenTSDB(procInstid)
+			}
+			var procData = {
+					 "aggregator":"avg",
+					 "downsample":sample,
+					 "metric":"procState.",
+					 "tags":procTag
+			};
+			
+			queries = this.appendSelectInfo("ProcEntity",procData,queries);
 			
 		}else{
 			//应用实例  选择指标获取
@@ -756,6 +936,34 @@ var PageClass = {
 					 "tags":appSJvmTag
 			};
 			queries = this.appendSelectInfo("appServerJvm",appSJvmData,queries);
+			
+			//容器 选择指标获取
+			var hostTag = {
+					"instid":this.encodeForOpenTSDB(ip)
+										
+			}
+			var hostData = {
+					 "aggregator":"avg",
+					 "downsample":sample,
+					 "metric":"hostState.os.",
+					 "tags":hostTag
+			};
+			
+			queries = this.appendSelectInfo("HostEntity",hostData,queries);
+			
+			//进程选择指标获取
+			var procTag = {
+					"instid":this.encodeForOpenTSDB(procInstid)
+					
+			}
+			var procData = {
+					 "aggregator":"avg",
+					 "downsample":sample,
+					 "metric":"procState.",
+					 "tags":procTag
+			};
+			
+			queries = this.appendSelectInfo("ProcEntity",procData,queries);	
 				
 			/**
 			 * 组件URL指标
@@ -804,8 +1012,7 @@ var PageClass = {
 			});
 		
 		}
-		
-		
+			
 		/**
 		 * 客户端URL指标
 		 */
@@ -895,9 +1102,16 @@ var PageClass = {
 				
 				//被选中指标，数据封装
 				var newData = new Object();
-				JsonHelper.merge(newData,dataObj,true,false,true);
+				newData = JsonHelper.clone(dataObj);
 				var metric=obj.childNodes[2].innerText;
-				newData["metric"]+=metric;
+				newData["metric"]+=metric;				
+				if(newData["metric"].indexOf("RC")>-1
+						||newData["metric"].indexOf("io.disk")>-1
+						||metric.indexOf("conn_port")>-1
+						||metric.indexOf("in_port")>-1||metric.indexOf("out_port")>-1) {
+					newData.tags["ptag"]="*";
+				}
+				
 				if(metric!="tmax"&&metric!="tmin"&&metric!="tavg"){
 					newData["aggregator"]="sum";
 				}
@@ -906,7 +1120,10 @@ var PageClass = {
 		});
 		return resultArray;
 	},
-	encodeForOpenTSDB:function(s) { 	
+	encodeForOpenTSDB:function(s) { 
+		if(s==undefined) {
+			return;
+		}
 		// DataStoreHelper.class
     	s=s.replace(/:/g,"/u003a");
     	s=s.replace(/#/g,"/u0023");
@@ -1001,6 +1218,22 @@ function loadRowDiv(appUrl){
 	div.append( "<div class=\"icon-signout icon-myout\" onclick=\"javascript:showListDiv()\" \"></div>");
 	div.append( "</div>");
 
+	var procIsExistText, ipInstid, ipIsExistText;
+	procInstid = getProcInstid(obj["appurl"],obj["ip"]);
+	ipInstid = obj["ip"];
+	if(procInstid == undefined) {
+		procIsExistText = "无匹配的进程信息！"
+	}
+	else {
+		procIsExistText = procInstid;
+	}
+	if(ipInstid == undefined) {
+		ipIsExistText = "无匹配的容器信息！"
+	}
+	else {
+		ipIsExistText = ipInstid;
+	}
+	
 	if(!isJse){
 		div.append("<div class=\"titleDiv\" id=\"appEntityDiv\">应用实例：");
 		div.append("<span id=\"appEntitySpan\" >"+obj["appurl"]+"</span>");
@@ -1014,12 +1247,59 @@ function loadRowDiv(appUrl){
 		div.append(getJEELabel("appServerJee"));
 		div.append("<hr/>");
 		div.append(getJSELabel("appServerJvm"));
+		
+		//应用容器
+		div.append("<div class=\"titleDiv\" id=\"HostEntityDiv\">应用容器：");
+		div.append("<span id=\"HostEntitySpan\" >"+ipIsExistText+"</span>");
+		div.append("</div>");
+		if(ipInstid != undefined) {
+			div.append(getHostLabel("HostEntity"));
+		}
+		else {
+			div.append("<div>无匹配的容器信息！</div>");	
+		}
+		
+		//进程		
+		div.append("<div class=\"titleDiv\" id=\"ProcEntityDiv\">应用进程：");
+		div.append("<span id=\"ProcEntitySpan\" >"+procIsExistText+"</span>");
+		div.append("</div>");
+		if(procInstid != undefined) {
+			div.append(getProcLabel("ProcEntity"));
+		}
+		
+		else {
+			div.append("<div>无匹配的进程信息！</div>");
+		}
+		
 	}else{
 		div.append("<div class=\"titleDiv\">");
 		div.append("JVM：");
 		div.append("<span id=\"appServerSpan\" >"+obj["svrid"]+"</span>");
 		div.append("</div>");
 		div.append(getJSELabel("appServerJvm"));
+		
+		//容器		
+		div.append("<div class=\"titleDiv\" id=\"HostEntityDiv\">应用容器：");
+		div.append("<span id=\"HostEntitySpan\" >"+ipIsExistText+"</span>");
+		div.append("</div>");	
+		if(ipInstid != undefined) {
+			div.append(getHostLabel("HostEntity"));
+		}
+		else {
+			div.append("<div>无匹配的容器信息！</div>");	
+		}
+		
+		//进程		
+		div.append("<div class=\"titleDiv\" id=\"ProcEntityDiv\">应用进程：");
+		div.append("<span id=\"ProcEntitySpan\" >"+procIsExistText+"</span>");
+		div.append("</div>");			
+		if(procInstid != undefined) {
+			div.append(getProcLabel("ProcEntity"));
+		}		
+		else {
+			div.append("<div>无匹配的进程信息！</div>");
+		}
+		
 	}
 	
 	div.append(getServicesDiv(obj));
@@ -1089,6 +1369,78 @@ function loadRowDiv(appUrl){
 		sb.append("<div id='"+id+"' class='labelDiv' style='display:"+display+"' >");
 		
 		$.each(IndexData.jse,function(name,list){
+			$.each(list,function(index,title){
+
+				sb.append("<div class='labelDivIndex' onclick='javascript:labelCssChange(this);'>");
+
+				sb.append("<div class='title'>");
+				sb.append(title);
+				sb.append("</div>");
+
+				sb.append("<hr/>");
+				
+				sb.append("<div class='value'>");
+				sb.append(index);
+				sb.append("</div>");
+				
+				sb.append("</div>");
+				
+			});
+			sb.append("<hr/>");
+			
+		});
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
+	
+	//渲染应用容器指标
+	function getHostLabel(id,display){
+		var sb = new StringBuffer();
+
+		if(!display){
+			display = "block";
+		}
+	
+		sb.append("<div id='"+id+"' class='labelDiv' style='display:"+display+"' >");
+		
+		$.each(IndexData.host,function(name,list){
+			$.each(list,function(index,title){
+
+				sb.append("<div class='labelDivIndex' onclick='javascript:labelCssChange(this);'>");
+
+				sb.append("<div class='title'>");
+				sb.append(title);
+				sb.append("</div>");
+
+				sb.append("<hr/>");
+				
+				sb.append("<div class='value'>");
+				sb.append(index);
+				sb.append("</div>");
+				
+				sb.append("</div>");
+				
+			});
+			sb.append("<hr/>");
+			
+		});
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
+	
+	//渲染进程指标
+	function getProcLabel(id,display){
+		var sb = new StringBuffer();
+
+		if(!display){
+			display = "block";
+		}
+	
+		sb.append("<div id='"+id+"' class='labelDiv' style='display:"+display+"' >");
+		
+		$.each(IndexData.proc,function(name,list){
 			$.each(list,function(index,title){
 
 				sb.append("<div class='labelDivIndex' onclick='javascript:labelCssChange(this);'>");
@@ -1251,6 +1603,10 @@ function loadChartDiv(){
 	var title = $("#startTime").val()+"&nbsp;至&nbsp;"+$("#endTime").val();
 	var appESpan = $("#appEntitySpan").html();
 	var appSSpan = $("#appServerSpan").html();
+	
+	var appHSpan = $("#HostEntitySpan").html();
+	var appPSpan = $("#ProcEntitySpan").html();
+	
 	var appUrl = $("#appurlInput").val();
 	var appId = $("#appidInput").val();
 	var ip = $("#ipInput").val();
@@ -1260,6 +1616,11 @@ function loadChartDiv(){
 	var appEjee = $("#appEntityJee").find("div");
 	var appSjee = $("#appServerJee").find("div");
 	var appSjvm = $("#appServerJvm").find("div");
+		
+	var appHost = $("#HostEntity").find("div");	
+	var appProc = $("#ProcEntity").find("div");	
+	
+	
 	var serviceCont = $("#serviceContMainDiv").find("div");
 	var serviceJee = $("#servicesJee").find("div");
 	var clientCont = $("#clientContMainDiv").find("div");
@@ -1294,6 +1655,27 @@ function loadChartDiv(){
 		div.append("<div id=\"server_ChartCID_MSG\">没有相关数据</div>");
 		div.append("<div id=\"server_ChartCID\"></div>");
 		div.append("<hr/>");
+	}
+	
+	//应用容器
+	if(checkUserSel(appHost)){
+		div.append("<div class=\"titleDiv titileCursor\">应用容器：");
+		div.append("<span>"+appHSpan+"</span>");
+		div.append("</div>");
+		div.append("<div id=\"host_ChartCID_MSG\">没有相关数据</div>");
+		div.append("<div id=\"host_ChartCID\"></div>");
+		div.append("<hr/>");
+
+	}
+	//进程
+	if(checkUserSel(appProc)){
+		div.append("<div class=\"titleDiv titileCursor\">应用进程：");
+		div.append("<span>"+appPSpan+"</span>");
+		div.append("</div>");
+		div.append("<div id=\"proc_ChartCID_MSG\">没有相关数据</div>");
+		div.append("<div id=\"proc_ChartCID\"></div>");
+		div.append("<hr/>");
+
 	}
 	
 	//组件url
@@ -1331,7 +1713,6 @@ function loadChartDiv(){
 		});
 	}
 
-	
 
 	//客户端url
 	if ((checkUserSel(clientCont) && checkUserSel(clientJee))) {
@@ -1369,7 +1750,6 @@ function loadChartDiv(){
 		});
 	}
 
-	
 	//应用服务器\jvm
 	if(checkUserSel(appmetrics)){
 		div.append( "<div class=\"titleDiv titileCursor\">");
@@ -1447,7 +1827,8 @@ function loadChartData(data) {
 				if(metric!=undefined){
 					urlO["metric"][metric] = dps;
 				}								
-			}else {
+			}
+			else {
 				// 相同ID聚集结果 begin
 				var appO = dataMap[id];
 				if (appO == undefined) {
@@ -1464,15 +1845,33 @@ function loadChartData(data) {
 				/**
 				 * NOTE: RC is for RC400,RC500,RC404....
 				 */
-				if (metric.indexOf(".RC") > -1) {
+				if ((metric.indexOf(".RC") > -1)) {
 					metric = md["tags"]["ptag"];
-				} else {
-					metric = metric.split(".")[1];
 				}
 
+				else if(metric.indexOf("hostState.") > -1) {
+					
+					if(metric.indexOf("io.disk") > -1) {
+						metric = md["tags"]["ptag"];
+					}
+					else {
+						metric = metric.split(".")[2]+"."+ metric.split(".")[3];
+					}					
+				}				
+				else if(metric.indexOf("procState.") > -1){
+					if(metric.indexOf("conn_port")> -1||metric.indexOf("in_port")> -1||metric.indexOf("out_port") > -1) {
+						metric = md["tags"]["ptag"];
+					}
+					else {
+						metric = metric.split(".")[1];
+					}		
+					
+				}
+				else {
+					metric = metric.split(".")[1];
+				}
 				appO["metric"][metric] = dps;
-			}
-			
+			}			
 		}
 		
 		montiorData = dataMap;
@@ -1582,6 +1981,61 @@ function loadServiceChartData() {
 		console.log(e);
 	}
 };
+
+function loadHostChartData() {
+	try {
+		
+		var key = $("#ipInput").val();
+		var appendDivId = "host_ChartCID";
+
+		// 找到instid数据
+		var result = montiorData[key];
+		if (!result) {
+			return;
+		} else {
+			var errMsgId = appendDivId + "_MSG";
+			$("#" + errMsgId).hide();
+		}
+
+		var metric = result["metric"];
+		
+		showChartByFilterMontiorData(metric, hostIoDisk_ChartCfg, appendDivId);
+		showChartByFilterMontiorData(metric, hostSys_ChartCfg, appendDivId);		
+
+		highchartsTooltipBind("host_ChartCID");
+	} catch (e) {
+		console.log(e);
+	}
+};
+function loadProcChartData() {
+	try {
+		
+		var key = procInstid;
+		
+		var appendDivId = "proc_ChartCID";
+
+		// 找到instid数据
+		var result = montiorData[key];
+		if (!result) {
+			return;
+		} else {
+			var errMsgId = appendDivId + "_MSG";
+			$("#" + errMsgId).hide();
+		}
+
+		var metric = result["metric"];
+
+		showChartByFilterMontiorData(metric, procConn_ChartCfg, appendDivId);
+		showChartByFilterMontiorData(metric, procCpuMem_ChartCfg, appendDivId);
+		showChartByFilterMontiorData(metric, procIo_ChartCfg, appendDivId);
+		showChartByFilterMontiorData(metric, procDisk_ChartCfg, appendDivId);
+
+		highchartsTooltipBind("proc_ChartCID");
+	} catch (e) {
+		console.log(e);
+	}
+};
+
 /**
  * 服务端组件URL
  * @param url
@@ -1694,8 +2148,13 @@ function showChartByFilterMontiorData(metric,chartConfig,appendCid){
 	$.each(metric, function(key, dps) {
 		var list = new Array();
 		var isRC = key.indexOf("RC")>-1 && indexs["RC"]?true:false; //RC自动填充，不进行IndexData映射
-	
-		if (indexs[key] || isRC) {// 找到需要加载的指标数据
+		
+		var isIoDisk = key.indexOf("io.disk")>-1 && indexs["io.disk"]?true:false; //IoDisk自动填充，不进行IndexData映射
+		var isConnPort = key.indexOf("conn_")>-1 && indexs["conn_port"]?true:false; //ConnPort自动填充，不进行IndexData映射
+		var isInPort = key.indexOf("in_")>-1 && indexs["in_port"]?true:false; //InPort自动填充，不进行IndexData映射
+		var isOutPort = key.indexOf("out_")>-1 && indexs["out_port"]?true:false; //OutPort自动填充，不进行IndexData映射
+		
+		if (indexs[key] || isRC|| isIoDisk|| isConnPort|| isInPort|| isOutPort) {// 找到需要加载的指标数据 
 			var n = 0;
 			for ( var time in dps) {
 				list[n++] = {
@@ -1704,7 +2163,7 @@ function showChartByFilterMontiorData(metric,chartConfig,appendCid){
 				};
 			}
 			//chart动态数据显示
-			var sName = isRC?key:indexs[key];
+			var sName = isRC|| isIoDisk|| isConnPort|| isInPort|| isOutPort?key:indexs[key];
 			series.push({name:sName,data:[]});
 			seriesMap[key]=serIndex;
 			
@@ -1766,13 +2225,17 @@ function showTimeDiv(){
 	var appSjvm = $("#appServerJvm").find("div");
 	var serviceCont = $("#serviceContMainDiv").find("div");
 	var serviceJee = $("#servicesJee").find("div");
+	
+	var appHost = $("#HostEntity").find("div");
+	var appProc = $("#ProcEntity").find("div");
+	
 	var clientCont = $("#clientContMainDiv").find("div");
 	var clientJee = $("#clientJee").find("div");
 	var appMetrics = $("#appmetrics").find("div");
 	if(checkUserSel(appEjee) || checkUserSel(appSjee) || checkUserSel(appSjvm) 
 			|| (checkUserSel(serviceCont) && checkUserSel(serviceJee))
 			|| (checkUserSel(clientCont) && checkUserSel(clientJee)
-			|| checkUserSel(appMetrics)	)
+			|| checkUserSel(appMetrics)||checkUserSel(appHost)||checkUserSel(appProc))
 					
 	){
 		$("#userTimeSelDiv").modal({backdrop: 'static', keyboard: false});
@@ -1872,7 +2335,7 @@ $(document).ready(function() {
 	initBody();
 	loadListDiv();
 	//list事件绑定
-	listObj.cellClickUser = loadRowDiv;
+	listObj.cellClickUser = PageClass.ajaxGNodeInfoByIp;	
 	listObj.sendRequest = PageClass.ajaxGProfile;
 	listObj.initTable();
 	
@@ -1958,4 +2421,83 @@ function getClienttId(appurl,appid,ip,clientHtmlId){
 	
 	instid =   instid +"#"+ appid +"#"+clientHtmlId;
 	return instid;
+}
+function getIpByAppurl(appUrl) {
+	var ip;
+	var isJse = appUrl.indexOf("http:") == -1?true:false;
+	if(isJse) {
+		var jseInfo1=appUrl.split("//");
+		var jseInfo2=jseInfo1[1].split("/");
+		ip = jseInfo2[0];
+		
+	}
+	else {
+		var jseInfo1=appUrl.split("//");
+		var jseInfo2=jseInfo1[1].split(":");
+		ip = jseInfo2[0];
+	}
+	return ip;
+}
+function getProcInstid(appurl,ip) {
+	var isJse = appurl.indexOf("http:") == -1?true:false;
+	var port,pid,pname,infoinfo,jsepid,result;
+	var result;
+	for ( var key in nodeData) {
+		var dataObj = eval("("+nodeData[key]+")");
+		 
+		var infoValue = dataObj["info"];
+		 
+		var ipValue = dataObj["ip"];
+		if(ip!=ipValue) {
+			continue;			
+		}
+		infoinfo = infoValue;		
+		 
+		var procs=eval("("+infoinfo["node.procs"]+")");
+		 
+		if(procs==undefined) {
+			continue;
+		}
+		else{
+			break;
+		}
+	}
+	if (isJse) {
+		var jseInfo=appurl.split("-");
+		jsepid=jseInfo[jseInfo.length-1];
+		
+		for(var key in procs) {								
+			 if(jsepid==key) {
+				 pid=key;
+				 pname=procs[key]["name"];
+				 pname = pname.indexOf("java")>-1?procs[key]["tags"]["main"]:pname;				 				 
+				 result= ip+"_"+pname+"_"+pid;
+				 break;
+			 }
+		}
+	}
+	else {
+		var jseInfo1=appurl.split(":");
+		var jseInfo2=jseInfo1[2].split("/");
+		port = jseInfo2[0];		
+		for(var key in procs) {		
+			var proc=procs[key];		
+			var ports=proc["ports"];
+			var flag = false;
+			for(var i=0;i<ports.length;i++) {
+				if (ports[i]==port) {
+					pid=proc["pid"];
+					pname=proc["name"];
+					pname = pname.indexOf("java")>-1?procs[key]["tags"]["main"]:pname;
+					flag = true;
+					result=  ip+"_"+pname+"_"+pid;
+					break;
+				}
+			}
+			if(flag) {
+				break;
+			}
+		}
+	}
+	return result;
 }

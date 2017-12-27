@@ -32,7 +32,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.http.HttpStatus;
 
-import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.http.api.UAVHttpMessage;
 import com.creditease.uav.httpasync.HttpClientCallback;
 import com.creditease.uav.httpasync.HttpClientCallbackResult;
@@ -87,8 +86,7 @@ public class APMRestService extends GodEyeRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        this.doHttpPost("uav.app.apm.ivc.http.addr", "/ivc/q", JSONHelper.toString(msg).getBytes(), "application/json",
-                "utf-8", new IVCCallback(response));
+        this.doHttpPost("uav.app.apm.ivc.http.addr", "/ivc/q", msg, new IVCCallback(response));
     }
 
     @POST
@@ -98,8 +96,7 @@ public class APMRestService extends GodEyeRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        this.doHttpPost("uav.app.apm.ivc.http.addr", "/slw/q", JSONHelper.toString(msg).getBytes(), "application/json",
-                "utf-8", new IVCCallback(response));
+        this.doHttpPost("uav.app.apm.ivc.http.addr", "/slw/q", msg, new IVCCallback(response));
     }
 
     @POST
@@ -109,26 +106,24 @@ public class APMRestService extends GodEyeRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        this.doHttpPost("uav.app.apm.jta.http.addr", "/jta/q", JSONHelper.toString(msg).getBytes(), "application/json",
-                "utf-8", new HttpClientCallback() {
+        this.doHttpPost("uav.app.apm.jta.http.addr", "/jta/q", msg, new HttpClientCallback() {
 
-                    @Override
-                    public void completed(HttpClientCallbackResult result) {
+            @Override
+            public void completed(HttpClientCallbackResult result) {
 
-                        response.resume(result.getReplyData());
-                    }
+                response.resume(result.getReplyData());
+            }
 
-                    @Override
-                    public void failed(HttpClientCallbackResult result) {
+            @Override
+            public void failed(HttpClientCallbackResult result) {
 
-                        String reStr = result.getReplyDataAsString();
-                        
-                        response.resume(reStr);
-                        
-                        logger.err(this,
-                                "query jta http server FAILED. retCode=" + result.getRetCode() + ", msg=" + reStr,
-                                result.getException());
-                    }
-                });
+                String reStr = result.getReplyDataAsString();
+
+                response.resume(reStr);
+
+                logger.err(this, "query jta http server FAILED. retCode=" + result.getRetCode() + ", msg=" + reStr,
+                        result.getException());
+            }
+        });
     }
 }

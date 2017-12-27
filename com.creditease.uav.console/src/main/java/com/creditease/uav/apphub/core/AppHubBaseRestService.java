@@ -20,6 +20,7 @@
 
 package com.creditease.uav.apphub.core;
 
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.util.Enumeration;
 import java.util.Map;
@@ -33,6 +34,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.core.Context;
 
 import com.creditease.agent.helpers.ConnectionFailoverMgrHelper;
+import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.uav.helpers.connfailover.ConnectionFailoverMgr;
 import com.creditease.uav.httpasync.HttpAsyncClient;
@@ -150,9 +152,47 @@ public abstract class AppHubBaseRestService extends AppHubBaseComponent {
     }
 
     /**
+     * 支持普通Http，Post调用和智能的带FailOver的调用，内容类型默认为application/json，编码格式为utf-8
+     * 
+     * @param postUrl
+     * @param subPath
+     * @param data
+     * @param callBack
+     */
+    public void doHttpPost(String serverAddress, String subPath, Object obj, HttpClientCallback callBack) {
+
+        doHttpPost(serverAddress, subPath, JSONHelper.toString(obj), "application/json", "utf-8", callBack);
+    }
+
+    /**
      * 支持普通Http Post调用和智能的带FailOver的调用
      * 
      * @param postUrl
+     * @param subPath
+     * @param data
+     * @param contentType
+     * @param encoding
+     * @param callBack
+     */
+    public void doHttpPost(String serverAddress, String subPath, String data, String contentType, String encoding,
+            HttpClientCallback callBack) {
+
+        byte[] postData = null;
+        try {
+            postData = data.getBytes(encoding);
+        }
+        catch (UnsupportedEncodingException e) {
+            this.getLogger().err(this, "data encoding FAIL! " + e.getMessage(), e);
+            throw new IllegalArgumentException("UnsupportedEncoding:" + encoding, e);
+        }
+        doHttpPost(serverAddress, subPath, postData, contentType, encoding, callBack);
+    }
+
+    /**
+     * 支持普通Http Post调用和智能的带FailOver的调用
+     * 
+     * @param postUrl
+     * @param subPath
      * @param data
      * @param contentType
      * @param encoding

@@ -22,11 +22,13 @@ package com.creditease.agent;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -83,6 +85,7 @@ public final class ConfigurationManager implements IConfigurationManager {
     }
 
     private Map<String, Object> componentsMap = new ConcurrentHashMap<String, Object>();
+    private Map<String, ClassLoader> featureLoadersMap = new ConcurrentHashMap<String, ClassLoader>();
     private Properties config = new Properties();
     private String rootPath;
     private String profileName;
@@ -102,7 +105,6 @@ public final class ConfigurationManager implements IConfigurationManager {
 
         System.setProperty("JAppRootPath", this.rootPath);
         System.setProperty("JAppProfileName", this.profileName);
-
 
         // load profile config
         Properties p = null;
@@ -125,7 +127,7 @@ public final class ConfigurationManager implements IConfigurationManager {
 
         // refresh configuration
         this.updateProfileConfiguration(p);
-        
+
         /**
          * JAppOperPort is the operation port for MSCP application, we take this port as the application port, although
          * there are many ports used for one MSCP applications
@@ -668,6 +670,129 @@ public final class ConfigurationManager implements IConfigurationManager {
         resLimitAuditor = new ResourceLimitationAuditor("UAV.Global.ResLimit", "ResourceLimitationAuditor");
 
         this.registerComponent("Global", "ResourceLimitationAuditor", resLimitAuditor);
+    }
+
+    @Override
+    public ClassLoader getFeatureClassLoader(String feature) {
+
+        if (StringHelper.isEmpty(feature)) {
+            return null;
+        }
+
+        ClassLoader cl = this.featureLoadersMap.get(feature);
+
+        return (cl == null) ? this.getClass().getClassLoader() : cl;
+    }
+
+    @Override
+    public void setFeatureClassLoader(String feature, ClassLoader classloader) {
+
+        if (StringHelper.isEmpty(feature) || classloader == null) {
+            return;
+        }
+
+        this.featureLoadersMap.put(feature, classloader);
+    }
+
+    @Override
+    public void unsetFeatureClassLoader(String feature) {
+
+        if (StringHelper.isEmpty(feature)) {
+            return;
+        }
+
+        this.featureLoadersMap.remove(feature);
+    }
+
+    /**
+     * NOTE: load class from features' classloader
+     * 
+     * @param feature
+     *            if null means to search all features' classloader
+     */
+    @Override
+    public Class<?> loadClassFromFeatureClassLoaders(String className, String... feature) {
+
+        Class<?> cls = null;
+
+        if (feature == null || feature.length == 0) {
+            for (ClassLoader cl : this.featureLoadersMap.values()) {
+                try {
+                    cls = cl.loadClass(className);
+                    break;
+                }
+                catch (ClassNotFoundException e) {
+                    continue;
+                }
+            }
+        }
+        else {
+            for (String f : feature) {
+                ClassLoader cl = this.getFeatureClassLoader(f);
+                try {
+                    cls = cl.loadClass(className);
+                    break;
+                }
+                catch (ClassNotFoundException e) {
+                    continue;
+                }
+            }
+        }
+
+        return cls;
+    }
+
+    @Override
+    public Collection<ClassLoader> getFeatureClassLoader(String... features) {
+
+        Collection<ClassLoader> clList = new ArrayList<ClassLoader>();
+
+        if (features == null || features.length == 0) {
+
+            clList.addAll(this.featureLoadersMap.values());
+        }
+        else {
+            for (String feature : features) {
+                ClassLoader cl = this.featureLoadersMap.get(feature);
+
+                if (cl != null) {
+                    clList.add(cl);
+                }
+            }
+        }
+
+        return clList;
+    }
+
+    /**
+     * get the configuration by patterns
+     * 
+     * @param pattern
+     *            using * means any char
+     */
+    @Override
+    public Map<String, String> getConfigurationByPattern(String pattern) {
+
+        String[] kwds = pattern.split("\\*");
+
+        Map<String, String> result = new LinkedHashMap<String, String>();
+
+        for (String pkey : this.config.stringPropertyNames()) {
+
+            boolean check = true;
+            for (String kwd : kwds) {
+                if (pkey.indexOf(kwd) == -1) {
+                    check = false;
+                    break;
+                }
+            }
+
+            if (check == true) {
+                result.put(pkey, this.config.getProperty(pkey));
+            }
+        }
+
+        return result;
     }
 
 }

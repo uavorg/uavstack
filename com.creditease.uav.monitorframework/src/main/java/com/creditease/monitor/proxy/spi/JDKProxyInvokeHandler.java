@@ -65,6 +65,7 @@ public class JDKProxyInvokeHandler<T> extends BaseComponent implements Invocatio
         }
 
         try {
+			method.setAccessible(true);
             res = method.invoke(this.target, args);
         }
         catch (InvocationTargetException e) {

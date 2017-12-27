@@ -22,9 +22,11 @@ package com.creditease.agent;
 
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -53,12 +55,6 @@ public class SystemStarter {
 
     private static ISystemLogger log = null;
 
-    public static void main(String[] args) {
-
-        SystemStarter starter = new SystemStarter();
-        starter.startup(args);
-    }
-
     private ITimerWorkManager timerWorkManager = null;
     private IConfigurationManager configMgr = null;
 
@@ -68,36 +64,6 @@ public class SystemStarter {
     private ISystemInvokerMgr sysInvokerMgr = null;
 
     public void stop() {
-
-        if (sysInvokerMgr != null) {
-            sysInvokerMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "ISystemInvokerMgr");
-            log.info(this, "System Invoker Manager shutdown");
-        }
-
-        if (sysForkjoinWorkerMgr != null) {
-            sysForkjoinWorkerMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
-            log.info(this, "System ForkjoinWorker Manager shutdown");
-        }
-
-        if (sys1nQueueWorkerMgr != null) {
-            sys1nQueueWorkerMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
-            log.info(this, "System 1+N QueueWorker Manager shutdown");
-        }
-
-        if (sysActionEngineMgr != null) {
-            sysActionEngineMgr.shutdown();
-            this.configMgr.unregisterComponent("Global", "ISystemActionEngineMgr");
-            log.info(this, "System ActionEngine Manager shutdown");
-        }
-
-        if (timerWorkManager != null) {
-            timerWorkManager.shutdown();
-            this.configMgr.unregisterComponent("Global", "ITimerWorkManager");
-            log.info(this, "System Timer Manager shutdown");
-        }
 
         Set<Object> components = this.configMgr.getComponents();
 
@@ -133,42 +99,40 @@ public class SystemStarter {
             }
         }
 
+        if (sysInvokerMgr != null) {
+            sysInvokerMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "ISystemInvokerMgr");
+            log.info(this, "System Invoker Manager shutdown");
+        }
+
+        if (sysForkjoinWorkerMgr != null) {
+            sysForkjoinWorkerMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
+            log.info(this, "System ForkjoinWorker Manager shutdown");
+        }
+
+        if (sys1nQueueWorkerMgr != null) {
+            sys1nQueueWorkerMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "I1NQueueWorkerMgr");
+            log.info(this, "System 1+N QueueWorker Manager shutdown");
+        }
+
+        if (sysActionEngineMgr != null) {
+            sysActionEngineMgr.shutdown();
+            this.configMgr.unregisterComponent("Global", "ISystemActionEngineMgr");
+            log.info(this, "System ActionEngine Manager shutdown");
+        }
+
+        if (timerWorkManager != null) {
+            timerWorkManager.shutdown();
+            this.configMgr.unregisterComponent("Global", "ITimerWorkManager");
+            log.info(this, "System Timer Manager shutdown");
+        }
+
         log.info(this, "CreditEase Agent Server stopped");
     }
 
-    public void startup(String[] args) {
-
-        // command argument parsing
-        if (null != args && (args.length % 2) != 0) {
-            throw new RuntimeException(
-                    "The count of command arguments should be even number! Please check the command arguments line.");
-        }
-
-        Map<String, String> cmdArgs = new HashMap<String, String>();
-
-        for (int i = 0; i < args.length; i += 2) {
-
-            String cmdKey = args[i];
-
-            if (cmdKey.indexOf("-") != 0) {
-                throw new RuntimeException("The command argument key at " + (i + 1) + " should start with \"-\" ");
-            }
-
-            cmdArgs.put(cmdKey, args[i + 1]);
-        }
-
-        if (cmdArgs.containsKey("-help")) {
-
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("UAV base framework help:\n");
-            sb.append("-help ?		display help information\n");
-            sb.append(
-                    "-profile or -p <profile name>		use the target profile in name <profile name> to startup\n");
-
-            System.out.print(sb.toString());
-            return;
-        }
+    public void startup(Map<String, String> cmdArgs) {
 
         // init configuration manager
         this.configMgr = createConfigurationManager(cmdArgs);
@@ -228,9 +192,21 @@ public class SystemStarter {
                 log.warn(this, "Waiting for network ready: iteration=" + i + ", current IP=" + ipAddr);
             }
             else {
+
                 log.info(this, "Node IP address=" + ipAddr);
 
                 isReady = true;
+
+                StringBuffer ipmsg = new StringBuffer("List NetCardIndex and IP Address:");
+
+                int index = 0;
+
+                for (InetAddress addr : NetworkHelper.getAllIP()) {
+
+                    ipmsg.append("\n").append(index++).append(" ----- ").append(addr.getHostAddress());
+                }
+
+                log.info(this, ipmsg.toString());
 
                 break;
             }
@@ -471,6 +447,9 @@ public class SystemStarter {
             }
         }
 
+        // 卸载feaure classloader
+        this.configMgr.unsetFeatureClassLoader(featureName);
+
         return true;
     }
 
@@ -495,15 +474,23 @@ public class SystemStarter {
         ClassLoader cl = this.getClass().getClassLoader();
         // if floaderValue is path, then using a URLClassLoader to load the
         // feature jar
-        if (!"default".equals(floaderValue)) {
+        if (!"default".equalsIgnoreCase(floaderValue)) {
             try {
-                if (floaderValue.indexOf("{$agent.home}") == 0) {
-                    floaderValue = floaderValue.replace("{$agent.home}",
-                            this.configMgr.getContext(IConfigurationManager.ROOT));
-                }
+                String root = this.configMgr.getContext(IConfigurationManager.ROOT);
 
-                URL loaderPath = new URL("file:///" + floaderValue);
-                cl = new URLClassLoader(new URL[] { loaderPath });
+                String[] featureJarsList = floaderValue.split(",");
+
+                List<URL> featureJars = new ArrayList<URL>();
+
+                for (String featureJar : featureJarsList) {
+                    URL loaderPath = new URL("file:" + root + "/lib/" + featureJar);
+                    featureJars.add(loaderPath);
+                }
+                URL[] urls = new URL[featureJars.size()];
+                cl = new URLClassLoader(featureJars.toArray(urls), cl);
+
+                // register feature classloader
+                this.configMgr.setFeatureClassLoader(featureName, cl);
             }
             catch (Exception e) {
                 log.err(this, "create feature [" + featureName + "] loader FAILs ", e);

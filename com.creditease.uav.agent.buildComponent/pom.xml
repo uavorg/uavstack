@@ -25,6 +25,7 @@
 		<module>../com.creditease.uav.collect</module>
 		<module>../com.creditease.uav.elasticsearch.client</module>
 		<module>../com.creditease.uav.threadanalysis</module>
+		<module>../org.uavstack.resources.common</module>
 	</modules>
 
 	<build>
@@ -60,10 +61,12 @@
 									<fileset file="../com.creditease.uav.agent/target/com.creditease.uav.agent-1.0.jar" ></fileset>
 									<fileset file="../com.creditease.uav.agent/target/lib/*.jar" ></fileset>
 									<fileset file="../com.creditease.uav.upgrade/target/com.creditease.uav.upgrade-1.0.jar"></fileset>
+									<fileset file="../com.creditease.uav.agent.buildComponent/exlib/*.dll" ></fileset>
+									<fileset file="../com.creditease.uav.agent.buildComponent/exlib/npf.sys" ></fileset>
 									<!-- additional feature jar -->
 									<fileset file="../com.creditease.uav.threadanalysis/target/com.creditease.uav.threadanalysis-1.0.jar" ></fileset>
-								</copy>
-
+								</copy>	
+								
 								<copy todir="target/build/config" >
 									<fileset dir="config" ></fileset>	
 									<fileset file="../com.creditease.uav.upgrade/config/*.properties"></fileset>								
@@ -74,7 +77,7 @@
 									<fileset file="../com.creditease.uav.base/target/com.creditease.uav.base-1.0-boot.jar" ></fileset>		
 									<fileset file="../com.creditease.uav.upgrade/bin/*.*"></fileset>							
 								</copy>
-																								
+								
 								<copy todir="target/tempbuild/uavagent" >
 									<fileset dir="target/build"></fileset>
 								</copy>

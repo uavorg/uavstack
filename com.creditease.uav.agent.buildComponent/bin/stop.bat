@@ -6,4 +6,4 @@ cd ..
 setlocal enabledelayedexpansion
 set CLASSPATH=
 for %%I in (dir lib/*.jar) do set CLASSPATH=lib/%%I;!CLASSPATH!
-java -classpath "%CLASSPATH%" com.creditease.agent.feature.nodeopagent.NodeOperCtrlClient %profile% kill
+java -classpath "%CLASSPATH%" com.creditease.agent.feature.nodeopagent.NodeOperCtrlClient %profile% shutdown

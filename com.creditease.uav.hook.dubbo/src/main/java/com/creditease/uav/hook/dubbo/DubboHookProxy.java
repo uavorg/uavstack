@@ -51,6 +51,7 @@ public class DubboHookProxy extends HookProxy {
         Event evt = context.get(Event.class);
 
         switch (evt) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_INIT:
                 InsertInterceptToClients(context, webapploader);
                 break;
@@ -69,6 +70,9 @@ public class DubboHookProxy extends HookProxy {
 
     private void InsertInterceptToClients(HookContext context, ClassLoader webapploader) {
 
+        if (isHookEventDone("InsertInterceptToClients")) {
+            return;
+        }
         InterceptContext ic = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
 
         String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
@@ -93,7 +97,7 @@ public class DubboHookProxy extends HookProxy {
                         if ("onApplicationEvent".equals(m.getName())) {
 
                             dpInstall.defineLocalVal(m, "mObj", DubboIT.class);
-                            m.insertBefore(
+                            m.insertAfter(
                                     "{mObj=new DubboIT(\"" + appid + "\");mObj.doProfiling(new Object[]{this,$1});}");
 
                         }

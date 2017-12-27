@@ -36,4 +36,4 @@ do CLASSPATH=$i:"$CLASSPATH";
 done
 export CLASSPATH=.:$CLASSPATH
 echo $CLASSPATH
-$executeJava -classpath $CLASSPATH com.creditease.agent.feature.nodeopagent.NodeOperCtrlClient $1 kill
+$executeJava -classpath $CLASSPATH com.creditease.agent.feature.nodeopagent.NodeOperCtrlClient $1 shutdown

@@ -38,7 +38,6 @@ import com.creditease.uav.mq.api.MQMessage;
 import com.creditease.uav.mq.api.MQMessageListener;
 import com.creditease.uav.mq.api.QueueInfo;
 
-
 public class RMQMessageConsumer extends MessageConsumer {
 
     protected final static ISystemLogger logger = SystemLogger.getLogger(RMQMessageConsumer.class);
@@ -136,10 +135,35 @@ public class RMQMessageConsumer extends MessageConsumer {
     private void initHandler() {
 
         String[] handlerClassesStr = (String[]) this.context.get(MessagingContext.ConsumerHandlerClasses);
+        ClassLoader[] clsLoaders = (ClassLoader[]) this.context.get(MessagingContext.ConsumerHandlerClassLoaders);
         ClassLoader cl = this.getClass().getClassLoader();
         for (String handlerClassStr : handlerClassesStr) {
+            Class<?> c = null;
+
             try {
-                Class<?> c = cl.loadClass(handlerClassStr);
+                c = cl.loadClass(handlerClassStr);
+            }
+            catch (ClassNotFoundException e) {
+                // ignore
+            }
+
+            if (c == null && clsLoaders != null) {
+
+                for (ClassLoader tcl : clsLoaders) {
+                    try {
+                        c = tcl.loadClass(handlerClassStr);
+                    }
+                    catch (ClassNotFoundException e) {
+                        // ignore
+                    }
+
+                    if (c != null) {
+                        break;
+                    }
+                }
+            }
+
+            try {
                 MessageHandler instance = (MessageHandler) c.newInstance();
                 handlerMap.put(instance.getMsgTypeName(), instance);
             }

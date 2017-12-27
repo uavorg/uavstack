@@ -89,55 +89,91 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
         final AbstractAdaptor aa = this;
 
-        /*
-         * Springboot's AutoConfig would load MongoClient before webContainer started, so the hook should be done in
-         * transform
-         */
-        if ("com.mongodb.MongoClient".equals(className)) {
-            hookJarMap = getHookJarMap();
-
-            String jarFileLoc = hookJarMap.get("com.mongodb.Mongo");
-
+        // log4j劫持
+        if (className.equals("org.apache.log4j.helpers.QuietWriter")) {
             try {
-                installHookJars(clsLoader, jarFileLoc, uavMofRoot);
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "org.apache.log4j.helpers.QuietWriter", "new LogIT()");
+                aa.defineField("uavLogHookLineSep", "java.lang.String", "org.apache.log4j.helpers.QuietWriter",
+                        "System.getProperty(\"line.separator\")");
             }
             catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
                 e.printStackTrace();
-                return null;
             }
-            return this.inject(className, new String[] { "com.creditease.uav.hook.mongoclients.interceptors" },
+            return this.inject(className, new String[] { "com.creditease.uav.log.hook.interceptors" },
                     new AdaptorProcessor() {
 
                         @Override
                         public void process(CtMethod m) throws Exception {
 
-                            aa.addLocalVar(m, "mObj",
-                                    "com.creditease.uav.hook.mongoclients.interceptors.MongoClientIT");
-                            m.insertAfter("{mObj=new MongoClientIT(\"" + getAppid() + "\");$_=mObj.doInstall($_);}");
-
+                            m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
                         }
 
                         @Override
                         public String getMethodName() {
 
-                            return "getDatabase";
+                            return "write";
                         }
 
                     });
-
         }
+
+        // 进行logback的劫持
+        else if (className.equals("ch.qos.logback.core.encoder.LayoutWrappingEncoder")) {
+            try {
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "ch.qos.logback.core.encoder.LayoutWrappingEncoder", "new LogIT()");
+            }
+            catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
+                e.printStackTrace();
+            }
+            return this.inject(className,
+                    new String[] { "com.creditease.uav.log.hook", "com.creditease.uav.log.hook.interceptors" },
+                    new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            m.insertBefore("{$1=uavLogHook.formatLog($1);}");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "convertToBytes";
+                        }
+
+                    });
+        }
+
         else if (className.equals("org.springframework.context.support.AbstractApplicationContext"))
 
         {
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
                     new AdaptorProcessor() {
 
+                        /**
+                         * we need startServer before ApplicationContext's refresh cause some hook operation could
+                         * happen when refresh.
+                         */
                         @Override
                         public void process(CtMethod m) throws Exception {
 
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
                             m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.setAppid(this.getEnvironment().getProperty(\"server.context-path\"));}");
+                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"server.context-path\"),this);}");
                         }
 
                         @Override
@@ -148,28 +184,7 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                     });
         }
-        else if (className.equals("org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer")) {
 
-            return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
-                    new AdaptorProcessor() {
-
-                        @Override
-                        public void process(CtMethod m) throws Exception {
-
-                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
-                            m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.tomcat.getService().findConnectors()[0].getPort());}");
-                        }
-
-                        @Override
-                        public String getMethodName() {
-
-                            return "initialize";
-                        }
-
-                    });
-
-        }
         else if (className.equals("org.apache.catalina.core.StandardEngineValve")) {
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
                     new AdaptorProcessor() {
@@ -339,15 +354,43 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                     } });
         }
+        else if (className.equals("org.springframework.boot.context.embedded.EmbeddedWebApplicationContext")) {
+            return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
+                    new AdaptorProcessor[] { new AdaptorProcessor() {
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "finishRefresh";
+                        }
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
+                            m.insertAfter("{mObj=new SpringBootTomcatPlusIT();mObj.onSpringFinishRefresh();}");
+                        }
+
+                    }, new AdaptorProcessor() {
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "postProcessBeanFactory";
+                        }
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
+                            m.insertBefore(
+                                    "{mObj=new SpringBootTomcatPlusIT();mObj.onSpringBeanRegist(this.getEnvironment().getProperty(\"server.context-path\"));}");
+                        }
+
+                    } });
+        }
 
         return null;
-    }
-
-    private String getAppid() {
-
-        return System.getProperty("com.creditease.uav.springboot.appid") == null ? ""
-                : System.getProperty("com.creditease.uav.springboot.appid");
-
     }
 
 }
