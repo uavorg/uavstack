@@ -70,6 +70,13 @@ public class JVMContainerOSDetector extends BaseDetector {
                 return;
             }
 
+            /**
+             * vendor=="Tomcat" or "Jetty" or "JBoss" or "JSE" or "MSCP" or "SpringBoot"; so 3<=vendor.length()<=10
+             */
+            if (!(vendor.length() >= 3 && vendor.length() <= 10)) {
+                return;
+            }
+
             if (log.isTraceEnable()) {
                 log.info(this, "A Container[" + url + "]'s JVM[" + vendor + "] Detected.");
             }
@@ -255,6 +262,17 @@ public class JVMContainerOSDetector extends BaseDetector {
              * NOTE: support docker-proxy,docker,docker-current; support java http scanning for dev work more
              */
             if (name.indexOf("docker") == -1 && name.indexOf("java") == -1) {
+                continue;
+            }
+
+            Map<String, String> tags = proc.getTags();
+
+            String jargs = StringHelper.isEmpty(tags.get("jargs")) ? "" : tags.get("jargs");
+
+            /**
+             * NOTE: must install uavmof
+             */
+            if (!(jargs.contains("-javaagent:") && jargs.contains("monitorframework"))) {
                 continue;
             }
 

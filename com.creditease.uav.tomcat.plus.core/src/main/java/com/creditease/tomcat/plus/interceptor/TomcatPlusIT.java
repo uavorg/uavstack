@@ -205,8 +205,23 @@ public class TomcatPlusIT {
 
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
 
-        if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
-            return;
+        try {
+            /**
+             * after tomcat8, tomcat use ParallelWebappClassLoader instead of WebappClassLoader as it's webapp's
+             * classloader, both of them are extends WebappClassLoaderBase
+             */
+            Class<?> cls = cl.loadClass("org.apache.catalina.loader.WebappClassLoaderBase");
+            if (!cls.isAssignableFrom(cl.getClass())) {
+                return;
+            }
+        }
+        catch (ClassNotFoundException e) {
+            /**
+             * before tomcat7.0.64(include), WebappClassLoaderBase doesn't exist
+             */
+            if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
+                return;
+            }
         }
 
         /**
@@ -219,6 +234,10 @@ public class TomcatPlusIT {
         }
 
         StandardContext sc = (StandardContext) context.get(InterceptConstants.CONTEXTOBJ);
+
+        if (sc == null) {
+            return;
+        }
 
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
 
@@ -246,9 +265,23 @@ public class TomcatPlusIT {
     public Object onResourceCreate(Object... args) {
 
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-
-        if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
-            return args[0];
+        try {
+            /**
+             * after tomcat8, tomcat use ParallelWebappClassLoader instead of WebappClassLoader as it's webapp's
+             * classloader, both of them are extends WebappClassLoaderBase
+             */
+            Class<?> cls = cl.loadClass("org.apache.catalina.loader.WebappClassLoaderBase");
+            if (!cls.isAssignableFrom(cl.getClass())) {
+                return args[0];
+            }
+        }
+        catch (ClassNotFoundException e) {
+            /**
+             * before tomcat7.0.64(include), WebappClassLoaderBase doesn't exist
+             */
+            if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
+                return args[0];
+            }
         }
 
         /**
@@ -261,6 +294,10 @@ public class TomcatPlusIT {
         }
 
         StandardContext sc = (StandardContext) context.get(InterceptConstants.CONTEXTOBJ);
+
+        if (sc == null) {
+            return args[0];
+        }
 
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
 
@@ -457,48 +494,69 @@ public class TomcatPlusIT {
         final File appBase = (File) args[2];
         final String mofRoot = (String) args[3];
         String curVersion = (String) args[4];
+        String currentVersionDetailed = (String) args[5];
+        String[] versions = currentVersionDetailed.split("\\.");
 
-        // Tomcat 6
-        if (curVersion.equalsIgnoreCase("6")) {
+        int action = 0;
 
-            File dir = new File(mofRoot + "/com.creditease.uav");
-
-            ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
-                    new Class<?>[] { String.class, File.class, String.class },
-                    new Object[] { "com.creditease.uav", dir, mofRoot + "/com.creditease.uav" },
-                    hc.getClass().getClassLoader());
+        if (curVersion.equals("6")) {
+            /**
+             * tomcat6
+             */
+            action = 0;
         }
-        // after Tomcat 7
+        else if (curVersion.equals("7") && versions[1].equals("0")
+                && (Integer.parseInt(versions[2].substring(0, 1)) < 3)) {
+            /**
+             * tomcat7.并且小版本0.30.0 (不包含)以下。小版本号使用substring是因为存在beta版本，取第一位即可。
+             */
+            action = 0;
+        }
         else {
-            ExecutorService es = host.getStartStopExecutor();
+            action = 1;
+        }
 
-            Future<?> f = es.submit(new Runnable() {
+        switch (action) {
+            case 0:
+                File dir = new File(mofRoot + "/com.creditease.uav");
 
-                @Override
-                public void run() {
+                ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
+                        new Class<?>[] { String.class, File.class, String.class },
+                        new Object[] { "/com.creditease.uav", dir, mofRoot + "/com.creditease.uav" },
+                        hc.getClass().getClassLoader());
+                break;
+            case 1:
+                ExecutorService es = host.getStartStopExecutor();
 
-                    ContextName cn = new ContextName("com.creditease.uav", "");
+                Future<?> f = es.submit(new Runnable() {
 
-                    ReflectHelper.setField(ContextName.class, cn, "baseName", mofRoot + "/com.creditease.uav");
+                    @Override
+                    public void run() {
 
-                    File dir = new File(mofRoot + "/com.creditease.uav");
+                        ContextName cn = new ContextName("com.creditease.uav", "");
 
-                    ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
-                            new Class<?>[] { ContextName.class, File.class }, new Object[] { cn, dir },
-                            hc.getClass().getClassLoader());
+                        ReflectHelper.setField(ContextName.class, cn, "baseName", mofRoot + "/com.creditease.uav");
 
+                        File dir = new File(mofRoot + "/com.creditease.uav");
+
+                        ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
+                                new Class<?>[] { ContextName.class, File.class }, new Object[] { cn, dir },
+                                hc.getClass().getClassLoader());
+
+                    }
+
+                });
+
+                try {
+                    f.get();
                 }
-
-            });
-
-            try {
-                f.get();
-            }
-            catch (Exception e) {
-                // ignore
-            }
+                catch (Exception e) {
+                    // ignore
+                }
+                break;
         }
 
         System.setProperty("com.creditease.uav.iapp.install", "true");
     }
+
 }

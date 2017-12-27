@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.25.Final</version>
+			<version>4.1.11.Final</version>
 		</dependency>
 	</dependencies>
 
@@ -39,6 +39,13 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>    
+                <archive> 
+                	<manifestEntries>
+                			<Class-Path>../lib/com.creditease.uav.helper.jar ../lib/com.creditease.uav.fastjson.jar</Class-Path>
+            		</manifestEntries>
+                </archive>  
+              </configuration>    
 				<executions>
 					<execution>
 						<id>boot</id>

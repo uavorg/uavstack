@@ -20,6 +20,7 @@
 
 package com.creditease.agent.spi;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -52,6 +53,8 @@ public interface IConfigurationManager {
 
     public String getConfiguration(String configName);
 
+    public Map<String, String> getConfigurationByPattern(String pattern);
+
     public <T> T getConfiguration(Class<T> clz, String configName);
 
     public Properties getConfigurations();
@@ -69,4 +72,14 @@ public interface IConfigurationManager {
     public void unregisterFeatureComponents(String feature);
 
     public void init();
+
+    public ClassLoader getFeatureClassLoader(String feature);
+
+    public Collection<ClassLoader> getFeatureClassLoader(String... features);
+
+    public void setFeatureClassLoader(String feature, ClassLoader classloader);
+
+    public void unsetFeatureClassLoader(String feature);
+
+    public Class<?> loadClassFromFeatureClassLoaders(String className, String... feature);
 }

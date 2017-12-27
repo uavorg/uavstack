@@ -57,20 +57,26 @@ function saveNotify(checkIsExist){
 					/**
 					 * 策略
 					 */
-					var cJson = {
-						"expr" : json.expr
-					};
-					if (json.range) {
-						cJson["range"] = parseInt(json.range);
-					}
-					if ("0" != json.func && "count" == json.func) {
-						cJson["func"] = "count>" + json.cparam;
-					} else if ("0" != json.func) {
-						cJson["func"] = json.func;
+					if(!json.type||json.type=="stream"){
+						var cJson = {
+								"expr" : json.expr,
+								"type" :"stream"
+							};
+							if (json.range) {
+								cJson["range"] = parseInt(json.range);
+							}
+							if ("0" != json.func && "count" == json.func) {
+								cJson["func"] = "count>" + json.cparam;
+							} else if ("0" != json.func) {
+								cJson["func"] = json.func;
+							}
+							
+							cJson["id"]=json.id;
+							conditions.push(cJson);
+					}else{
+						conditions.push(json);
 					}
 					
-					cJson["id"]=json.id;
-					conditions.push(cJson);
 					
 				}catch(e){
 					console.log(e);
@@ -108,7 +114,7 @@ function saveNotify(checkIsExist){
 		});
 
 		
-		if(conditions.length ==  0){
+		if(conditions.length == 0 && mName != "procCrash"){
 			$("#addNotifyErrMSG").text("条件不能为空");
 			return false;
 		}
@@ -118,7 +124,7 @@ function saveNotify(checkIsExist){
 		 */
 		//校验
 		var stgyExpHtmlObjs = document.getElementsByName("stgy_exp_html"),stgyExpCheck=true;
-		if(stgyExpHtmlObjs.length==0){
+		if(stgyExpHtmlObjs.length==0 && mName != "procCrash"){
 			$("#addNotifyErrMSG").text("触发策略不能为空");
 			return false;
 		}

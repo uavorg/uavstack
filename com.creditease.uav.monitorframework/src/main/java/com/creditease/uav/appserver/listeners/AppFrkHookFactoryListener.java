@@ -56,6 +56,7 @@ public class AppFrkHookFactoryListener extends InterceptEventListener {
         Event evt = context.getEvent();
 
         switch (evt) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_RESOURCE_INIT:
             case WEBCONTAINER_RESOURCE_CREATE:
             case WEBCONTAINER_INIT:
@@ -181,6 +182,8 @@ public class AppFrkHookFactoryListener extends InterceptEventListener {
     public boolean isEventListener(Event event) {
 
         switch (event) {
+            case SPRING_BEAN_REGIST:
+                break;
             case WEBCONTAINER_INIT:
                 break;
             case AFTER_SERVET_INIT:

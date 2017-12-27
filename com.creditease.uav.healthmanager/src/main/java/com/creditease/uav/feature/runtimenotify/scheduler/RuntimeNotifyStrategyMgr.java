@@ -23,6 +23,7 @@ package com.creditease.uav.feature.runtimenotify.scheduler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,6 +57,7 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
     private Map<String, NotifyStrategy> mScope = new ConcurrentHashMap<>();
     private Map<String, NotifyStrategy> fScope = new ConcurrentHashMap<>();
     private Map<String, List<String>> multiInsts = new HashMap<>();
+    private HashSet<NotifyStrategy> strategies = new HashSet<>();
 
     private Lock strategyLock = new ReentrantLock();
 
@@ -76,6 +78,11 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
         this.cm = cm;
     }
 
+    public HashSet<NotifyStrategy> getStrategies() {
+
+        return strategies;
+    }
+
     /**
      * only for development load from local configuration file
      * 
@@ -89,7 +96,7 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
             String key = entry.getKey();
             Map<String, Object> m = (Map<String, Object>) entry.getValue();
 
-            NotifyStrategy stra = NotifyStrategy.parse(JSONHelper.toString(m));
+            NotifyStrategy stra = NotifyStrategy.parse(key, JSONHelper.toString(m));
 
             if (log.isDebugEnable()) {
                 log.debug(this, "Parse NotifyStrategy: " + JSONHelper.toString(stra));
@@ -223,10 +230,11 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
             mScope.clear();
             iScope.clear();
             multiInsts.clear();
+            strategies.clear();
 
             for (String key : strategyMap.keySet()) {
                 String json = strategyMap.get(key);
-                NotifyStrategy stra = NotifyStrategy.parse(json);
+                NotifyStrategy stra = NotifyStrategy.parse(key, json);
 
                 if (log.isDebugEnable()) {
                     log.debug(this, "Parse NotifyStrategy: " + JSONHelper.toString(stra));
@@ -239,6 +247,7 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
                 }
 
                 putStrategy(key, stra);
+
             }
         }
         catch (InterruptedException e) {
@@ -272,7 +281,7 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
         }
 
         multiInsts.put(key, nkeys);
-
+        strategies.add(stra);
     }
 
     /**
@@ -325,6 +334,9 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
 
         if ("I".equals(stra.getScope())) {
             iScope.put(key, stra);
+            List<String> instances = new ArrayList<String>();
+            instances.add(key.substring(key.lastIndexOf('@') + 1));
+            stra.setInstances(instances);
         }
         else if ("M".equals(stra.getScope())) {
             mScope.put(key, stra);
@@ -334,6 +346,8 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
         }
         else {
             log.err(this, "UNKNOWN strategy scope: " + stra.getScope() + ", key: " + key);
+            return;
         }
+        strategies.add(stra);
     }
 }

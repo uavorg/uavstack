@@ -24,7 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.creditease.agent.feature.common.messaging.StandardMessagingBuilder;
+import org.uavstack.resources.common.messaging.StandardMessagingBuilder;
+
 import com.creditease.agent.spi.AgentFeatureComponent;
 import com.creditease.uav.collect.server.messaging.DefaultGatherDataHandler;
 import com.creditease.uav.messaging.api.MessageConsumer;
