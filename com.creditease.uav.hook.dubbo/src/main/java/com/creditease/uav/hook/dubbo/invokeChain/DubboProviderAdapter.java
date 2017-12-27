@@ -101,7 +101,7 @@ public class DubboProviderAdapter extends InvokeChainAdapter {
      */
     private String parseParams(Object[] args) {
 
-        if (args == null) {
+        if (args == null || args.length == 0) {
             return "";
         }
         StringBuilder stringBuilder = new StringBuilder();
