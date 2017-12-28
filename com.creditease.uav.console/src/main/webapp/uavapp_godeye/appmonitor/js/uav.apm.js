@@ -301,6 +301,9 @@ function APMTool(app) {
 		params.ipport = pNode.getElementsByTagName("td")[7].id;
 		params.appid = pNode.getElementsByTagName("td")[8].id;
 		var appurl = "http://"+params.ipport+"/"+params.appid+"/";
+		if(params.appid=="ROOT"){
+			appurl = "http://"+params.ipport+"/";
+		}
 		AjaxHelper.call({
             url: '../../rs/godeye/profile/q/cache',
             data: {"fkey":"appurl","fvalue":appurl},

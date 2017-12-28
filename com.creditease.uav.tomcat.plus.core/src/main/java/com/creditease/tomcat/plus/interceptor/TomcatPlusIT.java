@@ -205,8 +205,23 @@ public class TomcatPlusIT {
 
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
 
-        if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
-            return;
+        try {
+            /**
+             * after tomcat8, tomcat use ParallelWebappClassLoader instead of WebappClassLoader as it's webapp's
+             * classloader, both of them are extends WebappClassLoaderBase
+             */
+            Class<?> cls = cl.loadClass("org.apache.catalina.loader.WebappClassLoaderBase");
+            if (!cls.isAssignableFrom(cl.getClass())) {
+                return;
+            }
+        }
+        catch (ClassNotFoundException e) {
+            /**
+             * before tomcat7.0.64(include), WebappClassLoaderBase doesn't exist
+             */
+            if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
+                return;
+            }
         }
 
         /**
@@ -219,6 +234,10 @@ public class TomcatPlusIT {
         }
 
         StandardContext sc = (StandardContext) context.get(InterceptConstants.CONTEXTOBJ);
+
+        if (sc == null) {
+            return;
+        }
 
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
 
@@ -246,9 +265,23 @@ public class TomcatPlusIT {
     public Object onResourceCreate(Object... args) {
 
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-
-        if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
-            return args[0];
+        try {
+            /**
+             * after tomcat8, tomcat use ParallelWebappClassLoader instead of WebappClassLoader as it's webapp's
+             * classloader, both of them are extends WebappClassLoaderBase
+             */
+            Class<?> cls = cl.loadClass("org.apache.catalina.loader.WebappClassLoaderBase");
+            if (!cls.isAssignableFrom(cl.getClass())) {
+                return args[0];
+            }
+        }
+        catch (ClassNotFoundException e) {
+            /**
+             * before tomcat7.0.64(include), WebappClassLoaderBase doesn't exist
+             */
+            if (!WebappClassLoader.class.isAssignableFrom(cl.getClass())) {
+                return args[0];
+            }
         }
 
         /**
@@ -261,6 +294,10 @@ public class TomcatPlusIT {
         }
 
         StandardContext sc = (StandardContext) context.get(InterceptConstants.CONTEXTOBJ);
+
+        if (sc == null) {
+            return args[0];
+        }
 
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
 
@@ -521,4 +558,5 @@ public class TomcatPlusIT {
 
         System.setProperty("com.creditease.uav.iapp.install", "true");
     }
+
 }
