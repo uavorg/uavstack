@@ -76,6 +76,7 @@ public class AppFrkHookFactoryListener extends InterceptEventListener {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void initHookFactory() {
 
         String config = System.getProperty("com.creditease.uav.hookfactory.config");
