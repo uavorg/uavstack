@@ -175,7 +175,13 @@ public class IPLinkProfileHandler extends BaseComponent implements ProfileHandle
          */
         URI iplnkTargetURI = DataConvertHelper.toURI(iplinkTargetUrl);
 
-        String path = iplnkTargetURI.getPath();
+        String path;
+        if (iplnkTargetURI == null) {
+            path = iplinkTargetUrl;
+        }
+        else {
+            path = iplnkTargetURI.getPath();
+        }
 
         if (path.indexOf("/" + appid) == 0) {
             path = path.substring(("/" + appid).length());
