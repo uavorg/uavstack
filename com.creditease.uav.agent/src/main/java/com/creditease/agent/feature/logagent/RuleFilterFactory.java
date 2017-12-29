@@ -20,6 +20,7 @@
 
 package com.creditease.agent.feature.logagent;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -374,6 +375,9 @@ public class RuleFilterFactory {
     }
 
     public void pubLogFilterAndRule(String id, LogFilterAndRule lfar) {
+
+        // 保证路径不存在多余的'/'等
+        id = new File(id).getAbsolutePath();
 
         logcollection.put(id, lfar);
     }
