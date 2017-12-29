@@ -318,7 +318,7 @@ public class HBClientDefaultHandler extends AbstractHBClientHandler {
             try {
                 String shellParentPath = this.getConfigManager().getContext(IConfigurationManager.METADATAPATH) + "sh";
                 diskResult = RuntimeHelper.exeShell("df -P", shellParentPath);
-                inodeResult = RuntimeHelper.exeShell("df -i", shellParentPath);
+                inodeResult = RuntimeHelper.exeShell("df -Pi", shellParentPath);
             }
             catch (Exception e) {
                 return "{}";
