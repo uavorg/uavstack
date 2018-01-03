@@ -43,11 +43,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     /**
      * startUAVServer
      */
-    public void startServer(String port, String contextPath, Object arg) {
+    public void startServer(String port, String contextPath, String appName, Object arg) {
 
         if (!"AnnotationConfigEmbeddedWebApplicationContext".equals(arg.getClass().getSimpleName())) {
             return;
         }
+
         // integrate Tomcat log
         UAVServer.instance().setLog(new TomcatLog("MonitorServer"));
         // start Monitor Server when server starts
@@ -59,7 +60,8 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
                 DataConvertHelper.toInt(port, 8080));
         InterceptSupport iSupport = InterceptSupport.instance();
         // this context will be transmited from springboot mainThread to webcontainerInit thread then back to mainThread
-        iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
+        InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
+        context.put(InterceptConstants.APPNAME, appName);
     }
 
     /**
@@ -69,11 +71,8 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      */
     public void setAppid(String contextPath) {
 
-        if (contextPath == null) {
+        if (contextPath == null || "/".equals(contextPath)) {
             contextPath = "";
-        }
-        else if (contextPath.indexOf("/") == 0) {
-            contextPath = contextPath.substring(1);
         }
 
         System.setProperty("com.creditease.uav.appid", MonitorServerUtil.getApplicationId(contextPath, ""));
@@ -274,7 +273,10 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        if (context.get(InterceptConstants.APPNAME) == null) {
+            context.put(InterceptConstants.APPNAME,
+                    ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        }
 
         ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
 
@@ -386,7 +388,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      */
     public void onSpringBeanRegist(String contextPath) {
 
-        if (contextPath == null) {
+        if (contextPath == null || "/".equals(contextPath)) {
             contextPath = "";
         }
         InterceptSupport iSupport = InterceptSupport.instance();

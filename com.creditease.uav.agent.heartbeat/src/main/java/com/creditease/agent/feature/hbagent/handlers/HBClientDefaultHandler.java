@@ -314,21 +314,30 @@ public class HBClientDefaultHandler extends AbstractHBClientHandler {
         else {
             Map<String, Map<String, String>> resultMap = new HashMap<String, Map<String, String>>();
             String diskResult;
+            String inodeResult;
             try {
                 String shellParentPath = this.getConfigManager().getContext(IConfigurationManager.METADATAPATH) + "sh";
                 diskResult = RuntimeHelper.exeShell("df -P", shellParentPath);
+                inodeResult = RuntimeHelper.exeShell("df -Pi", shellParentPath);
             }
             catch (Exception e) {
                 return "{}";
             }
             String lines[] = diskResult.split("\n");
+            String linesInode[] = inodeResult.split("\n");
             for (int i = 1; i < lines.length; i++) {
                 String[] args = lines[i].split("\\s+");
+                String[] argsInode = linesInode[i].split("\\s+");
                 Map<String, String> temp = new HashMap<String, String>();
                 temp.put("total", args[1]);
                 temp.put("use", args[2]);
                 temp.put("free", args[3]);
                 temp.put("useRate", args[4]);
+                // inode
+                temp.put("totalInode", argsInode[1]);
+                temp.put("useInode", argsInode[2]);
+                temp.put("freeInode", argsInode[3]);
+                temp.put("useRateInode", argsInode[4]);
                 resultMap.put(args[5], temp);
             }
             /**
