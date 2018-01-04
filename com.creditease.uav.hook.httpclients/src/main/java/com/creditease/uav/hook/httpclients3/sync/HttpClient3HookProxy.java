@@ -57,8 +57,6 @@ public class HttpClient3HookProxy extends HookProxy {
 
         switch (evt) {
             case SPRING_BEAN_REGIST:
-            case WEBCONTAINER_RESOURCE_INIT:
-                break;
             case WEBCONTAINER_INIT:
                 InsertInterceptToClients(context, webapploader);
                 break;
