@@ -20,6 +20,7 @@
 
 package com.creditease.agent.feature.logagent;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +256,8 @@ public class RuleFilterFactory {
             LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectHelper.newInstance(
                     "com.creditease.agent.feature.logagent.far." + classname + "LogFilterAndRule",
                     new Class[] { String.class, String.class, JSONObject.class, int.class, int.class },
-                    new Object[] { filterregex, separator, assignFields, timestampNumber, version });
+                    new Object[] { filterregex, separator, assignFields, timestampNumber, version },
+                    ConfigurationManager.getInstance().getFeatureClassLoader("logagent"));
             // LogFilterAndRule mainLogFAR = new DefaultLogFilterAndRule(filterregex, separator, assignFields,
             // timestampNumber);
             LogFilterAndRule aid = null;
@@ -373,6 +375,9 @@ public class RuleFilterFactory {
     }
 
     public void pubLogFilterAndRule(String id, LogFilterAndRule lfar) {
+
+        // 保证路径不存在多余的'/'等
+        id = new File(id).getAbsolutePath();
 
         logcollection.put(id, lfar);
     }

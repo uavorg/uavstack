@@ -22,8 +22,6 @@ package com.creditease.agent.feature.nodeopagent.actions;
 
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.creditease.agent.SystemStarter;
 import com.creditease.agent.helpers.JSONHelper;
@@ -449,40 +447,12 @@ public class MSCPGeneralAction extends AbstractBaseAction {
      */
     private void shutdown() {
 
-        final SystemStarter ss = this.getSystemStarter();
-
-        final Lock lock = new ReentrantLock();
-
-        Thread thd = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                try {
-                    lock.lockInterruptibly();
-                }
-                catch (InterruptedException e) {
-                    // ignore
-                }
-
-                try {
-                    ss.stop();
-                }
-                catch (Exception e) {
-                    // ignore
-                }
-                finally {
-                    lock.unlock();
-                }
-            }
-        });
-
-        thd.start();
+        SystemStarter ss = this.getSystemStarter();
 
         try {
-            lock.wait(10000);
+            ss.stop();
         }
-        catch (InterruptedException e) {
+        catch (Exception e) {
             // ignore
         }
 

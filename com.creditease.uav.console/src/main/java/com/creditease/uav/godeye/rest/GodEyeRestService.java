@@ -394,26 +394,25 @@ public class GodEyeRestService extends AppHubBaseRestService {
             logger.info(this, "预警详情  time=[" + time + "]-[" + rs.get("lattest_ts") + "],time=["
                     + simpleDateFormat.format(new Date(time)) + "]-[" + lastStr + "],ntfky=[" + ntfkey + "]");
 
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                    "application/json", "utf-8", new HttpClientCallback() {
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, new HttpClientCallback() {
 
-                        @Override
-                        public void completed(HttpClientCallbackResult result) {
+                @Override
+                public void completed(HttpClientCallbackResult result) {
 
-                            String respStr = result.getReplyDataAsString();
-                            Map<String, String> resMap = JSONHelper.toObject(respStr, Map.class);
-                            response.resume(resMap.get("rs"));
-                        }
+                    String respStr = result.getReplyDataAsString();
+                    Map<String, String> resMap = JSONHelper.toObject(respStr, Map.class);
+                    response.resume(resMap.get("rs"));
+                }
 
-                        @Override
-                        public void failed(HttpClientCallbackResult result) {
+                @Override
+                public void failed(HttpClientCallbackResult result) {
 
-                            logger.err(this, "预警详情步骤二 result is failed :" + result.getException());
-                            String resp = "预警详情步骤二 GodEyeRestService noitifyDescQuery is failed.";
-                            response.resume(resp);
-                        }
+                    logger.err(this, "预警详情步骤二 result is failed :" + result.getException());
+                    String resp = "预警详情步骤二 GodEyeRestService noitifyDescQuery is failed.";
+                    response.resume(resp);
+                }
 
-                    });
+            });
             /* end */
 
         }
@@ -963,8 +962,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         LoadAppIPLinkListCB callback = new LoadAppIPLinkListCB();
         callback.setResponse(response);
 
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q",
-                JSONHelper.toString(message).getBytes(), "application/json", "utf-8", callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
     }
 
     /**
@@ -991,21 +989,28 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @GET
     @Path("profile/q/cache")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void loadAppProfileList(@Suspended AsyncResponse response) {
+    public void loadAppProfileList(@QueryParam("fkey") String fkey, @QueryParam("fvalue") String fvalue,
+            @Suspended AsyncResponse response) {
 
         UAVHttpMessage message = new UAVHttpMessage();
         message.setIntent("profile");
-
-        String groups = getUserGroupsByFilter(request);
-        if ("NOMAPPING".equals(groups)) {
-            response.resume("{\"rs\":\"{}\"}");
-        }
-        else if ("ALL".equals(groups)) {
-            loadAppProfileListFromHttp(message, response);
+        if (StringHelper.isEmpty(fkey) || StringHelper.isEmpty(fvalue)) {
+            String groups = getUserGroupsByFilter(request);
+            if ("NOMAPPING".equals(groups)) {
+                response.resume("{\"rs\":\"{}\"}");
+            }
+            else if ("ALL".equals(groups)) {
+                loadAppProfileListFromHttp(message, response);
+            }
+            else {
+                message.putRequest("fkey", "appgroup");
+                message.putRequest("fvalue", groups);
+                loadAppProfileListFromHttp(message, response);
+            }
         }
         else {
-            message.putRequest("fkey", "appgroup");
-            message.putRequest("fvalue", groups);
+            message.putRequest("fkey", fkey);
+            message.putRequest("fvalue", fvalue);
             loadAppProfileListFromHttp(message, response);
         }
 
@@ -1015,8 +1020,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         LoadAppProfileListFromHttpCB callback = new LoadAppProfileListFromHttpCB();
         callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q",
-                JSONHelper.toString(message).getBytes(), "application/json", "utf-8", callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
     }
 
     /**
@@ -1059,8 +1063,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         LoadUavNetworkInfoFromHttpCB callback = new LoadUavNetworkInfoFromHttpCB();
         callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.hbquery.http.addr", "/hb/query", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        this.doHttpPost("uav.app.godeye.hbquery.http.addr", "/hb/query", message, callback);
     }
 
     /**
@@ -1085,8 +1088,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         callback.setGodeyeFilterGroupCacheRegion(godeyeFilterGroupCacheRegion);
         callback.setResponse(response);
 
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q",
-                JSONHelper.toString(message).getBytes(), "application/json", "utf-8", callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
     }
 
     /**
@@ -1261,8 +1263,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         LoadMonitorDataFromOpenTSDBCB callback = new LoadMonitorDataFromOpenTSDBCB();
         callback.setResponse(response);
 
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
     }
 
     /**
@@ -1323,8 +1324,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         QueryAppLogCB callback = new QueryAppLogCB();
         callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
 
     }
 
@@ -1380,8 +1380,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         callback.setNtfkey(ntfkey);
         callback.setTime(time);
 
-        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
 
     }
 
@@ -1489,8 +1488,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
             NoitifyQueryCB callback = new NoitifyQueryCB();
             callback.setResponse(response);
 
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                    "application/json", "utf-8", callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
         }
         else {
             response.resume("{\"rs\":\"[]\"}");
@@ -1598,8 +1596,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
             NoitifyCountQueryCB callback = new NoitifyCountQueryCB();
             callback.setResponse(response);
 
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                    "application/json", "utf-8", callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
         }
         else {
             response.resume("{'rs':'[{\"count\":15}]'}");
@@ -1644,8 +1641,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
             NoitifyViewCB callback = new NoitifyViewCB();
             callback.setResponse(response);
             callback.setLog(log);
-            doHttpPost("uav.app.godeye.notify.view.http.addr", "/nc/update", JSONHelper.toString(message).getBytes(),
-                    "application/json", "utf-8", callback);
+            doHttpPost("uav.app.godeye.notify.view.http.addr", "/nc/update", message, callback);
         }
     }
 
@@ -1697,8 +1693,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         NoitifyEventCB callback = new NoitifyEventCB();
         callback.setResponse(response);
 
-        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -1855,8 +1850,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
             NoitifyQueryBestCB callback = new NoitifyQueryBestCB();
             callback.setResponse(response);
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                    "application/json", "utf-8", callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
         }
 
     }
@@ -2008,8 +2002,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
             NoitifyCountQueryBestCB callback = new NoitifyCountQueryBestCB();
             callback.setResponse(response);
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", JSONHelper.toString(message).getBytes(),
-                    "application/json", "utf-8", callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
         }
 
     }
@@ -2035,8 +2028,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         callback.setPageindex(pageindex);
         callback.setPagesize(pagesize);
 
-        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", message, callback);
     }
 
     @POST
@@ -2053,8 +2045,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         NoitifyStrategyGetCB callback = new NoitifyStrategyGetCB();
         callback.setResponse(response);
-        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", message, callback);
     }
 
     @SuppressWarnings("unchecked")
@@ -2088,8 +2079,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         callback.setResponse(response);
         callback.setStgyData(stgyData);
 
-        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", message, callback);
 
     }
 
@@ -2107,8 +2097,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         callback.setResponse(response);
         callback.setData(data);
 
-        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", JSONHelper.toString(message).getBytes(),
-                "application/json", "utf-8", callback);
+        doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", message, callback);
     }
 
     // -----------------------------------------Node Ctrl-------------------------------------
@@ -2167,7 +2156,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         DoNodeCtrlOperationCB callback = new DoNodeCtrlOperationCB();
         callback.setResponse(response);
 
-        this.doHttpPost(nodeUrl, null, JSONHelper.toString(msg).getBytes(), "application/json", "utf-8", callback);
+        this.doHttpPost(nodeUrl, null, msg, callback);
     }
 
     // ----------------------------------------- database info -------------------------------------
@@ -2180,8 +2169,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         GetMonitorViaDbaCB callback = new GetMonitorViaDbaCB();
         callback.setResponse(response);
 
-        doHttpPost("uav.app.godeye.database.http.addr", "/graph/history", data.getBytes(), "application/json", "utf-8",
-                callback);
+        doHttpPost("uav.app.godeye.database.http.addr", "/graph/history", data, callback);
     }
 
     @POST
@@ -2193,8 +2181,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         GetSlowSQLCB callback = new GetSlowSQLCB();
         callback.setResponse(response);
 
-        doHttpPost("uav.app.godeye.database.http.addr", "/top/sql/count", data.getBytes(), "application/json", "utf-8",
-                callback);
+        doHttpPost("uav.app.godeye.database.http.addr", "/top/sql/count", data, callback);
     }
 
     // -----------------------------------------filter begin -------------------------------------
@@ -2428,8 +2415,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         ListUpgradePackageCB callback = new ListUpgradePackageCB();
         callback.setResponse(resp);
-        doHttpPost("uav.app.upgrade.server.http.addr", "/uav/upgrade?target=list&softwareId=" + softwareId,
-                "".getBytes(), null, null, callback);
+        doHttpPost("uav.app.upgrade.server.http.addr", "/uav/upgrade?target=list&softwareId=" + softwareId, "",
+                callback);
         return null;
     }
 
@@ -2448,8 +2435,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        doHttpPost("uav.app.hm.newlog.http.addr", "/newlog/q", JSONHelper.toString(msg).getBytes(), "application/json",
-                "utf-8", new SearchNewLogCallback(resp));
+        doHttpPost("uav.app.hm.newlog.http.addr", "/newlog/q", msg, new SearchNewLogCallback(resp));
     }
     // ---------------------------------------新日志服务接口 END-------------------------------------
 
@@ -2495,17 +2481,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        String jsonStr = JSONHelper.toString(request);
-        byte[] postData = null;
-        try {
-            postData = jsonStr.getBytes("utf8");
-        }
-        catch (Exception e) {
-            logger.err(this, e.getMessage(), e);
-        }
-
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", postData, "application/json", "utf-8",
-                new GodEyeCB(resp));
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
     }
 
     @SuppressWarnings("unchecked")
@@ -2550,18 +2526,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        String jsonStr = JSONHelper.toString(request);
-        byte[] postData = null;
-        try {
-            postData = jsonStr.getBytes("utf8");
-        }
-        catch (Exception e) {
-            logger.err(this, e.getMessage(), e);
-        }
-
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", postData, "application/json", "utf-8",
-                new GodEyeCB(resp));
-
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
     }
 
     @SuppressWarnings("unchecked")
@@ -2601,17 +2566,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        String jsonStr = JSONHelper.toString(request);
-        byte[] postData = null;
-        try {
-            postData = jsonStr.getBytes("utf8");
-        }
-        catch (Exception e) {
-            logger.err(this, e.getMessage(), e);
-        }
-
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", postData, "application/json", "utf-8",
-                new GodEyeCB(resp));
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
 
     }
     // ---------------------------------------反馈建议 END-----------------------------------

@@ -14,7 +14,7 @@
 		<servlet-class>com.creditease.uav.apphub.core.AppHubRestServlet</servlet-class>
 		<init-param>
 			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>com.creditease.uav.apphub.rest,com.creditease.uav.godeye.rest,com.creditease.uav.manage.rest,com.creditease.uav.appmongo.rest,com.creditease.uav.xrobot.rest,com.creditease.uav.grafana</param-value>
+			<param-value>com.creditease.uav.apphub.rest,com.creditease.uav.godeye.rest,com.creditease.uav.manage.rest,com.creditease.uav.appmongo.rest,com.creditease.uav.xrobot.rest,com.creditease.uav.grafana,com.creditease.uav.opentsdb</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 		<async-supported>true</async-supported>
@@ -32,7 +32,7 @@
 			<param-name>es.info</param-name>
 			<param-value>{"forwar.url":"http://localhost:9200"}</param-value>
 		</init-param>
-		<load-on-startup>3</load-on-startup>
+		<load-on-startup>2</load-on-startup>
 		<async-supported>true</async-supported>
 	</servlet>
 
@@ -42,21 +42,9 @@
 	</servlet-mapping>
 	
 	<servlet>
-		<servlet-name>opentsdb-crdu-servlet</servlet-name>
-		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestCRDUServlet</servlet-class>
-		<load-on-startup>2</load-on-startup>
-		<async-supported>true</async-supported>
-	</servlet>
-	
-	<servlet-mapping>
-		<servlet-name>opentsdb-crdu-servlet</servlet-name>
-		<url-pattern>/db/*</url-pattern>
-	</servlet-mapping>
-	
-	<servlet>
 		<servlet-name>opentsdb-agent-servlet</servlet-name>
 		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestAgentServlet</servlet-class>
-		<load-on-startup>2</load-on-startup>
+		<load-on-startup>3</load-on-startup>
 		<async-supported>true</async-supported>
 	</servlet>
 	
@@ -100,7 +88,6 @@
 			<param-name>log.app.enable</param-name>
 			<param-value>true</param-value>
 		</init-param>
-		<load-on-startup>2</load-on-startup>
 		<async-supported>true</async-supported>
     </filter>
     <filter-mapping>
@@ -132,6 +119,10 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.app.godeye.redis.store.addr</param-name>
+		<param-value>localhost:6379</param-value>
+	</context-param>
+		<context-param>
+		<param-name>uav.app.opentsdb.redis.store.addr</param-name>
 		<param-value>localhost:6379</param-value>
 	</context-param>
 	<context-param>
@@ -172,6 +163,14 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.app.es.http.client.params</param-name>
+		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>uav.app.opentsdb.redis.store.params</param-name>
+		<param-value>{"min":30,"max":100,"queue":5,"cacheaccess":5,"pwd":""}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>uav.app.opentsdb.http.client.params</param-name>
 		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
 	</context-param>
 	<context-param>
@@ -259,10 +258,7 @@
 		 -->
 		<param-value>{"vipgroup":""}</param-value>
 	</context-param>
-	<context-param>
-		<param-name>uav.app.opentsdb.http.client.params</param-name>
-		<param-value>{"max.con":50,"max.tot.con":200,"sock.time.out":10000,"con.time.out":10000,"req.time.out":10000}</param-value>
-	</context-param>
+	
 	<!--configure end-->
 	<session-config>
 		<session-timeout>30</session-timeout>

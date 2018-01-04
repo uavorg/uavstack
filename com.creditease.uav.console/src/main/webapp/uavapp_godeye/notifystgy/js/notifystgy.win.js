@@ -22,6 +22,13 @@ window.winmgr.build({
 	order : 999,
 	theme : "StgyDiv"
 });
+window.winmgr.build({
+	id : "condDiv",
+	height : "auto",
+	"overflow-y" : "auto",
+	order : 999,
+	theme : "condDiv"
+});
 window.winmgr.show("notifyList");
 
 /**
@@ -46,7 +53,8 @@ var selUiConf = {
 			          ["hostState","应用容器状态指标系"],
 			          ["urlResp","服务状态指标系"],
 			          ["appResp","应用状态指标系"],
-			          ["serverResp","应用服务器状态指标系"]
+			          ["serverResp","应用服务器状态指标系"],
+			          ["procCrash","进程死亡指标系"]
 				     ],
 		"client":[
 			          ["clientResp","调用状态指标系"]
@@ -151,7 +159,7 @@ function showAddDiv() {
 	sb.append( '<div><textarea class="input_must" placeholder="输入描述" id="notifyDesc"></textarea></div>');
 
 	sb.append( '<div class="well" id="conFatDiv">');
-	sb.append( '<div><span class="well-title">条件定义</span><div class="well-title-div"><span class="glyphicon glyphicon-plus well-add" onclick="javascript:showCon(this,\'ADD\');"></span></div></div>');
+	sb.append( '<div><span class="well-title">条件定义</span><div class="well-title-div"><span class="glyphicon glyphicon-plus well-add" onclick="javascript:showCondDiv(this,\'ADD\');"></span></div></div>');
 	sb.append( '</div>');
 	
 	sb.append( '<div class="well well-only-div" id="stgyFatDiv">');
@@ -289,7 +297,7 @@ function showEditNotifyDiv(jsonObjParam) {
 	sb.append( '<div class="well" id="conFatDiv">');
 	sb.append( '<div>');
 	sb.append( '<span class="well-title">条件定义</span>');
-	sb.append( '<div class="well-title-div"><span class="glyphicon glyphicon-plus well-add"  id="whereAddButton"  onclick="javascript:showCon(this,\'ADD\');"></span></div>');
+	sb.append( '<div class="well-title-div"><span class="glyphicon glyphicon-plus well-add"  id="whereAddButton"  onclick="javascript:showCondDiv(this,\'ADD\');"></span></div>');
 	$.each(jsonObj.conditions,function(index,obj){
 		if(obj.func && obj.func.indexOf("count>")>-1){
 			obj.cparam = obj.func.substr(6);
@@ -304,9 +312,9 @@ function showEditNotifyDiv(jsonObjParam) {
 		}
 		var html;
 		if(isOwner){
-			html = '<div class="well-list">'+StgyClass.formatShowWhere(obj)+'<span id="'+obj.id+'" style="display:none">'+JSON.stringify(obj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showCon(this,\'EDIT\');"></span></div>';
+			html = '<div class="well-list">'+StgyClass.formatShowWhere(obj)+'<span id="'+obj.id+'" style="display:none">'+JSON.stringify(obj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showCondDiv(this,\'EDIT\');"></span></div>';
 		}else{
-			html = '<div class="well-list">'+StgyClass.formatShowWhere(obj)+'<span id="'+obj.id+'" style="display:none">'+JSON.stringify(obj)+'</span><span class="glyphicon glyphicon-eye-open well-edit" onclick="javascript:showCon(this,\'EDIT\');"></span></div>';
+			html = '<div class="well-list">'+StgyClass.formatShowWhere(obj)+'<span id="'+obj.id+'" style="display:none">'+JSON.stringify(obj)+'</span><span class="glyphicon glyphicon-eye-open well-edit" onclick="javascript:showCondDiv(this,\'EDIT\');"></span></div>';
 		}
 		sb.append( html);
 	});
@@ -425,48 +433,10 @@ function showEditNotifyDiv(jsonObjParam) {
 	window.winmgr.hide("notifyList");
 	window.winmgr.show("objectDiv");
 
+	hideShowConStgy(names[1]);
 }
 
-/**
- * 条件窗口操作 begin
- */
 
-function initConditionsDiv(thisObj) {
-
-	var sb=new StringBuffer();
-	
-	sb.append('<div class="modal fade conditions" id="conditionsDiv" aria-hidden="false">');
-	sb.append('<div class="modal-dialog">');
-	sb.append( '<div class="modal-content">');
-	sb.append( '<div class="modal-header">');
-	sb.append( '<h5>条件定义</h5>');
-	sb.append( '</div>');
-	sb.append( '<div class="modal-body">');
-
-	sb.append( '<input id="contype"type=\"hidden\" ></input><br/>');
-	sb.append( '<input id="contExpr" class=\"form-control input_must\" type=\"text\" placeholder=\"触发表达式\"></input><br/>');
-	sb.append( '<input id="conRange" class=\"form-control \" type=\"text\" placeholder=\"持续时间(秒)\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input><br/>');
-	sb.append( "<select id=\"conFunc\" onchange=\"javascript:funcChangeShow(this,'conFuncParam');\">");
-	sb.append( '<option value="0">--选择聚集操作--</option>');
-	sb.append( '<option value="max">最大值</option>');
-	sb.append( '<option value="min">最小值</option>');
-	sb.append( '<option value="sum">求和</option>');
-	sb.append( '<option value="avg">平均值</option>');
-	sb.append( '<option value="diff">求差</option>');
-	sb.append( '<option value="count">计数</option>');
-	sb.append( '</select><br/>');
-	sb.append( '<input id=\"conFuncParam\" class=\"form-control input_must\" type=\"text\" placeholder=\"聚集参数值(>)\" style="display:none" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input><br/>');
-			
-	sb.append( '</div>');
-	sb.append( '<div class="modal-footer">');
-	sb.append( '<span style="margin-right:5px;color:#ff0000;display:none;" id="conditionsErrMsg">必输项不能为空</span>');
-	sb.append( '<button class="btn btn-primary " id=\"whereSaveButton\" onclick="javascript:conditionsAppend();">保存</button>');
-	sb.append( '<button class="btn" data-dismiss="modal">关闭</button>' + '</div>');
-	sb.append( '</div>' + '</div>' + '</div>');
-	var div = document.createElement('div');
-	div.innerHTML = sb.toString();
-	document.body.appendChild(div);
-}
 
 /**
  * 触发动作添加窗口
@@ -496,7 +466,7 @@ function initActionDiv(isOwner) {
 	sb.append( '<option value="mail">发送邮件（填写邮箱地址）</option>');
 	sb.append( '<option value="phone">电话通知（填写手机号）</option>');
 	sb.append( '<option value="httpcall">Http动作（填写URL）</option>');
-	sb.append( '<option value="threadanalysis">线程分析</option>')
+	sb.append( '<option value="threadanalysis">线程分析</option>');
 	sb.append( '</select>');
 
 	if(isOwner=="true"){
@@ -527,59 +497,216 @@ function initActionDiv(isOwner) {
  */
 function showCon(thisObj,type){
 	actionConf.actionObj=thisObj.parentNode;
-	$("#contype").val(type);
-	//clear
-	$("#contExpr").val("");
-	$("#conRange").val("");
-	$("#conFunc").val("0");
-	$("#conFuncParam").val("");
-	$("#conFuncParam").hide();
-	$("#conditionsErrMsg").hide();
-	//还原只读
-	$("#whereSaveButton").show();
-	$("#contExpr").removeAttr("readonly");
-	$("#conRange").removeAttr("readonly");
-	$("#conFunc").removeAttr("disabled");
-	$("#conFuncParam").removeAttr("readonly");
-	
+	if(selUiConf["userInput"]["notifyNameM"]=="log"){
+		$("#condType").attr("disabled","disabled");
+	}
+	 $("#pageType").val(type);
 	if("EDIT" == type){
 		var jsonValue = JSON.parse(thisObj.parentNode.getElementsByTagName("span")[0].textContent);
-		$("#contExpr").val(jsonValue.expr);
-		$("#conRange").val(jsonValue.range);
-		$("#conFunc").val((null == jsonValue.func?0:jsonValue.func));
-		if("count" == jsonValue.func){
-			$("#conFuncParam").val(jsonValue.cparam);
-			$("#conFuncParam").show();
-		}
-		//不是归属用户，则只读
+		$("#condType").attr("disabled","disabled");
 		var isOwner = $("#isOwner").val();
-		if(isOwner!="true"){
-			$("#whereSaveButton").hide();
-			$("#contExpr").attr("readonly","readonly");
-			$("#conRange").attr("readonly","readonly");
-			$("#conFunc").attr("disabled","disabled");
-			$("#conFuncParam").attr("readonly","readonly");
+		if(!jsonValue.type||jsonValue.type=="stream"){
+			$("#condType").val("stream");
+			$("#contExpr").val(jsonValue.expr);
+			$("#conRange").val(jsonValue.range);
+			$("#conFunc").val((null == jsonValue.func?0:jsonValue.func));
+			if("count" == jsonValue.func){
+				$("#conFuncParam").val(jsonValue.cparam);
+				$("#conFuncParam").show();
+			}
+			//不是归属用户，则只读			
+			if(isOwner!="true"){
+				$("#whereSaveButton").hide();
+				$("#contExpr").attr("readonly","readonly");
+				$("#conRange").attr("readonly","readonly");
+				$("#conFunc").attr("disabled","disabled");
+				$("#conFuncParam").attr("readonly","readonly");
 
-			//只读CSS
-			$("#contExpr").attr("class","displayMsgInput listIndex");
-			$("#conRange").attr("class","displayMsgInput listIndex");
-			$("#conFuncParam").attr("class","displayMsgInput listIndex");
-		}else{
-			//还原默认CSS
-			$("#contExpr").attr("class","form-control input_must");
-			$("#conRange").attr("class","form-control");
-			$("#conFuncParam").attr("class","form-control input_must");
+				//只读CSS
+				$("#contExpr").attr("class","form-control");
+				$("#conRange").attr("class","form-control");
+				$("#conFuncParam").attr("class","form-control");
+				$("#whereSaveButton").hide();
+			}				
 			
+		}else{
+			var type;
+			if(jsonValue.interval){
+				type="link-relative";
+			}else{
+				type="base-relative";
+			}
+			$("#condType").val(type);
+			typeChangeShow(type);
+				
+			var hour=jsonValue.time_from.split(':')[0];
+			var min=jsonValue.time_from.split(':')[1];
+			$('#time_start').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			hour=jsonValue.time_to.split(':')[0];
+			min=jsonValue.time_to.split(':')[1];
+			$('#time_end').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			
+			$("#conMetric").val(jsonValue.metric);
+			$("#conUpperLimit").val(jsonValue.upperLimit);
+			$("#conLowerLimit").val(jsonValue.lowerLimit);
+			$("#conAggr").val(jsonValue.aggr);
+			if(type=="link-relative"){
+				$("#conInterval").val(jsonValue.interval);
+				showUnit(jsonValue.unit);
+			}else{
+				showUnit(jsonValue.unit);
+			}
+			if(isOwner!="true"){
+				$("#time_from").attr("readonly","readonly");
+				$("#time_to").attr("readonly","readonly");
+				$("#conMetric").attr("readonly","readonly");
+				$("#conUpperLimit").attr("readonly","readonly");
+				$("#conLowerLimit").attr("readonly","readonly");
+				$("#conMetric").attr("class","form-control");
+				$("#conUpperLimit").attr("class","form-control");
+				$("#conLowerLimit").attr("class","form-control");
+				$("#conAggr").attr("disabled","disabled");
+				if(type=="link-relative"){
+					$("#conInterval").attr("readonly","readonly");	
+					$("#conInterval").attr("class","form-control");	
+				}	
+				$("#whereSaveButton").hide();
+			}
 		}
-	}else{
-		//默认CSS
-		$("#contExpr").attr("class","form-control input_must");
-		$("#conRange").attr("class","form-control");
-		$("#conFuncParam").attr("class","form-control input_must");
+		
 	}
-    $("#conditionsDiv").modal({backdrop: 'static', keyboard: false});
-	$("#conditionsDiv").modal();
 	
+}
+
+function showUnit(unit){
+	$("#unit").val(unit);
+	$("#opt"+unit).attr("class","btn btn-default active");
+}
+/**
+ * 条件定义页面 
+ */
+function showCondDiv(thisObj,type) {
+
+		var isOwner = $("#isOwner").val();
+		/**
+		 * 显示条件定义(弹出新元素)
+		 */
+		actionConf.actionObj=thisObj.parentNode;
+		
+		var sb = new StringBuffer();
+		sb.append("<div class=\"titleDiv\">");
+		sb.append("条件定义");
+		sb.append("<div class=\"icon-signout icon-myout\" onclick=\"javascript:StgyClass.closeStgyDiv()\"></div>");
+		sb.append("</div>");
+		sb.append( "<select style='width:100%; color: #ffffff;background-color: #0aaaaa;' id=\"condType\" onchange=\"javascript:typeChangeShow(this.value);\">");
+ 	    sb.append( '<option value="stream">流式条件</option>');
+		sb.append( '<option value="link-relative">环比条件</option>');
+		sb.append( '<option value="base-relative">同比条件</option>');
+		sb.append( '</select><br/>');
+		
+		sb.append( '<input id="pageType" type=\"hidden\" ></input><br/>');
+		/**
+		 * 普通预警条件编辑
+		 */
+		sb.append( '<div style="max-height:4000px;padding:5px;" id="stream">');
+		
+		sb.append( '<input id="contExpr" class=\"form-control input_must\" type=\"text\" placeholder=\"触发表达式\"></input><br/>');
+		sb.append( '<input id="conRange" class=\"form-control \" type=\"text\" placeholder=\"持续时间(秒)\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input><br/>');
+		sb.append( "<select class=\"form-control\"  id=\"conFunc\" onchange=\"javascript:funcChangeShow(this,'conFuncParam');\">");
+		sb.append( '<option value="0">--选择聚集操作--</option>');
+		sb.append( '<option value="max">最大值</option>');
+		sb.append( '<option value="min">最小值</option>');
+		sb.append( '<option value="sum">求和</option>');
+		sb.append( '<option value="avg">平均值</option>');
+		sb.append( '<option value="diff">求差</option>');
+		sb.append( '<option value="count">计数</option>');
+		sb.append( '</select><br/>');
+		sb.append( '<input id=\"conFuncParam\" class=\"form-control input_must\" type=\"text\" placeholder=\"聚集参数值(>)\" style="display:none" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input><br/>');
+		sb.append( '</div>');
+
+		/**
+		 * 同环比预警条件编辑
+		 */
+		sb.append( '<div id="timer" style="max-height:4000px;padding:5px;display:none;" >');		
+		sb.append('<div class="control-group">');
+		sb.append('<div id="time_start" class="controls input-append">');
+		sb.append('<span style="color:#333333;">开始时间：');
+		sb.append('<input size="16" data-format="hh:mm"  type="text" placeholder="开始时间" id="time_from"> ');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</div>');
+		sb.append('</div>');
+		
+		sb.append('<div class="control-group">');
+		sb.append('<div id="time_end" class="controls input-append">');
+		sb.append('<span style="color:#333333;">结束时间：');
+		sb.append('<input size="16" data-format="hh:mm"  type="text" placeholder="结束时间" id="time_to"> ');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</div>');
+		sb.append('</div>');
+		
+		sb.append( '<input id="conMetric" class=\"form-control input_must\" type=\"text\" placeholder=\"预警指标项\"></input><br/>');
+		sb.append( '<input id="conUpperLimit" class=\"form-control input_must\" type=\"text\" placeholder=\"增幅上限阈值(以%结尾表示百分比，否则为绝对值，填-1表示无上限)\" onkeyup="this.value=this.value.replace((\/\\D|%)/g,\'\')" onafterpaste="this.value=this.value.replace((\/\\D|%),\'\')"></input><br/>');
+		sb.append( '<input id="conLowerLimit" class=\"form-control input_must\" type=\"text\" placeholder=\"降幅上限阈值(以%结尾表示百分比，否则为绝对值，填-1表示无下限)\" onkeyup="this.value=this.value.replace((\/\\D|%)/g,\'\')" onafterpaste="this.value=this.value.replace((\/\\D|%),\'\')"></input><br/>');
+		sb.append( "<select  class=\"form-control\" id=\"conAggr\" >");
+		sb.append( '<option value="0">--选择指标聚集操作--</option>');
+		sb.append( '<option value="all-avg">平均值</option>');
+		sb.append( '<option value="all-sum">求和</option>');
+		sb.append( '<option value="all-max">最大值</option>');
+		sb.append( '<option value="all-min">最小值</option>');
+		sb.append( '</select><br/>');
+		
+		sb.append('<div id="base-relative">')
+		sb.append('<span style="color:#333333;">选择同比周期  ');
+		sb.append('<div  class="btn-group radio" data-toggle="buttons">');
+		sb.append('<label  class="btn btn-default"  id="opt4"  onclick="javascript:changeTimeUnit(4);">');
+		sb.append('<input type="radio" name="options" id="options4" value="year" /> 年');
+		sb.append('</label>');
+		sb.append('<label class="btn btn-default" id="opt3" onclick="javascript:changeTimeUnit(3);">');
+		sb.append('<input type="radio" name="options" id="options3" value="month" /> 月');
+		sb.append('</label>');
+		sb.append('<label class="btn btn-default" id="opt2" onclick="javascript:changeTimeUnit(2);">');
+		sb.append('<input type="radio" name="options" id="options2" value="week" /> 周');
+		sb.append('</label>');
+		sb.append('<label class="btn btn-default" id="opt1" onclick="javascript:changeTimeUnit(1);">');
+		sb.append('<input type="radio" name="options" id="options1" value="day" /> 日');
+		sb.append('</label>');
+		sb.append( '</div>'); 
+		sb.append( '</div>'); 
+		
+		sb.append( '<div id="link-relative"> ' );		
+		sb.append( '<input id="conInterval" class=\"form-control input_must\"  type=\"text\" placeholder=\"环比间隔，填写间隔时间，下行选择单位\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input>');
+
+		sb.append('<div style="float:left;"  class="btn-group radio" data-toggle="buttons" id="unit">');
+		sb.append('<label class="btn btn-default" id="opt2" onclick="javascript:changeTimeUnit(2);">');
+		sb.append('<input type="radio" name="options" id="options2" value="week" /> 周');
+		sb.append('</label>');
+		sb.append('<label class="btn btn-default" id="opt1" onclick="javascript:changeTimeUnit(1);">');
+		sb.append('<input type="radio" name="options" id="options1" value="day" /> 日');
+		sb.append('</label>');
+		sb.append('<label class="btn btn-default" id="opt5" onclick="javascript:changeTimeUnit(5);">');
+		sb.append('<input type="radio" name="options" id="options5" value="hour" /> 时');
+		sb.append('</label>');
+		sb.append('<label class="btn btn-default" id="opt6" onclick="javascript:changeTimeUnit(6);">');
+		sb.append('<input type="radio" name="options" id="options6" value="min"/> 分');
+		sb.append('</label>');
+		sb.append('</div>');
+		
+		sb.append( '</div> </div>');	
+		sb.append( '</div>');
+		
+		/**
+		 * 保存按钮
+		 */
+		sb.append( '<div >');
+		sb.append( '<button style="width:100%" class="btn btn-primary " id=\"whereSaveButton\" onclick="javascript:conditionsAppend();">保存</button>');
+		sb.append( '<span style="margin-right:5px;color:#ff0000;display:none;" id="conditionsErrMsg">必输项不能为空</span>');
+		sb.append( '</div>');
+		
+		HtmlHelper.id("condDiv").innerHTML = sb.toString();
+		initTimeControl();
+		showCon(thisObj,type);
+		window.winmgr.hide("objectDiv");
+		window.winmgr.show("condDiv");
 
 }
 
@@ -590,6 +717,41 @@ function funcChangeShow(thisObj,showId){
 		$("#"+showId).hide();
 	}
 }
+
+function typeChangeShow(type){
+	var divs=["stream","timer","link-relative","base-relative"];
+	divs.forEach(div=>{
+		$("#"+div).hide();
+	})
+	if("stream"!=type){
+		$("#timer").show();
+	}
+	$("#"+type).show();
+	
+}
+/**
+ * 初始化时间控件
+ */
+function initTimeControl(){
+	  $('#time_start').datetimepicker({
+	      pickDate: false,
+	      pickSeconds: false
+	  });
+
+
+	  $('#time_end').datetimepicker({
+	      pickDate: false,
+	      pickSeconds: false
+	  });
+
+
+}
+
+function changeTimeUnit(value){
+	$("#unit").val(value);
+}
+
+
 
 function actionChangeShow(type){
 	if("ADD" == type){
@@ -611,6 +773,8 @@ function selServerChangeShow(type,value,text){
 	$("#"+selId).html(text);
 	$("#"+selId).css("padding-left","2px");
 	$("#"+type+"_notifyNameF").css("color","black");
+	
+	hideShowConStgy("show");
 
 	if(text == "自定义指标"){
 		$("#"+type+"_appName_div").hide();
@@ -668,8 +832,20 @@ function changeJTAStat(text){
 	}
 }
 
+function hideShowConStgy(value){
+	if(value == "procCrash"){
+		 $("#conFatDiv").hide();
+		 $("#stgyFatDiv").hide();
+	 }
+	 else{
+		 $("#conFatDiv").show();
+		 $("#stgyFatDiv").show();
+	 }
+}
+
 function selIndexChangeShow(type,value,text){
 	 changeJTAStat(text);
+	 hideShowConStgy(value);
 	 
 	 $("#"+type+"_notifyNameM").html(text);
 	 $("#"+type+"_notifyNameM").css("padding-left","2px");
@@ -710,21 +886,49 @@ function getSelUiConfKeysValue(a, b) {
 	return result;
 }
 function conditionsAppend(){	
-	if(checkFunc()){
-		var jsonObject = {"expr":HtmlHelper.inputXSSFilter($("#contExpr").val()),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};
+	if(checkFunc()){		
+		var jsonObject;
+		if("stream"==$("#condType").val()){		
+			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
+		}else{			
+			jsonObject = {"type":"timer","time_from":HtmlHelper.inputXSSFilter($("#time_from").val()),"time_to":HtmlHelper.inputXSSFilter($("#time_to").val()),"metric":HtmlHelper.inputXSSFilter($("#conMetric").val()),"upperLimit":HtmlHelper.inputXSSFilter($("#conUpperLimit").val()),"lowerLimit":HtmlHelper.inputXSSFilter($("#conLowerLimit").val()),"aggr":HtmlHelper.inputXSSFilter($("#conAggr").val())};		
+			if("link-relative"==$("#condType").val()){
+				jsonObject["interval"]=HtmlHelper.inputXSSFilter($("#conInterval").val());
+				jsonObject["unit"]=HtmlHelper.inputXSSFilter($("#unit").val());
+			}else{
+				jsonObject["unit"]=HtmlHelper.inputXSSFilter($("#unit").val());
+			}
+		}
 		appendConditions(jsonObject);
-		$("#conditionsDiv").modal('hide');
+		window.winmgr.hide("condDiv");
+		window.winmgr.show("objectDiv");
 	}
 }
 
 function checkFunc(){
 
 	var result = true;
-	if(!$("#contExpr").val()){
-		result = false;
-	}else if("count" == $("#conFunc").val() && !$("#conFuncParam").val()){
-		result = false;
+	if("stream"==$("#condType").val()){
+		if(!$("#contExpr").val()){
+			result = false;
+		}else if("count" == $("#conFunc").val() && !$("#conFuncParam").val()){
+			result = false;
+		}
+	}else{
+		if(!$("#time_from").val()||!$("#time_to").val()||!$("#conMetric").val()||!$("#conUpperLimit").val()||!$("#conLowerLimit").val()||!$("#conAggr").val()){
+			result = false;
+		}
+		if("link-relative"==$("#condType").val()){
+			if(!$("#conInterval").val()||!$("#unit").val()){
+				result = false;
+			}
+		}else{
+			if(!$("#unit").val()){
+				result = false;
+			}
+		}
 	}
+	
 	
 	if(result){
 		$("#conditionsErrMsg").hide();
@@ -735,7 +939,7 @@ function checkFunc(){
 	return result;
 }
 function appendConditions(jsonObj) {
-	var type = $("#contype").val();
+	var type = $("#pageType").val();
 	if("ADD"==type){
 		var newNode = document.createElement("div");
 		var stgyDivId = StgyClass.randomId()+"_stgySpan";
@@ -750,7 +954,7 @@ function appendConditions(jsonObj) {
 	
 	function getHtmlAndSetId(stgyDivId){
 		jsonObj.id = stgyDivId;//赋值id
-		var html = StgyClass.formatShowWhere(jsonObj)+'<span id="'+jsonObj.id+'" style="display:none">'+JSON.stringify(jsonObj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showCon(this,\'EDIT\');"></span>';
+		var html = StgyClass.formatShowWhere(jsonObj)+'<span id="'+jsonObj.id+'" style="display:none">'+JSON.stringify(jsonObj)+'</span><span class="glyphicon glyphicon-remove well-del" onclick="javascript:delThisObj(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:showCondDiv(this,\'EDIT\');"></span>';
 		return html;
 	}
 }
@@ -1001,8 +1205,9 @@ function closeObjectDiv() {
 }
 
 function openHelpDiv() {
- 	window.open("file/help.htm","apphub.help");	
+ 	window.open("https://uavorg.github.io/documents/uavdoc_useroperation/28.html#%E5%88%9B%E5%BB%BA","apphub.help");	
 }
+
 
 /**
  * 策略表达式处理类
@@ -1192,17 +1397,47 @@ var StgyClass = {
 			return "";
 		}
 		
-		var result = json.expr;
-				
-		if(json.range && json.range!=""){
-			result += ","+json.range;
-		}
+		var result;
 		
-		if(json.func && json.func!=0 && json.func=="count"){
-			result += ","+json.func+">"+json.cparam;
-		}else if(json.func && json.func!=0){
-			result += ","+json.func;
-		}
+		if(!json.type||json.type=="stream"){
+			result = json.expr;
+			
+			if(json.range && json.range!=""){
+				result += ","+json.range;
+			}
+			
+			if(json.func && json.func!=0 && json.func=="count"){
+				result += ","+json.func+">"+json.cparam;
+			}else if(json.func && json.func!=0){
+				result += ","+json.func;
+			}
+		}else{
+			result = json.metric+","+json.time_from+"-"+json.time_to+","+json.aggr+",";
+			if(json.interval){
+				result+=json.interval+" ";
+				
+			}
+			switch(json.unit){
+				case "6":
+					result+="min";	
+					break;
+				case "5":
+					result+="hour";	
+					break;
+				case "1":
+					result+="day";	
+					break;
+				case "2":
+					result+="week";	
+					break;				
+				case "3":
+					result+="month";	
+					break;
+				case "4":
+					result+="year";	
+					break;
+			}								
+		}			
 		
 		return result;
 	},

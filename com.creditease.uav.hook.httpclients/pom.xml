@@ -53,6 +53,7 @@
                             <classifier>async</classifier>
                             <includes>
                                 <include>**/com/creditease/uav/hook/httpclients/async/**</include>
+                                <include>**/com/creditease/uav/hook/httpclients/AbstractHttpClientAdapter*</include>
                             </includes>
                         </configuration>
                     </execution>
@@ -64,6 +65,7 @@
                             <classifier>sync</classifier>
                             <includes>
                                 <include>**/com/creditease/uav/hook/httpclients/sync/**</include>
+                                <include>**/com/creditease/uav/hook/httpclients/AbstractHttpClientAdapter*</include>
                             </includes>
                         </configuration>
                     </execution>

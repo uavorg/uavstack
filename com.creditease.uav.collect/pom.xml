@@ -31,6 +31,11 @@
 			<groupId>com.creditease.moniter</groupId>
 			<artifactId>com.creditease.uav.notifymanager</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.creditease.moniter</groupId>
+			<artifactId>org.uavstack.resources.common</artifactId>
+		</dependency>
+		
 		<!-- @Deprecated -->
 		<dependency>
 			<groupId>com.google.guava</groupId>

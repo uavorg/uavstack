@@ -78,6 +78,23 @@ public class ActionContext {
         params.put(param, value);
     }
 
+    public <T> void putParam(Class<T> classParamKey, T classObj) {
+
+        params.put(classParamKey.getName(), classObj);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getParam(Class<T> classParamKey) {
+
+        Object obj = params.get(classParamKey.getName());
+
+        if (obj != null) {
+            return classParamKey.cast(obj);
+        }
+
+        return (T) obj;
+    }
+
     public void reset() {
 
         params.clear();

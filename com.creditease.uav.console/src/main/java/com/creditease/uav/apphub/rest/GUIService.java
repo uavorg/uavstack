@@ -169,11 +169,17 @@ public class GUIService extends AppHubBaseRestService {
         if (null != userId) {
             Object userGroup = null == session ? null : session.getAttribute("apphub.gui.session.login.user.group");
             Object emailList = null == session ? null : session.getAttribute("apphub.gui.session.login.user.emailList");
+            Object emailAuthList = null == session ? null
+                    : session.getAttribute("apphub.gui.session.login.user.authorize.emailList");
+            Object systemAuthList = null == session ? null
+                    : session.getAttribute("apphub.gui.session.login.user.authorize.systems");
+            
             /**
              * 模板中，自动填充登录用户信息：模板内spa页面可以获取此资源;
              */
             String userJs = "<script> var loginUser = {" + "'userId':'" + userId + "','groupId':'" + userGroup
-                    + "','emailList':'" + emailList + "'};</script>";
+                    + "','emailList':'" + emailList + "','emailAuthList':'" + emailAuthList + "','systemAuthList':'"
+                    + systemAuthList + "'};</script>";
             tempHtml.append(userJs);
 
         }
@@ -221,6 +227,10 @@ public class GUIService extends AppHubBaseRestService {
             userInfo.put("type", "login");
             userInfo.put("url", "");
             userInfo.put("desc", "登录成功");
+            userInfo.put("uauthemails", String.valueOf(
+                    request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.emailList")));
+            userInfo.put("authsystems", String.valueOf(
+                    request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.systems")));
             logger.info(this, JSONHelper.toString(userInfo));
 
             return createResponeJson(RespCode.SUCCESS, "", "");
@@ -259,7 +269,11 @@ public class GUIService extends AppHubBaseRestService {
             userInfo.put("rs", "/rs/gui/loginOut");
             userInfo.put("type", "logout");
             userInfo.put("url", "");
-            userInfo.put("desc", "登录成功");
+            userInfo.put("desc", "登出成功");
+            userInfo.put("uauthemails", String.valueOf(
+                    request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.emailList")));
+            userInfo.put("authsystems", String.valueOf(
+                    request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.systems")));
             logger.info(this, JSONHelper.toString(userInfo));
 
             // 销毁会话
@@ -393,6 +407,7 @@ public class GUIService extends AppHubBaseRestService {
             session.setAttribute("apphub.gui.session.login.user.id", userInfo.get("loginId"));
             session.setAttribute("apphub.gui.session.login.user.group", userInfo.get("groupId"));
             session.setAttribute("apphub.gui.session.login.user.emailList", userInfo.get("emailList"));
+            setUAuthInfoToSession();
             return true;
         }
         else {
@@ -757,6 +772,57 @@ public class GUIService extends AppHubBaseRestService {
 
         });
         return jsonArray;
+    }
+    
+    /**
+     * 设置会话：用户授权邮箱组
+     */
+    @SuppressWarnings("unchecked")
+    private void setUAuthInfoToSession() {
+
+        // 用户信息会话创建，信息保存
+        HttpSession session = request.getSession(false);
+
+        String[] emailList = String
+                .valueOf(request.getSession(false).getAttribute("apphub.gui.session.login.user.emailList")).split(",");
+        if ("UAV.ADMIN.EMAIL.LIST".equals(emailList[0])) {
+            session.setAttribute("apphub.gui.session.login.user.authorize.emailList", "UAV.ADMIN.EMAIL.LIST");
+            session.setAttribute("apphub.gui.session.login.user.authorize.systems", "UAV.ADMIN.SYSTEMS");
+            return;
+        }
+
+        // 用户邮箱组权限
+        StringBuilder emailLists = new StringBuilder();
+        // 用户系统权限
+        StringBuilder systems = new StringBuilder();
+
+        for (String e : emailList) {
+            Map<String, String> esistsMap = cm.getHash("apphub.app.godeye.filter.cache", "email.list.group", e);
+            if (esistsMap.get(e) != null) {
+                Map<String, Object> emailMap = JSONHelper.toObject(esistsMap.get(e), Map.class);// 因为嵌套了一层，还需要再取一次
+                if (!"1".equals(String.valueOf(emailMap.get("state")))) { // 状态为可用
+                    continue;
+                }
+                if (emailLists.length() > 0) {
+                    emailLists.append(",");
+                }
+                emailLists.append(String.valueOf(emailMap.get("emailListName")));
+
+                /**
+                 * 系统组获取
+                 */
+                if (systems.length() > 0) {
+                    systems.append(",");
+                }
+                Map<String, Object> groups = JSONHelper.toObject(String.valueOf(emailMap.get("groupList")), Map.class);// 因为嵌套了一层，还需要再取一次
+                systems.append(groups.keySet().toString().substring(1, groups.keySet().toString().length() - 1));
+
+            }
+        }
+
+        session.setAttribute("apphub.gui.session.login.user.authorize.emailList", emailLists.toString());
+        session.setAttribute("apphub.gui.session.login.user.authorize.systems", systems.toString());
+
     }
 
 }

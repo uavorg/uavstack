@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.creditease.agent.helpers.DateTimeHelper;
+import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.agent.helpers.JSONHelper;
 
 /**
@@ -36,11 +38,28 @@ import com.creditease.agent.helpers.JSONHelper;
  */
 public class NotifyStrategy {
 
+    public enum Type {
+        STREAM("stream"), TIMER("timer");
+
+        private String name;
+
+        Type(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+
+            return name;
+        }
+    }
+
     private static final String[] OPERATORS = { ":=", "!=", ">", "<", "=" };
 
     private static final Pattern INDEX_PATTERN = Pattern.compile("\\[\\d+\\]");
 
-    //
+    private Type type;
+
     private String scope;
 
     private List<Condition> condtions;
@@ -55,11 +74,14 @@ public class NotifyStrategy {
 
     private long maxRange = 0;
 
+    private String name;
+
     public NotifyStrategy() {
     }
 
-    public NotifyStrategy(String scope, List<String> context, Map<String, String> action, List<String> instances,
-            String msgTemplate) {
+    public NotifyStrategy(String name, String scope, List<String> context, Map<String, String> action,
+            List<String> instances, String msgTemplate) {
+        this.name = name;
         this.scope = scope;
         if (context != null && context.size() != 0) {
             this.context = context;
@@ -88,11 +110,21 @@ public class NotifyStrategy {
             else {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> cond = (Map<String, Object>) o;
-                String expr = (String) cond.get("expr");
-                String func = (String) cond.get("func");
-                Long range = cond.get("range") == null ? null : Long.valueOf(cond.get("range").toString());
-                Float sampling = cond.get("sampling") == null ? null : Float.valueOf(cond.get("sampling").toString());
-                Expression expression = new Expression(expr, func, range, sampling);
+                Expression expression;
+                if (cond.get("type") == null || cond.get("type").equals(Type.STREAM.name)) {
+                    String expr = (String) cond.get("expr");
+                    String func = (String) cond.get("func");
+                    Long range = cond.get("range") == null ? null : Long.valueOf(cond.get("range").toString());
+                    Float sampling = cond.get("sampling") == null ? null
+                            : Float.valueOf(cond.get("sampling").toString());
+                    expression = new Expression(expr, func, range, sampling);
+                }
+                else {
+                    String metricPrefix = name.substring(name.indexOf('@') + 1, name.lastIndexOf('@'));
+                    cond.put("metric", metricPrefix + "." + cond.get("metric"));
+                    expression = new Expression(cond);
+                    this.type = Type.TIMER;
+                }
                 expression.setIdx(idx++);
                 exprs.add(expression);
             }
@@ -143,7 +175,7 @@ public class NotifyStrategy {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static NotifyStrategy parse(String json) {
+    public static NotifyStrategy parse(String name, String json) {
 
         Map m = JSONHelper.toObject(json, Map.class);
         String scope = (String) m.get("scope");
@@ -154,7 +186,7 @@ public class NotifyStrategy {
         String msgTemplate = (String) m.get("msgTemplate");
         List<String> instances = (List<String>) m.get("instances");
 
-        NotifyStrategy stra = new NotifyStrategy(scope, context, action, instances, msgTemplate);
+        NotifyStrategy stra = new NotifyStrategy(name, scope, context, action, instances, msgTemplate);
 
         stra.setConditions(conditions, relations);
 
@@ -216,6 +248,16 @@ public class NotifyStrategy {
         this.instances = instances;
     }
 
+    public String getName() {
+
+        return name;
+    }
+
+    public Type getType() {
+
+        return type;
+    }
+
     public List<Condition> getCondtions() {
 
         return condtions;
@@ -224,15 +266,22 @@ public class NotifyStrategy {
     protected static class Expression {
 
         private int idx;
+        private Type type;
         private String arg;
         private String operator;
         private String expectedValue;
-
         private long range = 0;
         private String func;
         private float sampling = 1;
 
         private Set<String> matchArgExpr = new HashSet<String>();
+
+        private long time_from;
+        private long time_to;
+        private long interval;
+        private int unit;
+        private String upperLimit;
+        private String lowerLimit;
 
         public Expression(String exprStr) {
             for (String op : OPERATORS) {
@@ -248,6 +297,7 @@ public class NotifyStrategy {
                     break;
                 }
             }
+            this.type = Type.STREAM;
         }
 
         public Expression(String exprStr, String func, Long range, Float sampling) {
@@ -259,6 +309,39 @@ public class NotifyStrategy {
             if (sampling != null) {
                 this.sampling = sampling;
             }
+
+        }
+
+        public Expression(Map<String, Object> cond) {
+
+            this.arg = (String) cond.get("metric");
+            this.unit = Integer.parseInt((String) cond.get("unit"));
+            this.time_from = DateTimeHelper
+                    .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + cond.get("time_from"), "yyyy-MM-dd HH:mm")
+                    .getTime();
+            this.time_to = DateTimeHelper
+                    .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + cond.get("time_to"), "yyyy-MM-dd HH:mm")
+                    .getTime();
+            if (cond.get("interval") != null) {
+                long interval = Long.parseLong((String) cond.get("interval"));
+                switch (unit) {
+                    case DateTimeHelper.INTERVAL_DAY:
+                        interval = interval * 24 * 3600 * 1000;
+                        break;
+                    case DateTimeHelper.INTERVAL_HOUR:
+                        interval = interval * 3600 * 1000;
+                        break;
+                    case DateTimeHelper.INTERVAL_MINUTE:
+                        interval = interval * 60000;
+                        break;
+                }
+                this.interval = interval;
+            }
+
+            this.upperLimit = (String) cond.get("upperLimit");
+            this.lowerLimit = (String) cond.get("lowerLimit");
+            this.func = (String) cond.get("aggr");
+            this.type = Type.TIMER;
         }
 
         private void initMatchArgExpr() {
@@ -298,6 +381,11 @@ public class NotifyStrategy {
             return targetArgs;
         }
 
+        public String getHashCode() {
+
+            return EncodeHelper.encodeMD5(arg + func + lowerLimit + upperLimit + time_from + time_to + interval + unit);
+        }
+
         public String getArg() {
 
             return arg;
@@ -331,6 +419,41 @@ public class NotifyStrategy {
         public int getIdx() {
 
             return idx;
+        }
+
+        public Type getType() {
+
+            return type;
+        }
+
+        public long getTime_from() {
+
+            return time_from;
+        }
+
+        public long getTime_to() {
+
+            return time_to;
+        }
+
+        public long getInterval() {
+
+            return interval;
+        }
+
+        public String getUpperLimit() {
+
+            return upperLimit;
+        }
+
+        public String getLowerLimit() {
+
+            return lowerLimit;
+        }
+
+        public int getUnit() {
+
+            return unit;
         }
 
         public void setIdx(int idx) {

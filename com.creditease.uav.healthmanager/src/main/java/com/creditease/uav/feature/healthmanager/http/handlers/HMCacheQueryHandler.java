@@ -358,7 +358,7 @@ public class HMCacheQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
             else if ("appurl".equals(filterKey)) {
 
                 for (String key : keys) {
-                    String keyCheck = key.substring(0, key.indexOf("@"));
+                    String keyCheck = key.substring(key.indexOf("@") + 1);
                     for (String vString : fValues) {
                         if (vString.equals(keyCheck)) {
                             targets.add(key);

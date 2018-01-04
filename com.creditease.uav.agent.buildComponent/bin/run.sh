@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #NOT READY,PLEASE REFINE THIS
 
 working_directory=$(pwd)
@@ -9,16 +9,17 @@ if [ "$1" == "--no-watch" ]; then
 fi
 
 echo $4
+executeJava=
 if [ -d "$4" ]; then
     export JAVA_HOME=$4
     export JRE_HOME=$JAVA_HOME/jre 
     export PATH=$JAVA_HOME/bin:$PATH 
-    export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH 
+    export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+    executeJava="java"
 fi
 
-javaHomeArray=(/opt/jdk1.7.0_45 /opt/jdk1.7.0_65 /opt/jdk1.7.0_71 /opt/jdk1.7.0_79 /opt/jdk1.7.0_80 /app/jdk1.7.0_79 /app/jdk1.7.0_80 /opt/jdk1.8.0_77 /opt/jdk1.8.0_121 /opt/jdk1.8.0_131)
-executeJava="java"
-
+if [ -z $executeJava ];then
+javaHomeArray=(/opt/jdk1.7.0_45 /opt/jdk1.7.0_65 /opt/jdk1.7.0_71 /opt/jdk1.7.0_79 /opt/jdk1.7.0_80 /opt/jdk1.8.0_77 /opt/jdk1.8.0_121 /opt/jdk1.8.0_131 /app/jdk1.7.0_79 /app/jdk1.7.0_80)
 for jhome in ${javaHomeArray[@]}
 do
     tmp="$jhome/bin/java"
@@ -27,6 +28,7 @@ do
         break
     fi
 done
+fi
 
 echo "using $executeJava"
 

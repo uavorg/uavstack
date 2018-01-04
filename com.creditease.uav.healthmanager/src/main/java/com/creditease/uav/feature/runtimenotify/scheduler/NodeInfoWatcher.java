@@ -22,6 +22,8 @@ package com.creditease.uav.feature.runtimenotify.scheduler;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +41,7 @@ import com.creditease.agent.spi.AgentResourceComponent;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManager.CacheLock;
 import com.creditease.uav.feature.RuntimeNotifyCatcher;
+import com.creditease.uav.feature.runtimenotify.NotifyStrategy;
 import com.creditease.uav.messaging.api.Message;
 import com.creditease.uav.messaging.api.MessageProducer;
 import com.creditease.uav.messaging.api.MessagingFactory;
@@ -116,14 +119,18 @@ public class NodeInfoWatcher extends AbstractTimerWork {
                 sb.append(dpi + "\n");
             }
 
-            return sb.toString();
+            return sb.toString().replace("\\", "\\\\");
         }
 
     }
 
     private static final String LOCK_KEY = "rtnoitify.nodeinfotimer.lock";
+    private static final String UAV_CACHE_REGION = "store.region.uav";
+    private static final String CRASH_PROCS = "rtnotify.dead.procs";
+    private static final String CRASH_PROCS_DETAIL = "rtnotify.dead.procs.detail";
     private static final long LOCK_TIMEOUT = 30 * 1000;
     private static final long DEFAULT_CRASH_TIMEOUT = 5 * 60 * 1000;
+    private static final long MIN_RANDOM_PORT = 32768;
 
     private CacheManager cm;
     private CacheLock lock;
@@ -136,7 +143,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
 
         cm = (CacheManager) getConfigManager().getComponent(this.feature, RuntimeNotifyCatcher.CACHE_MANAGER_NAME);
 
-        lock = cm.newCacheLock("store.region.uav", LOCK_KEY, LOCK_TIMEOUT);
+        lock = cm.newCacheLock(UAV_CACHE_REGION, LOCK_KEY, LOCK_TIMEOUT);
 
         hold = DataConvertHelper.toInt(getConfigManager().getFeatureConfiguration(feature, "nodeinfotimer.period"),
                 15000);
@@ -161,7 +168,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             log.info(this, "NodeInfoWatcher RUN START.");
         }
 
-        Map<String, String> data = cm.getHashAll("store.region.uav", "node.info");
+        Map<String, String> data = cm.getHashAll(UAV_CACHE_REGION, "node.info");
 
         if (!lock.isLockInHand()) {
             return;
@@ -188,7 +195,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         }
 
         /**
-         * Step 2: sync node info to proc map
+         * Step 2: sync node info to redis
          */
         List<Map<String, Object>> mdflist = syncProcInfoToCache(data);
 
@@ -215,12 +222,16 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         lock.releaseLock();
     }
 
+    /**
+     * nodeInfo数据转为list返回并将判断进程死亡所用的K、V存入redis
+     */
     @SuppressWarnings("rawtypes")
     private List<Map<String, Object>> syncProcInfoToCache(Map<String, String> data) {
 
         List<Map<String, Object>> mdflist = new ArrayList<>();
 
         Map<String, String> fieldValues = new HashMap<String, String>();
+        Map<String, String> fieldValuesDetail = new HashMap<String, String>();
 
         for (String node : data.values()) {
 
@@ -231,18 +242,30 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             String time = mdf.getTimeFlag() + "";
             List<Map> els = mdf.getElemInstances("server", "procState");
             for (Map el : els) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> m = (Map<String, Object>) el.get("values");
+                try {
+                    String group = mdf.getExt("appgroup");
+                    String ip = mdf.getIP();
 
-                String hashKey = genProcHashKey(mdf.getExt("appgroup"), mdf.getIP(), m);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> m = (Map<String, Object>) el.get("values");
 
-                fieldValues.put(hashKey, time);
+                    String hashKey = genProcHashKey(ip, m);
+
+                    // 分别存时间戳和group
+                    fieldValues.put(hashKey, time);
+                    fieldValuesDetail.put(hashKey, group);
+                }
+                catch (Exception e) {
+                    log.err(this, "Sync ProcInfo To Cache Fail." + " ProcInfo:" + JSONHelper.toString(el), e);
+                }
+
             }
 
             mdflist.add(mdfMap);
         }
 
-        cm.putHash("store.region.uav", "rtnotify.crash.procs", fieldValues);
+        cm.putHash(UAV_CACHE_REGION, CRASH_PROCS, fieldValues);
+        cm.putHash(UAV_CACHE_REGION, CRASH_PROCS_DETAIL, fieldValuesDetail);
 
         if (log.isDebugEnable()) {
             log.debug(this, "NodeInfoWatcher SYNC Node Data to Cache: data size=" + mdflist.size());
@@ -252,7 +275,15 @@ public class NodeInfoWatcher extends AbstractTimerWork {
     }
 
     /**
-     * judgeProcCrash
+     * 判断进程死亡
+     * 
+     * 1.对于重启后name、main、margs、固定port不变的进程，由于key相同会直接覆盖
+     * 
+     * 2.固定port改变，找出ip_name相同但固定port不完全相同的进程， 存在任一端口相同则判定两个进程是相同，删除时间戳较老的进程，只保留时间戳较新的进程信息
+     * 
+     * 3.其余信息不同的进程则认为是新的进程
+     * 
+     * 4.时间戳超过进程死亡时间（可配置）则保存至死亡进程list并在redis中删除该进程。
      */
     private void judgeProcCrash() {
 
@@ -261,11 +292,14 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         }
 
         Map<String, String> allProcs = null;
+        Map<String, String> allProcDetails = null;
         try {
-            allProcs = cm.getHashAll("store.region.uav", "rtnotify.crash.procs");
+            allProcs = cm.getHashAll(UAV_CACHE_REGION, CRASH_PROCS);
+            allProcDetails = cm.getHashAll(UAV_CACHE_REGION, CRASH_PROCS_DETAIL);
         }
         catch (Exception e) {
             log.err(this, "Fail to get all process info", e);
+            return;
         }
 
         if (allProcs == null) {
@@ -276,20 +310,70 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         long timeout = DataConvertHelper.toLong(cfgTimeout, DEFAULT_CRASH_TIMEOUT);
         long deadline = System.currentTimeMillis() - timeout;
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        List<String> dead = new ArrayList<>();
-
+        List<String> delKeys = new ArrayList<>();
         List<String> deadKeys = new ArrayList<>();
 
         for (Entry<String, String> en : allProcs.entrySet()) {
+            String procKey = en.getKey();
             long time = Long.parseLong(en.getValue());
 
-            if (time < deadline) {
+            if (delKeys.contains(procKey)) {
+                continue;
+            }
 
-                dead.add(format.format(new Date(time)) + "@" + en.getKey());
+            try {
+                String[] procKeyArray = procKey.split("_", -1);
+                String ip = procKeyArray[0];
+                String name = procKeyArray[1];
 
-                deadKeys.add(en.getKey());
+                if (procKeyArray[2].equals("")) {
+                    // 不存在固定端口的进程
+                    if (time < deadline) {
+                        delKeys.add(procKey);
+                        deadKeys.add(procKey);
+                    }
+                    continue;
+                }
+
+                List<String> ports = new ArrayList<String>(Arrays.asList(procKeyArray[2].split("#")));
+
+                boolean hasNewProc = false;
+                // 存在固定端口的进程，判断是否有ip、name相同但固定端口不完全相同的进程
+                for (Entry<String, String> enBak : allProcs.entrySet()) {
+                    String procKeyBak = enBak.getKey();
+                    long timeBak = Long.parseLong(enBak.getValue());
+
+                    String[] procKeyBakArray = procKeyBak.split("_", -1);
+                    String ipBak = procKeyBakArray[0];
+                    String nameBak = procKeyBakArray[1];
+                    List<String> portsBak = new ArrayList<String>(Arrays.asList(procKeyBakArray[2].split(":")));
+
+                    if (procKeyBakArray[2].equals("") || !(ipBak + nameBak).equals(ip + name)
+                            || procKeyBak.equals(procKey) || delKeys.contains(procKeyBak)) {
+                        continue;
+                    }
+
+                    for (String port : ports) {
+                        if (portsBak.contains(port)) {
+                            if (time >= timeBak) {
+                                delKeys.add(procKeyBak);
+                                break;
+                            }
+                            else {
+                                delKeys.add(procKey);
+                                hasNewProc = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!hasNewProc && time < deadline) {
+                    delKeys.add(procKey);
+                    deadKeys.add(procKey);
+                }
+            }
+            catch (Exception e) {
+                log.err(this, "Fail to judge ProcCrash." + " ProcKey:" + procKey, e);
             }
         }
 
@@ -297,41 +381,55 @@ public class NodeInfoWatcher extends AbstractTimerWork {
          * Step 3: release lock
          */
 
-        if (dead.isEmpty()) {
-            return;
-        }
-
-        String[] dKeys = new String[deadKeys.size()];
-
-        deadKeys.toArray(dKeys);
-
+        String[] dKeys = new String[delKeys.size()];
+        delKeys.toArray(dKeys);
         // delete
-        cm.delHash("store.region.uav", "rtnotify.crash.procs", dKeys);
+        cm.delHash(UAV_CACHE_REGION, CRASH_PROCS, dKeys);
+        cm.delHash(UAV_CACHE_REGION, CRASH_PROCS_DETAIL, dKeys);
 
         if (log.isDebugEnable()) {
-            log.debug(this, "NodeInfoWatcher Judge Crash RESULT: dead=" + dead.size());
+            log.debug(this, "NodeInfoWatcher Judge Crash RESULT: dead=" + deadKeys.size());
+        }
+
+        if (deadKeys.isEmpty()) {
+            return;
         }
 
         /**
          * Step 4: there is dead process, make alert
          */
-        fireEvent(dead);
+
+        Map<String, Map<String, String>> deadProcs = new HashMap<String, Map<String, String>>();
+        for (String key : deadKeys) {
+            Map<String, String> procDetail = new HashMap<String, String>();
+            procDetail.put("deadtime", allProcs.get(key));
+            procDetail.put("appgroup", allProcDetails.get(key));
+
+            deadProcs.put(key, procDetail);
+        }
+
+        fireEvent(deadProcs);
     }
 
-    private void fireEvent(List<String> dead) {
+    /**
+     * 触发预警事件
+     */
+    private void fireEvent(Map<String, Map<String, String>> deadProcs) {
 
         /**
          * Step 1: split crash event by IP
          */
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         Map<String, CrashEventObj> ips = new HashMap<String, CrashEventObj>();
-        for (String s : dead) {
-            String[] info = s.split("@");
-            String appgroup = info[1];
-            String ip = info[2].substring(0, info[2].indexOf("("));
-
-            String[] procInfo = info[2].split(",");
-
+        for (Entry<String, Map<String, String>> en : deadProcs.entrySet()) {
+            String procKey = en.getKey();
+            String[] procInfo = procKey.split("_", -1);
+            String ip = procInfo[0];
             String procName = procInfo[1];
+
+            String deadtime = en.getValue().get("deadtime");
+            String appgroup = en.getValue().get("appgroup");
 
             CrashEventObj ceo;
 
@@ -345,12 +443,14 @@ public class NodeInfoWatcher extends AbstractTimerWork {
 
             ceo.increDeadProcsCount();
             ceo.addDeadProcName(procName);
-            ceo.addDeadProcInfo("触发时间：" + info[0] + ",进程信息：" + info[2]);
+            ceo.addDeadProcInfo("触发时间：" + format.format(new Date(Long.parseLong(deadtime))) + ", 进程信息：" + procKey);
         }
 
         /**
          * Step 2: send notification event by IP
          */
+        RuntimeNotifyStrategyMgr strategyMgr = (RuntimeNotifyStrategyMgr) getConfigManager().getComponent(this.feature,
+                "RuntimeNotifyStrategyMgr");
         for (CrashEventObj ceo : ips.values()) {
 
             String title = "应用组[" + ceo.getAppGroup() + "]的" + ceo.getIp() + "共发现" + ceo.getDeadProcsCount() + "进程"
@@ -366,6 +466,12 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             // add appgroup
             event.addArg("appgroup", ceo.getAppGroup());
 
+            NotifyStrategy stra = strategyMgr.seekStrategy("server@procCrash@" + ceo.getIp());
+
+            if (null != stra) {
+                putNotifyAction(event, stra);
+            }
+
             if (log.isTraceEnable()) {
                 log.info(this, "NodeInfoWatcher Crash Event Happen: event=" + event.toJSONString());
             }
@@ -373,6 +479,21 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             this.putNotificationEvent(event);
         }
 
+    }
+
+    /**
+     * 添加报警action
+     */
+    private void putNotifyAction(NotificationEvent event, NotifyStrategy stra) {
+
+        Map<String, String> actions = stra.getAction();
+        if (actions == null || actions.isEmpty()) {
+            return;
+        }
+
+        for (Entry<String, String> act : actions.entrySet()) {
+            event.addArg("action_" + act.getKey(), act.getValue());
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -455,31 +576,48 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         return mdf;
     }
 
-    // return ip_name_ports_mainjarghash
-    private String genProcHashKey(String appgroup, String ip, Map<String, Object> m) {
+    /**
+     * 拼接判断进程死亡所用的key
+     * 
+     * 1.存在固定端口进程 ip_name_port:port:__
+     * 
+     * 2.不存在固定端口的非java进程 ip_name___
+     * 
+     * 3.不存在固定端口、java非服务进程 ip_name__main_margshash
+     * 
+     * @return ip_name_ports_main_margshash
+     */
+    private String genProcHashKey(String ip, Map<String, Object> m) {
 
-        String name = (String) m.get("name");
-
+        StringBuilder psb = new StringBuilder();
         @SuppressWarnings("unchecked")
         List<String> ports = (List<String>) m.get("ports");
-        StringBuilder psb = new StringBuilder();
+        // 对端口排序，保证端口不变时key相同
+        Collections.sort(ports);
         for (String port : ports) {
-            psb.append(port).append(";");
+            String portKey = port;
+            // 考虑Container拼接的端口为ip:port的形式
+            if (port.contains(":")) {
+                port = port.split(":", -1)[1];
+            }
+
+            if (Integer.parseInt(port) < MIN_RANDOM_PORT) {// 过滤随机端口
+                psb.append(portKey).append("#");
+            }
         }
 
-        String javaInfo = "";
+        String name = (String) m.get("name");
+        String javaInfos = "_";
+        String main = (String) m.get("main");
+        if (null != main) {
+            String margs = m.get("margs") == null ? "" : (String) m.get("margs");
 
-        if ("java".equals(name)) {
-            String main = (String) m.get("main");
-            // String jflags = (String) m.get("jflags");
-            String jargs = m.get("jargs") == null ? "" : (String) m.get("jargs");
-
-            String jarsAbs = (jargs.length() > 100) ? jargs.substring(0, 100) : jargs;
-
-            javaInfo = "," + main + " " + jarsAbs;
+            if (0 == psb.length()) {
+                javaInfos = main + "_" + margs.hashCode();
+            }
         }
 
-        return appgroup + "@" + ip + "(" + psb.toString() + ")," + name + javaInfo;
+        return ip + "_" + name + "_" + psb.toString() + "_" + javaInfos;
     }
 
     //
@@ -505,7 +643,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             Map<String, Object> dv = (Map<String, Object>) disk.get(dk);
             for (String dvk : dv.keySet()) {
                 String dvv = dv.get(dvk).toString();
-                if ("useRate".equals(dvk)) {
+                if ("useRate".equals(dvk)||"useRateInode".equals(dvk)) {
                     dvv = dvv.replace("%", ""); // cut '%'
                 }
                 infoMap.put("os.io.disk" + pk + dvk, dvv);
@@ -515,7 +653,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
 
     private boolean isFrozen() {
 
-        String timestampStr = cm.get("store.region.uav", "rtnoitify.nodeinfotimer.hold");
+        String timestampStr = cm.get(UAV_CACHE_REGION, "rtnoitify.nodeinfotimer.hold");
         if (timestampStr == null) {
             return false;
         }
@@ -544,7 +682,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
     private void freezeTime() {
 
         long now = System.currentTimeMillis();
-        cm.put("store.region.uav", "rtnoitify.nodeinfotimer.hold", now + "");
+        cm.put(UAV_CACHE_REGION, "rtnoitify.nodeinfotimer.hold", now + "");
     }
 
     private void sendToMq(String mdfs) {

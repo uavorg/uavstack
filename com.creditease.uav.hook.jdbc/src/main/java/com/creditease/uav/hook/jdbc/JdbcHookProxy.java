@@ -389,6 +389,17 @@ public class JdbcHookProxy extends HookProxy {
                     }
                 }, false);
 
+        /**
+         * adapts:<br>
+         * 1) FIX simulate the behaviour of Druid before injected: <br>
+         * validateConnection use given Connection to ping DB, <br>
+         * and throw exception if our $Proxy is given.<br>
+         * <br>
+         * 2) FIX simulate the behaviour of Druid before injected: <br>
+         * these 'init' methods will new a Object to specified DB type
+         */
+        dpInstall.doAdapts(getAdapts());
+
         // release loader
         dpInstall.releaseTargetClassLoader();
 
