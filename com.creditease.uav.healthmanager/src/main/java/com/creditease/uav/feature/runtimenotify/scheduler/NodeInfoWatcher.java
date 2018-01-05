@@ -346,12 +346,13 @@ public class NodeInfoWatcher extends AbstractTimerWork {
                     String[] procKeyBakArray = procKeyBak.split("_", -1);
                     String ipBak = procKeyBakArray[0];
                     String nameBak = procKeyBakArray[1];
-                    List<String> portsBak = new ArrayList<String>(Arrays.asList(procKeyBakArray[2].split(":")));
 
                     if (procKeyBakArray[2].equals("") || !(ipBak + nameBak).equals(ip + name)
                             || procKeyBak.equals(procKey) || delKeys.contains(procKeyBak)) {
                         continue;
                     }
+
+                    List<String> portsBak = new ArrayList<String>(Arrays.asList(procKeyBakArray[2].split(":")));
 
                     for (String port : ports) {
                         if (portsBak.contains(port)) {
@@ -579,7 +580,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
     /**
      * 拼接判断进程死亡所用的key
      * 
-     * 1.存在固定端口进程 ip_name_port:port:__
+     * 1.存在固定端口进程 ip_name_port#port#__
      * 
      * 2.不存在固定端口的非java进程 ip_name___
      * 
@@ -643,7 +644,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             Map<String, Object> dv = (Map<String, Object>) disk.get(dk);
             for (String dvk : dv.keySet()) {
                 String dvv = dv.get(dvk).toString();
-                if ("useRate".equals(dvk)||"useRateInode".equals(dvk)) {
+                if ("useRate".equals(dvk) || "useRateInode".equals(dvk)) {
                     dvv = dvv.replace("%", ""); // cut '%'
                 }
                 infoMap.put("os.io.disk" + pk + dvk, dvv);
