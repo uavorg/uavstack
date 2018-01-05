@@ -750,7 +750,9 @@ function AppServiceStream(app) {
 		/**
 		 * app client
 		 */
-		if (true==options["needClientAccess"]) {
+		 
+		//the needClientNode is undefine when appurl and cpt.services's ip is different(case container)
+		if (true==options["needClientAccess"]&&needClientNode!=undefined) {
 			 this.onAppClientUpdate(needClientNode,appInst,options["fromWhere"]);
 		}
 		
