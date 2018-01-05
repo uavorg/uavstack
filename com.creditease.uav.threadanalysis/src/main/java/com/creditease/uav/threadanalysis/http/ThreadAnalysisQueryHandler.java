@@ -163,9 +163,10 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
 
         try {
             String ipport = data.getRequest("ipport");
-            AggregationBuilder agg = AggregationBuilders.terms("unique_time").field("time")
+            // TODO ES aggregation 默认最多查10条, 这里暂时改到1000，待refine
+            AggregationBuilder agg = AggregationBuilders.terms("unique_time").field("time").size(1000)
                     .order(Terms.Order.term(false))
-                    .subAggregation(AggregationBuilders.terms("unique_user").field("user"));
+                    .subAggregation(AggregationBuilders.terms("unique_user").field("user").size(1000));
 
             String date = data.getRequest("indexdate");
             String currentIndex;
