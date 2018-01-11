@@ -20,7 +20,7 @@
 
 package org.logicalcobwebs.proxool;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.captureframework.spi.MonitorElement;
 import com.creditease.monitor.captureframework.spi.MonitorElementInstance;
 import com.creditease.uav.hook.jdbc.pools.AbsDBPoolHookProxy;
@@ -79,7 +79,7 @@ public class ConnectionPoolManagerDelegate {
 
         for (int i = 0; i < collectMtrx.length; i++) {
             inst.setValue(ProxoolHookProxy.MTRX_PREFIX + collectMtrx[i],
-                    ReflectHelper.invoke(ConnectionPool.class.getName(), pds, prefix + collectMtrx[i], null, null));
+                    ReflectionHelper.invoke(ConnectionPool.class.getName(), pds, prefix + collectMtrx[i], null, null));
         }
     }
 }
