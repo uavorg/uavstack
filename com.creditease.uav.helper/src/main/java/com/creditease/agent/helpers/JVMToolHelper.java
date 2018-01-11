@@ -310,16 +310,16 @@ public class JVMToolHelper {
         initJVMToolJarClassLoader();
 
         // HostIdentifier localHostIdentifier = new HostIdentifier(host);
-        Object localHostIdentifier = ReflectHelper.newInstance("sun.jvmstat.monitor.HostIdentifier",
+        Object localHostIdentifier = ReflectionHelper.newInstance("sun.jvmstat.monitor.HostIdentifier",
                 new Class[] { String.class }, new Object[] { host }, JVMToolClassloader);
 
         // localObject1 = MonitoredHost.getMonitoredHost(localHostIdentifier);
-        Object localObject1 = ReflectHelper.invokeStatic("sun.jvmstat.monitor.MonitoredHost", "getMonitoredHost",
+        Object localObject1 = ReflectionHelper.invokeStatic("sun.jvmstat.monitor.MonitoredHost", "getMonitoredHost",
                 new Class<?>[] { hostIdentifierClass }, new Object[] { localHostIdentifier }, JVMToolClassloader);
 
         // Set<Integer> localSet = ((MonitoredHost)localObject1).activeVms();
         @SuppressWarnings("unchecked")
-        Set<Integer> localSet = (Set<Integer>) ReflectHelper.invoke("sun.jvmstat.monitor.MonitoredHost", localObject1,
+        Set<Integer> localSet = (Set<Integer>) ReflectionHelper.invoke("sun.jvmstat.monitor.MonitoredHost", localObject1,
                 "activeVms", new Class[] {}, new Object[] {}, JVMToolClassloader);
 
         if (localSet == null) {
@@ -337,28 +337,28 @@ public class JVMToolHelper {
             try {
 
                 // VmIdentifier localVmIdentifier = new VmIdentifier(str1);
-                Object localVmIdentifier = ReflectHelper.newInstance("sun.jvmstat.monitor.VmIdentifier",
+                Object localVmIdentifier = ReflectionHelper.newInstance("sun.jvmstat.monitor.VmIdentifier",
                         new Class[] { String.class }, new Object[] { str1 }, JVMToolClassloader);
                 // Object localMonitoredVm =
                 // ((MonitoredHost)localObject1).getMonitoredVm(localVmIdentifier,
                 // 0);
-                Object localMonitoredVm = ReflectHelper.invoke("sun.jvmstat.monitor.MonitoredHost", localObject1,
+                Object localMonitoredVm = ReflectionHelper.invoke("sun.jvmstat.monitor.MonitoredHost", localObject1,
                         "getMonitoredVm", new Class<?>[] { vmIdentifierClass }, new Object[] { localVmIdentifier },
                         JVMToolClassloader);
 
                 // String mainClass=
                 // MonitoredVmUtil.mainClass(localMonitoredVm,true);
-                String mainClass = (String) ReflectHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil",
+                String mainClass = (String) ReflectionHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil",
                         "mainClass", new Class<?>[] { monitoredVmClass, boolean.class },
                         new Object[] { localMonitoredVm, true }, JVMToolClassloader);
                 // String mainArgs= MonitoredVmUtil.mainArgs(localMonitoredVm);
-                String mainArgs = (String) ReflectHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil", "mainArgs",
+                String mainArgs = (String) ReflectionHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil", "mainArgs",
                         new Class<?>[] { monitoredVmClass }, new Object[] { localMonitoredVm }, JVMToolClassloader);
                 // str3 = MonitoredVmUtil.jvmArgs(localMonitoredVm);
-                String jvmArgs = (String) ReflectHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil", "jvmArgs",
+                String jvmArgs = (String) ReflectionHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil", "jvmArgs",
                         new Class<?>[] { monitoredVmClass }, new Object[] { localMonitoredVm }, JVMToolClassloader);
                 // str3 = MonitoredVmUtil.jvmFlags(localMonitoredVm);
-                String jvmFlags = (String) ReflectHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil", "jvmFlags",
+                String jvmFlags = (String) ReflectionHelper.invokeStatic("sun.jvmstat.monitor.MonitoredVmUtil", "jvmFlags",
                         new Class<?>[] { monitoredVmClass }, new Object[] { localMonitoredVm }, JVMToolClassloader);
 
                 Map<String, String> map = new LinkedHashMap<String, String>();
@@ -688,9 +688,9 @@ public class JVMToolHelper {
 
         Map<String, Double> m = new LinkedHashMap<String, Double>();
 
-        Double procCPU = (Double) ReflectHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
+        Double procCPU = (Double) ReflectionHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
                 "getProcessCpuLoad", null, null);
-        Double systemCPU = (Double) ReflectHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
+        Double systemCPU = (Double) ReflectionHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
                 "getSystemCpuLoad", null, null);
 
         if (procCPU == null) {

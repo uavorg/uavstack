@@ -31,9 +31,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.hook.mongoclients.interceptors.MongoClientIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 /**
  * 
@@ -105,7 +104,7 @@ public class MongoClientHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.mongoclients.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("getDatabase".equals(m.getName())) {
 

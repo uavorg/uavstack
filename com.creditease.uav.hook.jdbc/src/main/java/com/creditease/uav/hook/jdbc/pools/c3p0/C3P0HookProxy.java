@@ -23,7 +23,7 @@ package com.creditease.uav.hook.jdbc.pools.c3p0;
 import java.util.Map;
 import java.util.Set;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.captureframework.spi.MonitorElement;
 import com.creditease.monitor.captureframework.spi.MonitorElementInstance;
 import com.creditease.uav.hook.jdbc.pools.AbsDBPoolHookProxy;
@@ -96,7 +96,7 @@ public class C3P0HookProxy extends AbsDBPoolHookProxy {
         String prefix = "get";
 
         for (int i = 0; i < collectMtrx.length; i++) {
-            inst.setValue(MTRX_PREFIX + collectMtrx[i], ReflectHelper.invoke(ComboPooledDataSource.class.getName(), pds,
+            inst.setValue(MTRX_PREFIX + collectMtrx[i], ReflectionHelper.invoke(ComboPooledDataSource.class.getName(), pds,
                     prefix + collectMtrx[i], null, null));
         }
     }

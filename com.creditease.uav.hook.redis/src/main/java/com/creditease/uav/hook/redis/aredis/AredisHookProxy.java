@@ -31,9 +31,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.hook.redis.aredis.interceptors.AredisCommandObjectIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 public class AredisHookProxy extends HookProxy {
 
@@ -76,7 +75,7 @@ public class AredisHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.redis.aredis.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("sendRequest".equals(m.getName())) {
                             dpInstaller.defineLocalVal(m, "mObj", AredisCommandObjectIT.class);
