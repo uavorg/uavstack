@@ -849,7 +849,7 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
                 // check if there is suffix, such as *.do
                 if (allIndex != realSpringMVCBaseUrl.length() - 1) {
-                    suffix = realSpringMVCBaseUrl.substring(allIndex + 1);
+                    suffix = realSpringMVCBaseUrl.substring(allIndex + 1, realSpringMVCBaseUrl.length() - 1);
                 }
 
                 // get the real access path
@@ -946,7 +946,9 @@ public class StandardProfileModeler extends AbstractBaseAction {
                                 methodServiceURL = formatRelativePath(serviceURL + "/" + methodRelativePath);
                             }
                             else {
-                                methodServiceURL = formatRelativePath(serviceURL + "/" + methodRelativePath + suffix);
+                                // endwith "#" means the suffix is added from springMVCBaseUrl,should be removed while on query
+                                methodServiceURL = formatRelativePath(
+                                        serviceURL + "/" + methodRelativePath + suffix + "#");
                             }
 
                             compServicesURLs.add(methodServiceURL);
