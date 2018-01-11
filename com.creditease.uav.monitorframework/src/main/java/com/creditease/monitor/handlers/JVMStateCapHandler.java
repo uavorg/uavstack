@@ -35,7 +35,7 @@ import java.util.Set;
 
 import com.creditease.agent.helpers.JVMToolHelper;
 import com.creditease.agent.helpers.NetworkHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.captureframework.spi.CaptureContext;
@@ -274,9 +274,9 @@ public class JVMStateCapHandler implements MonitorElemCapHandler {
     protected void readCPUUsage(MonitorElementInstance inst) {
 
         OperatingSystemMXBean osMBean = ManagementFactory.getOperatingSystemMXBean();
-        Double procCPU = (Double) ReflectHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
+        Double procCPU = (Double) ReflectionHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
                 "getProcessCpuLoad", null, null);
-        Double systemCPU = (Double) ReflectHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
+        Double systemCPU = (Double) ReflectionHelper.invoke("com.sun.management.OperatingSystemMXBean", osMBean,
                 "getSystemCpuLoad", null, null);
 
         if (procCPU == null) {

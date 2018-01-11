@@ -100,7 +100,7 @@ function AppHubTabList(_config) {
 					   if (groupObjs[groupId]==undefined) {
 						   var groupElemId=config["id"]+"-group-"+groupId;
 						   groupDiv=HtmlHelper.newElem("div",{"id":groupElemId,"class":"AppHubTabListGroup"});
-						   groupDiv.innerHTML="<div class='GroupTitle' id='"+groupElemId+"_title'>"+groupId+"</div>";
+						   groupDiv.innerHTML="<div class='GroupTitle' id='"+groupElemId+"_title'>"+groupId+"<span class='GroupTag' id='"+groupElemId+"_tag'></span></div>";
 						   groupObjs[groupId]={id:groupId,
 								   elem:function() {
 							   
@@ -108,6 +108,8 @@ function AppHubTabList(_config) {
 							   
 						   },members:new Map(),elemTitle:function() {
 							   return HtmlHelper.id(groupElemId+"_title");
+						   },elemTag:function() {
+							 return HtmlHelper.id(groupElemId+"_tag");
 						   }};
 						   						   
 						   mdiv.appendChild(groupDiv);
@@ -160,7 +162,7 @@ function AppHubTabList(_config) {
 			}
 		}		
 		
-		//delete group withour any member
+		//delete group without any member
 		for(var key in groupObjs) {
 			
 			var gpElemId=config.id+"-group-"+key;
@@ -171,6 +173,20 @@ function AppHubTabList(_config) {
 				HtmlHelper.del(gpElemId);
 				delete groupObjs[key];
 			}
+		}
+						
+		//show group tag
+		for(var key in groupObjs) {
+					
+			var gpElemId=config.id+"-group-"+key;
+				
+			var gpElem=HtmlHelper.id(gpElemId);
+				
+			var childNum=gpElem.children.length-1;
+					
+			var groupObj=groupObjs[key];
+				
+			groupObj.elemTag().innerHTML=childNum;
 		}
 	};
 	

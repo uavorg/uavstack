@@ -28,7 +28,7 @@ import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappClassLoader;
 
 import com.creditease.agent.helpers.DataConvertHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.InterceptSupport;
@@ -97,12 +97,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader().getParent());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -166,12 +166,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -218,12 +218,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -270,15 +270,15 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
         if (context.get(InterceptConstants.APPNAME) == null) {
             context.put(InterceptConstants.APPNAME,
-                    ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                    ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
         }
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -324,12 +324,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, Thread.currentThread().getContextClassLoader());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
         context.put(InterceptConstants.SERVLET_CONTEXT,
-                ReflectHelper.getField(StandardContext.class, sc, "context", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "context", true));
 
         iSupport.doIntercept(context);
     }
