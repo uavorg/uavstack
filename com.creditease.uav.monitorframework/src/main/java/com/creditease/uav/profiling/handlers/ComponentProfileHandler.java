@@ -309,7 +309,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 return true;
             }
 
-            List<String> filePaths = getDescriptorFileLocations(webAppRoot);
+            List<String> filePaths = null;
+            try {  
+                filePaths= getDescriptorFileLocations(webAppRoot);
+            }catch(Exception e) {
+                return false;
+            }
 
             if (filePaths.size() == 0) {
                 return false;
@@ -965,10 +970,15 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             File location = null;
             if (resources != null) {
                 for (Object resource : resources) {
-                    location = (File) ReflectHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null, null,
-                            webappclsLoader);
-                    if (location != null && location.isFile())
-                        absPaths.add(location.getPath());
+                    try {
+                        location = (File) ReflectionHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null, null,
+                            webappclsLoader);                    
+                        if (location != null && location.isFile())
+                            absPaths.add(location.getPath());
+                    }catch(RuntimeException e) {
+                        // ignore
+                        continue;
+                    }
                 }
             }
             return absPaths;
