@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.UAVServer.ServerVendor;
@@ -137,7 +137,7 @@ public class GlobalFilterDispatchListener extends InterceptEventListener {
          * JEE Application uses HttpServletRequest
          */
         else {
-            StringBuffer urlSB = (StringBuffer) ReflectHelper.invoke("javax.servlet.http.HttpServletRequest", httpReq,
+            StringBuffer urlSB = (StringBuffer) ReflectionHelper.invoke("javax.servlet.http.HttpServletRequest", httpReq,
                     "getRequestURL", null, null);
             if (urlSB != null) {
                 url = urlSB.toString();

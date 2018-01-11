@@ -4192,7 +4192,7 @@ var mvcObj={
 				 * App Service URL 性能显示
 				 */
 				sb.append("<div class='indexItem'>");
-				sb.append("<div class='indexItemHead'><span class='indexItemTag'>"+(i+1)+"</span><span class='indexItemId'>"+url+"</span></div>");
+				sb.append("<div class='indexItemHead'><span class='indexItemTag'>"+(i+1)+"</span><span class='indexItemId'>"+url.replace("#","")+"</span></div>");
 				sb.append("<div class='indexItemContent'>");
 				sb.append("QPM<span class='osRate' id='"+url+"_appservicechart_QPS'>-</span>&nbsp;&nbsp;" +
 		         		"全程平均响应(ms)<span class='osRate' id='"+url+"_appservicechart_RT'>-</span>&nbsp;&nbsp;" +
@@ -4240,6 +4240,21 @@ var mvcObj={
 			 */
 			monitorCfg.url.ip=sObj.ip;
 			monitorCfg.url.svrid=sObj.svrid;
+			
+			//url以"#"结尾意味着需要去除后缀，
+			for(var i=0;i<sObj.urls.length;i++){
+			    
+				if(!sObj.urls[i].endsWith("#")){
+				    continue;
+				}
+				
+				var lastSeparatorIndex = sObj.urls[i].lastIndexOf("/");
+				var suffixIndex = sObj.urls[i].lastIndexOf(".");
+				//最后一个分隔符'/'之后的点认为是后缀
+				if(suffixIndex > lastSeparatorIndex){
+					sObj.urls[i] = sObj.urls[i].substring(0,suffixIndex);
+				}
+			}
 			monitorCfg.url.urls=sObj.urls;
 			/**
 	         * Step 2: refresh service url
@@ -4265,6 +4280,21 @@ var mvcObj={
 			
 				var urlMO=urlMOs[key];
 				
+				//正常情况下返回结果的key应该在appURLQPSCfg.seriesMap，若不在说明做了后缀的截取，需要恢复
+				if(!(key in appURLQPSCfg.seriesMap)){
+					for(var seriesMapKey in appURLQPSCfg.seriesMap){
+						//按照去除后缀的逻辑把seriesMapKey里的后缀去掉，若与当前key相同说明是同一个url
+						var lastSeparatorIndex = seriesMapKey.lastIndexOf("/");
+						var suffixIndex = seriesMapKey.lastIndexOf(".");
+						if(suffixIndex > lastSeparatorIndex && key == seriesMapKey.substring(0,suffixIndex)){
+							//将key替换成含有后缀的形式，保证数据可以正确设置
+							key = seriesMapKey;
+							//将urlMO["id"]替换成含有后缀形式，保证数据可以正常显示
+							urlMO["id"]=key;
+							break;
+						}
+					}
+				}	
 				var tps = urlMO["tps"];
 	    		var tavg = urlMO["tavg"];
 	    		var err = urlMO["err"];
@@ -4718,7 +4748,7 @@ var mvcObj={
 				
 				for(var i=0;i<cptservice.length;i++) {
 					
-					sb.append("<div class='kvSubField'>"+cptservice[i]+"</div>");
+					sb.append("<div class='kvSubField'>"+cptservice[i].replace("#","")+"</div>");
 					
 				}
 				

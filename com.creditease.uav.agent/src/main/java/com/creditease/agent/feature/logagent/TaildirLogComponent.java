@@ -540,32 +540,40 @@ public class TaildirLogComponent extends AbstractComponent {
         return result;
     }
 
-    private void closeTailFiles() throws IOException, InterruptedException {
+    private void closeTailFiles() {
 
-        for (long inode : idleInodes) {
-            TailFile tf = reader.getTailFiles().get(inode);
-            if (tf.getRaf() != null) { // when file has not closed yet
-                if (TailLogContext.getInstance().getBoolean("MutiThread.enable")) {
-                    @SuppressWarnings("rawtypes")
-                    Map<TailFile, List<Map>> serverlogs = tailFileProcessSeprate(tf, true);
-                    if (!(serverlogs.isEmpty())) {
-                        this.sendLogDataBatch(serverlogs);
-                    }
-                    else {
-                        if (log.isDebugEnable()) {
-                            log.debug(this, "serverlogs is emptry!!!");
+        try {
+            for (long inode : idleInodes) {
+                TailFile tf = reader.getTailFiles().get(inode);
+                if (tf.getRaf() != null) { // when file has not closed yet
+                    if (TailLogContext.getInstance().getBoolean("MutiThread.enable")) {
+                        @SuppressWarnings("rawtypes")
+                        Map<TailFile, List<Map>> serverlogs = tailFileProcessSeprate(tf, true);
+                        if (!(serverlogs.isEmpty())) {
+                            this.sendLogDataBatch(serverlogs);
+                        }
+                        else {
+                            if (log.isDebugEnable()) {
+                                log.debug(this, "serverlogs is emptry!!!");
+                            }
                         }
                     }
-                }
-                else {
-                    tailFileProcess(tf, true);
-                }
+                    else {
+                        tailFileProcess(tf, true);
+                    }
 
-                tf.close();
-                log.info(this, "Closed file: " + tf.getPath() + ", inode: " + inode + ", pos: " + tf.getPos());
+                    tf.close();
+                    log.info(this, "Closed file: " + tf.getPath() + ", inode: " + inode + ", pos: " + tf.getPos());
+                }
             }
         }
-        idleInodes.clear();
+        catch (Throwable t) {
+            log.err(this, "Uncaught exception in IdleFileChecker thread", t);
+        }
+        finally {
+            idleInodes.clear();
+        }
+
     }
 
     /**

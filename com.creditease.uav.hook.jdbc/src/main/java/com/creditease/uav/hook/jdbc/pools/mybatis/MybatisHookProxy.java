@@ -26,7 +26,7 @@ import javax.sql.DataSource;
 
 import org.apache.ibatis.datasource.pooled.PoolState;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.captureframework.spi.MonitorElement;
@@ -38,9 +38,8 @@ import com.creditease.uav.hook.jdbc.pools.AbsDBPoolHookProxy;
 import com.creditease.uav.hook.jdbc.pools.mybatis.interceptors.MybatisIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 public class MybatisHookProxy extends AbsDBPoolHookProxy {
 
@@ -96,7 +95,7 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
         }
 
         for (DataSource cp : this.datasources) {
-            String jdbcURL = (String) ReflectHelper.invoke(cp.getClass().getName(), cp, "getUrl", null, null,
+            String jdbcURL = (String) ReflectionHelper.invoke(cp.getClass().getName(), cp, "getUrl", null, null,
                     cp.getClass().getClassLoader());
 
             MonitorElementInstance inst = this.matchElemInstance(clientElem, jdbcURL);
@@ -127,7 +126,7 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
                 new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("setUrl".equals(m.getName())) {
                             dpInstall.defineLocalVal(m, "mObj", MybatisIT.class);
@@ -152,14 +151,14 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
         int i;
         for (i = 0; i < 4; i++) {
             inst.setValue(MTRX_PREFIX + collectMtrx[i],
-                    ReflectHelper.invoke(className, pds, prefix + collectMtrx[i], null, null, webapploader));
+                    ReflectionHelper.invoke(className, pds, prefix + collectMtrx[i], null, null, webapploader));
         }
 
-        Object poolState = ReflectHelper.invoke(className, pds, "getPoolState", null, null, webapploader);
+        Object poolState = ReflectionHelper.invoke(className, pds, "getPoolState", null, null, webapploader);
 
         for (; i < collectMtrx.length; i++) {
 
-            inst.setValue(MTRX_PREFIX + collectMtrx[i], ReflectHelper.invoke(PoolState.class.getName(), poolState,
+            inst.setValue(MTRX_PREFIX + collectMtrx[i], ReflectionHelper.invoke(PoolState.class.getName(), poolState,
                     prefix + collectMtrx[i], null, null, webapploader));
         }
 
