@@ -103,13 +103,14 @@ public class AbstractIT {
 
             m.setAccessible(true);
 
+            /**
+             * Install MOF jars
+             */
             String moflib = this.uavMofRoot + "/com.creditease.uav";
-
-            String extlib = MOFAgent.getExtLib(this.uavMofRoot);
 
             String appserverCommonLib = this.uavMofRoot + "/com.creditease.uav." + appSeverVendorName + "/common";
 
-            URL[] mofJars = JarUtil.loadJars(moflib, extlib, appserverCommonLib);
+            URL[] mofJars = JarUtil.loadJars(moflib, appserverCommonLib);
 
             for (URL url : mofJars) {
 
@@ -118,6 +119,30 @@ public class AbstractIT {
                 System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install to class loader with jar ["
                         + url.toString() + "]");
             }
+            
+
+            /**
+             * Install MOF ext jars
+             * NOTE: using another classloader, in order to no conflict with user application's jars such as javassit
+             */
+            System.out.println("--------------------------------");
+            
+            String extlib = MOFAgent.getExtLib(this.uavMofRoot);
+
+            URL[] extJars = JarUtil.loadJars(extlib);
+            
+            URLClassLoader mofExtClassloader=new URLClassLoader(new URL[]{});
+            
+            for (URL url : extJars) {
+
+                m.invoke(mofExtClassloader, new Object[] { url });
+
+                System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install to mof ext class loader with jar ["
+                        + url.toString() + "]");
+            }
+            
+            System.getProperties().put("org.uavstack.mof.ext.clsloader", mofExtClassloader);
+            
             System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install MonitorFramework Jars End.");
 
         }

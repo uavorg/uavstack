@@ -37,10 +37,9 @@ import com.creditease.monitor.interceptframework.spi.InterceptEventListener;
 import com.creditease.uav.apm.invokechain.interceptors.IVCInjectClsIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPClass;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtClass;
-import javassist.CtMethod;
 
 /**
  * 方法级的自动标注
@@ -173,7 +172,7 @@ public class InvokeChainClsInjectListener extends InterceptEventListener {
         }
 
         @Override
-        public void process(CtMethod m) throws Exception {
+        public void process(DPMethod m) throws Exception {
 
             String quickKey = m.getName() + "-" + m.getParameterTypes().length;
 
@@ -183,7 +182,7 @@ public class InvokeChainClsInjectListener extends InterceptEventListener {
 
             StringBuilder signature = new StringBuilder("");
 
-            for (CtClass cc : m.getParameterTypes()) {
+            for (DPClass cc : m.getParameterTypes()) {
 
                 signature.append(cc.getSimpleName() + ",");
             }

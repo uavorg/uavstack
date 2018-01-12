@@ -30,10 +30,9 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPClass;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtClass;
-import javassist.CtMethod;
 
 public class JedisHookProxy extends HookProxy {
 
@@ -116,10 +115,10 @@ public class JedisHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.redis.jedis.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("sendCommand".equals(m.getName())) {
-                            CtClass[] ccs = m.getParameterTypes();
+                            DPClass[] ccs = m.getParameterTypes();
                             if (ccs.length == 2 && "byte[][]".equals(ccs[1].getName())) {
                                 m.insertBefore("{JedisConnectionIT.start(\"" + appid
                                         + "\", new Object[]{$1, $2, getHost(), new Integer(getPort())});}");

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.creditease.agent.ConfigurationManager;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.uav.collect.client.collectdata.DataCollector;
 import com.creditease.uav.collect.client.copylogagent.CopyOfProcessOfLogagent.AppLogPatternInfoCollection;
 import com.google.common.base.Charsets;
@@ -227,7 +227,7 @@ public class RuleFilterFactory {
             // Verify timeStamp number is available
             int timestampNumber = robject.getIntValue("timestamp");
             // build by reflect
-            LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectHelper.newInstance(
+            LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectionHelper.newInstance(
                     "com.creditease.agent.feature.logagent.far." + classname + "LogFilterAndRule",
                     new Class[] { String.class, String.class, JSONObject.class, int.class, int.class },
                     new Object[] { filterregex, separator, assignFields, timestampNumber, version },
@@ -239,7 +239,7 @@ public class RuleFilterFactory {
             if (aids != null && aids.length > 0) {
                 aidLogFARlist = Lists.newArrayList();
                 for (String name : aids) {
-                    aid = (LogFilterAndRule) ReflectHelper
+                    aid = (LogFilterAndRule) ReflectionHelper
                             .newInstance("com.creditease.agent.feature.logagent.far." + name + "LogFilterAndRule");
                     aidLogFARlist.add(aid);
                 }
