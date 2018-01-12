@@ -60,7 +60,7 @@ import org.xml.sax.SAXException;
 
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.UAVServer.ServerVendor;
@@ -102,7 +102,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
         for (Class annoCls : annoClses) {
 
-            Map<String, Object> mAnnoInfos = ReflectHelper.getAnnotationAllFieldValues(cls, annoCls);
+            Map<String, Object> mAnnoInfos = ReflectionHelper.getAnnotationAllFieldValues(cls, annoCls);
 
             if (null == mAnnoInfos || mAnnoInfos.size() == 0) {
                 continue;
@@ -170,7 +170,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
         for (Class annoCls : annoClses) {
 
-            Map<String, Object> mAnnoInfos = ReflectHelper.getAnnotationAllFieldValues(cls, m, annoCls);
+            Map<String, Object> mAnnoInfos = ReflectionHelper.getAnnotationAllFieldValues(cls, m, annoCls);
 
             // Enhancement:Avoid mAnnoInfos is Null situation
             if (mAnnoInfos != null) {
@@ -944,13 +944,13 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             // get PathMatchingResourcePatternResolver implements ResourceLoader
             if (resourceloader == null) {
                 if (path.startsWith("classpath") || path.startsWith("file:")) {
-                    resourceloader = ReflectHelper.newInstance(SPRING_ResourcePatternResolver_CLASSNAME,
+                    resourceloader = ReflectionHelper.newInstance(SPRING_ResourcePatternResolver_CLASSNAME,
                             new Class[] { ClassLoader.class }, new Object[] { webappclsLoader }, webappclsLoader);
                 }
                 else {
                     Object sc = this.getContext().get(InterceptContext.class).get(InterceptConstants.SERVLET_CONTEXT);
-                    resourceloader = ReflectHelper.newInstance(SPRING_SC_RESOURCE_LOADER_CLASSNAME,
-                            new Class[] { ReflectHelper.tryLoadClass("javax.servlet.ServletContext", webappclsLoader) },
+                    resourceloader = ReflectionHelper.newInstance(SPRING_SC_RESOURCE_LOADER_CLASSNAME,
+                            new Class[] { ReflectionHelper.tryLoadClass("javax.servlet.ServletContext", webappclsLoader) },
                             new Object[] { sc }, webappclsLoader);
                 }
             }
@@ -959,11 +959,11 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             }
             Object[] resources = null;
             if (path.startsWith("classpath") || path.startsWith("file:")) {
-                resources = (Object[]) ReflectHelper.invoke(SPRING_ResourcePatternResolver_CLASSNAME, resourceloader,
+                resources = (Object[]) ReflectionHelper.invoke(SPRING_ResourcePatternResolver_CLASSNAME, resourceloader,
                         "getResources", new Class[] { String.class }, new String[] { path }, webappclsLoader);
             }
             else {
-                resources = new Object[] { ReflectHelper.invoke(SPRING_RESOURCE_LOADER_CLASSNAME, resourceloader,
+                resources = new Object[] { ReflectionHelper.invoke(SPRING_RESOURCE_LOADER_CLASSNAME, resourceloader,
                         "getResource", new Class[] { String.class }, new String[] { path }, webappclsLoader) };
             }
 
@@ -1444,7 +1444,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         protected <T> void putAnnoValue(Class<?> c, Class annoCls, String configName, Class<T> configCls,
                 String keyName, Map<String, Object> info) {
 
-            T value = (T) ReflectHelper.getAnnotationValue(c, annoCls, configName);
+            T value = (T) ReflectionHelper.getAnnotationValue(c, annoCls, configName);
 
             if (null == value || DEFAULT_VALUE.equals(value)) {
                 return;
@@ -2790,10 +2790,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     private void getDynInfoForServlet(InterceptContext itContext, String componentClassName,
             ProfileElementInstance inst, ProfileContext context) {
 
-        Object obj = ReflectHelper.newInstance("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler");
+        Object obj = ReflectionHelper.newInstance("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler");
 
         if (obj != null) {
-            ReflectHelper.invoke("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler", obj,
+            ReflectionHelper.invoke("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler", obj,
                     "loadComponentsByDynamic", new Class<?>[] { InterceptContext.class, String.class,
                             ProfileElementInstance.class, ProfileContext.class },
                     new Object[] { itContext, componentClassName, inst, context });
@@ -2935,7 +2935,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             DescriptorProcessor dpInst = null;
             if (!dpInstances.containsKey(dpClass.getName())) {
 
-                dpInst = (DescriptorProcessor) ReflectHelper.newInstance(dpClass.getName(),
+                dpInst = (DescriptorProcessor) ReflectionHelper.newInstance(dpClass.getName(),
                         new Class<?>[] { ProfileContext.class }, new Object[] { context });
 
                 if (null == dpInst) {
