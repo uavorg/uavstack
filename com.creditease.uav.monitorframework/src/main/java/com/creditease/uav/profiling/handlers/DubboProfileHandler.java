@@ -94,6 +94,7 @@ public class DubboProfileHandler extends BaseComponent implements ProfileHandler
             info.put("group", dspi.getGroup());
             info.put("version", dspi.getVersion());
             info.put("servcls", serviceClass);
+            info.put("servimplcls", dspi.getServiceImplClass());
 
             //get protocols
             Map<String, Object> protocols = new LinkedHashMap<String, Object>();
@@ -138,5 +139,30 @@ public class DubboProfileHandler extends BaseComponent implements ProfileHandler
         }
 
         pAttrs.put(key, value);
+    }
+    
+    /**
+     *  check if the class is a dubboService's impl class.
+     */
+    @SuppressWarnings("unchecked")
+    public static boolean isDubboServiceImplCls(String clsName, ProfileContext context) {
+
+        InterceptContext ic = context.get(InterceptContext.class);
+
+        Map<String, DubboServiceProfileInfo> list = (Map<String, DubboServiceProfileInfo>) ic
+                .get(HookConstants.DUBBO_PROFILE_LIST);
+
+        if (list == null) {
+            return false;
+        }
+
+        for (DubboServiceProfileInfo dspi : list.values()) {
+
+            if (clsName.equals(dspi.getServiceImplClass())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

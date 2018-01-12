@@ -4002,6 +4002,11 @@ var mvcObj={
 			
 				var serviceURLs=cptservices[cptservice];
 				
+				//don't show the servicComp in appInstChart when serviceurl begin with @ (means there is no servlet-mapping for this serviceComp)
+				if (serviceURLs.length==0||serviceURLs[0].indexOf('@')==0){
+					continue;
+				}
+				
 				var sObj={name:cptservice,urls:serviceURLs,ip:jsonObj.ip,svrid:jsonObj.svrid};
 				
 				var sObjStr=StringHelper.obj2str(sObj);
