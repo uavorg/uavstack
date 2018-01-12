@@ -39,7 +39,7 @@ import org.apache.catalina.loader.WebappClassLoader;
 import org.apache.catalina.startup.HostConfig;
 import org.apache.catalina.util.ContextName;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.captureframework.spi.Monitor;
@@ -243,10 +243,10 @@ public class TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
         context.put(InterceptConstants.CONTEXTPATH,
-                ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true));
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -303,10 +303,10 @@ public class TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
         context.put(InterceptConstants.CONTEXTPATH,
-                ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true));
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -341,10 +341,10 @@ public class TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
         context.put(InterceptConstants.CONTEXTPATH,
-                ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true));
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -366,10 +366,10 @@ public class TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
         context.put(InterceptConstants.CONTEXTPATH,
-                ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true));
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -403,10 +403,10 @@ public class TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
         context.put(InterceptConstants.CONTEXTPATH,
-                ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true));
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -520,7 +520,7 @@ public class TomcatPlusIT {
             case 0:
                 File dir = new File(mofRoot + "/com.creditease.uav");
 
-                ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
+                ReflectionHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
                         new Class<?>[] { String.class, File.class, String.class },
                         new Object[] { "/com.creditease.uav", dir, mofRoot + "/com.creditease.uav" },
                         hc.getClass().getClassLoader());
@@ -535,11 +535,11 @@ public class TomcatPlusIT {
 
                         ContextName cn = new ContextName("com.creditease.uav", "");
 
-                        ReflectHelper.setField(ContextName.class, cn, "baseName", mofRoot + "/com.creditease.uav");
+                        ReflectionHelper.setField(ContextName.class, cn, "baseName", mofRoot + "/com.creditease.uav");
 
                         File dir = new File(mofRoot + "/com.creditease.uav");
 
-                        ReflectHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
+                        ReflectionHelper.invoke("org.apache.catalina.startup.HostConfig", hc, "deployDirectory",
                                 new Class<?>[] { ContextName.class, File.class }, new Object[] { cn, dir },
                                 hc.getClass().getClassLoader());
 
@@ -558,5 +558,22 @@ public class TomcatPlusIT {
 
         System.setProperty("com.creditease.uav.iapp.install", "true");
     }
+    
+    /**
+     *  when use embeddedTomcat and the webappclassloader is undefined, the webappclassloader will use systemclassloader as it's parentclassloader which coundn't load mof jars.
+     *  we chg it's parentclassloader to currentThread's contextclassloader(normally it counld load uavmof jars).
+     */
+    public ClassLoader chgParentClassloader(Object... args) {
 
+        ClassLoader cl = (ClassLoader) args[0];
+
+        StandardContext sc = (StandardContext) args[1];
+        if (cl != ClassLoader.getSystemClassLoader()) {
+            return cl;
+        }
+        else {
+            sc.setDelegate(true);
+            return Thread.currentThread().getContextClassLoader();
+        }
+    }
 }

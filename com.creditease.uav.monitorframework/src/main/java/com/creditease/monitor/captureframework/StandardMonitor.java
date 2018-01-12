@@ -23,7 +23,7 @@ package com.creditease.monitor.captureframework;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.repository.StandardMonitorRepository;
 import com.creditease.monitor.captureframework.spi.CaptureContext;
@@ -183,7 +183,7 @@ public class StandardMonitor implements Monitor {
 
     private MonitorElemCapHandler newInstance(String capClassName) {
 
-        MonitorElemCapHandler caphandler = (MonitorElemCapHandler) ReflectHelper.newInstance(capClassName,
+        MonitorElemCapHandler caphandler = (MonitorElemCapHandler) ReflectionHelper.newInstance(capClassName,
                 this.getClass().getClassLoader());
         return caphandler;
     }

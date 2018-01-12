@@ -20,7 +20,7 @@
 
 package com.creditease.uav.monitorframework.dproxy;
 
-import javassist.CtMethod;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 
 /**
  * 
@@ -29,6 +29,6 @@ import javassist.CtMethod;
  */
 public abstract class DynamicProxyProcessor {
 
-    public abstract void process(CtMethod m) throws Exception;
+    public abstract void process(DPMethod m) throws Exception;
 
 }

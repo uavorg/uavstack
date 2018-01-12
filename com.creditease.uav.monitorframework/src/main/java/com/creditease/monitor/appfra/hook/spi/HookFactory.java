@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.appfra.hook.StandardHookContext;
 import com.creditease.monitor.interceptframework.spi.InterceptConstants;
@@ -227,7 +227,7 @@ public class HookFactory {
 
             if (supports != null) {
                 for (String support : supports) {
-                    ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL",
+                    ReflectionHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL",
                             new Class<?>[] { URL.class },
                             new Object[] {
                                     new URL("file:" + this.mofRoot + "/com.creditease.uav.appfrk/" + support) },
@@ -235,7 +235,7 @@ public class HookFactory {
                 }
             }
 
-            ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
+            ReflectionHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
                     new Object[] { new URL("file:" + loaderPath) }, this.getClass().getClassLoader());
         }
         catch (Exception e) {

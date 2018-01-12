@@ -30,11 +30,11 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.monitor.interceptframework.spi.InterceptEventListener;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.monitorframework.webservice.interceptors.WebServiceListenerIT;
 import com.creditease.uav.util.MonitorServerUtil;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import javassist.CtMethod;
 
 public class WebServiceListener extends InterceptEventListener {
 
@@ -100,7 +100,7 @@ public class WebServiceListener extends InterceptEventListener {
                         new DynamicProxyProcessor() {
 
                             @Override
-                            public void process(CtMethod m) throws Exception {
+                            public void process(DPMethod m) throws Exception {
 
                                 if ("publish".equals(m.getName()) && m.getParameterTypes().length > 0
                                         && m.getParameterTypes()[0].getSimpleName().equals("String")) {
