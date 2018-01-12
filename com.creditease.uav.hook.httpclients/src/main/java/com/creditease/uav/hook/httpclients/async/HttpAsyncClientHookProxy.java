@@ -31,9 +31,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.hook.httpclients.async.interceptors.ApacheAsyncHttpClientIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 /**
  * 
@@ -105,7 +104,7 @@ public class HttpAsyncClientHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.httpclients.async.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("execute".equals(m.getName())) {
                             if (m.getParameterTypes().length == 4) {
@@ -125,7 +124,7 @@ public class HttpAsyncClientHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.httpclients.async.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("execute".equals(m.getName())) {
                             dpInstall.defineLocalVal(m, "mObj", ApacheAsyncHttpClientIT.class);

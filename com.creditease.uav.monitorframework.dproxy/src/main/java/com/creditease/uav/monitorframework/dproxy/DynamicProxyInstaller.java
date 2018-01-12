@@ -23,21 +23,17 @@ package com.creditease.uav.monitorframework.dproxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URLClassLoader;
+import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.proxy.spi.JDKProxyInvokeHandler;
 import com.creditease.uav.common.BaseComponent;
-
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.LoaderClassPath;
-import javassist.NotFoundException;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPClass;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 
 /**
  * 
@@ -68,13 +64,31 @@ public class DynamicProxyInstaller extends BaseComponent {
         return jpih.getTarget();
     }
 
-    private ClassPool pool;
+    private Object pool;
 
     private URLClassLoader cl;
 
+    private URLClassLoader mofExtClassLoader;
+
+    @SuppressWarnings("rawtypes")
+    private Class cls_CtField;
+
+    @SuppressWarnings("rawtypes")
+    private Class cls_CtClass;
+
     public DynamicProxyInstaller() {
 
-        pool = ClassPool.getDefault();
+        /**
+         * source code: pool = ClassPool.getDefault();
+         */
+        mofExtClassLoader = (URLClassLoader) System.getProperties().get("org.uavstack.mof.ext.clsloader");
+
+        pool = ReflectionHelper.invokeStatic("javassist.ClassPool", "getDefault", null, null, mofExtClassLoader);
+
+        cls_CtField = ReflectionHelper.tryLoadClass("javassist.CtField", mofExtClassLoader);
+
+        cls_CtClass = ReflectionHelper.tryLoadClass("javassist.CtClass", mofExtClassLoader);
+
     }
 
     /**
@@ -82,23 +96,45 @@ public class DynamicProxyInstaller extends BaseComponent {
      * 
      * @param cl
      */
+    @SuppressWarnings("rawtypes")
     public void setTargetClassLoader(ClassLoader cl) {
 
         this.cl = (URLClassLoader) cl;
 
-        pool.insertClassPath(new LoaderClassPath(cl));
+        /**
+         * source code: pool.insertClassPath(new LoaderClassPath(cl));
+         */
+
+        Object loaderClsPathObject = ReflectionHelper.newInstance("javassist.LoaderClassPath",
+                new Class[] { ClassLoader.class }, new Object[] { cl }, mofExtClassLoader);
+
+        Class cls_LoaderClassPath = ReflectionHelper.tryLoadClass("javassist.ClassPath", mofExtClassLoader);
+
+        ReflectionHelper.invoke("javassist.ClassPool", pool, "insertClassPath", new Class[] { cls_LoaderClassPath },
+                new Object[] { loaderClsPathObject }, mofExtClassLoader);
     }
 
     /**
      * remove class path for loader
      */
+    @SuppressWarnings("rawtypes")
     public void releaseTargetClassLoader() {
 
         if (cl == null) {
             return;
         }
 
-        pool.removeClassPath(new LoaderClassPath(cl));
+        /**
+         * source code: pool.removeClassPath(new LoaderClassPath(cl));
+         */
+
+        Object loaderClsPathObject = ReflectionHelper.newInstance("javassist.LoaderClassPath",
+                new Class[] { ClassLoader.class }, new Object[] { cl }, mofExtClassLoader);
+
+        Class cls_LoaderClassPath = ReflectionHelper.tryLoadClass("javassist.ClassPath", mofExtClassLoader);
+
+        ReflectionHelper.invoke("javassist.ClassPool", pool, "removeClassPath", new Class[] { cls_LoaderClassPath },
+                new Object[] { loaderClsPathObject }, mofExtClassLoader);
     }
 
     /**
@@ -111,34 +147,66 @@ public class DynamicProxyInstaller extends BaseComponent {
      *            Constructor Code
      */
     public void defineField(String fieldName, Class<?> fieldClass, String varClass, String initCode) {
+        /**
+         * source code:
+         * 
+         * CtClass cc;
+         * 
+         * try { cc = pool.get(varClass);
+         * 
+         * String fd = "private " + fieldClass.getName() + " " + fieldName;
+         * 
+         * if (StringHelper.isEmpty(initCode)) { fd += ";"; } else { fd += "=" + initCode + ";"; }
+         * 
+         * CtField f = CtField.make(fd, cc);
+         * 
+         * cc.addField(f); } catch (NotFoundException e) { this.logger.warn( "Do DynamicProxyInstall FAIL for define
+         * Field [" + fieldName + "] in class[" + varClass + "].", e); } catch (CannotCompileException e) {
+         * this.logger.warn( "Do DynamicProxyInstall FAIL for define Field [" + fieldName + "] in class[" + varClass +
+         * "].", e); }
+         */
 
-        CtClass cc;
+        Object cc = null;
 
         try {
-            cc = pool.get(varClass);
+            cc = ReflectionHelper.invoke("javassist.ClassPool", pool, "get", new Class[] { String.class },
+                    new Object[] { varClass }, mofExtClassLoader);
 
-            String fd = "private " + fieldClass.getName() + " " + fieldName;
+        }
+        catch (RuntimeException e) {
+            return;
+        }
 
-            if (StringHelper.isEmpty(initCode)) {
-                fd += ";";
+        String fd = "private " + fieldClass.getName() + " " + fieldName;
+
+        if (StringHelper.isEmpty(initCode)) {
+            fd += ";";
+        }
+        else {
+            fd += "=" + initCode + ";";
+        }
+
+        try {
+
+            Object f = ReflectionHelper.invokeStatic("javassist.CtField", "make",
+                    new Class[] { String.class, cls_CtClass }, new Object[] { fd, cc }, mofExtClassLoader);
+
+            if (f == null) {
+                this.logger.warn(
+                        "Do DynamicProxyInstall FAIL for define Field [" + fieldName + "] in class[" + varClass + "].",
+                        null);
+                return;
             }
-            else {
-                fd += "=" + initCode + ";";
-            }
 
-            CtField f = CtField.make(fd, cc);
-
-            cc.addField(f);
+            ReflectionHelper.invoke("javassist.CtClass", cc, "addField", new Class[] { cls_CtField },
+                    new Object[] { f }, mofExtClassLoader);
         }
-        catch (NotFoundException e) {
+        catch (RuntimeException e) {
             this.logger.warn(
-                    "Do DynamicProxyInstall FAIL for define Field [" + fieldName + "] in class[" + varClass + "].", e);
+                    "Do DynamicProxyInstall FAIL for define Field [" + fieldName + "] in class[" + varClass + "].",
+                    e.getCause());
+            return;
         }
-        catch (CannotCompileException e) {
-            this.logger.warn(
-                    "Do DynamicProxyInstall FAIL for define Field [" + fieldName + "] in class[" + varClass + "].", e);
-        }
-
     }
 
     /**
@@ -148,22 +216,47 @@ public class DynamicProxyInstaller extends BaseComponent {
      * @param varName
      * @param varClass
      */
-    public void defineLocalVal(CtMethod m, String varName, Class<?> varClass) {
+    public void defineLocalVal(DPMethod m, String varName, Class<?> varClass) {
 
-        CtClass cc;
+        /**
+         * source code:
+         * 
+         * CtClass cc; try {
+         * 
+         * cc = pool.get(varClass.getName());
+         * 
+         * m.addLocalVariable(varName, cc); }
+         * 
+         * catch (NotFoundException e) {
+         * 
+         * this.logger.warn( "Do DynamicProxyInstall FAIL for define LocalVar [" + varName + "] in method[" +
+         * m.getName() + "].", e); }
+         * 
+         * catch (CannotCompileException e) {
+         * 
+         * this.logger.warn( "Do DynamicProxyInstall FAIL for define LocalVar [" + varName + "] in method[" +
+         * m.getName() + "].", e); }
+         */
+        Object cc = null;
+
         try {
-            cc = pool.get(varClass.getName());
-            m.addLocalVariable(varName, cc);
+            cc = ReflectionHelper.invoke("javassist.ClassPool", pool, "get", new Class[] { String.class },
+                    new Object[] { varClass.getName() }, mofExtClassLoader);
         }
-        catch (NotFoundException e) {
+        catch (RuntimeException e) {
+            return;
+        }
+
+        try {
+            Object ctMethodObj = m.getCtMethod();
+
+            ReflectionHelper.invoke("javassist.CtMethod", ctMethodObj, "addLocalVariable",
+                    new Class[] { String.class, cls_CtClass }, new Object[] { varName, cc }, mofExtClassLoader);
+        }
+        catch (RuntimeException e) {
             this.logger.warn(
                     "Do DynamicProxyInstall FAIL for define LocalVar [" + varName + "] in method[" + m.getName() + "].",
-                    e);
-        }
-        catch (CannotCompileException e) {
-            this.logger.warn(
-                    "Do DynamicProxyInstall FAIL for define LocalVar [" + varName + "] in method[" + m.getName() + "].",
-                    e);
+                    e.getCause());
         }
 
     }
@@ -174,18 +267,39 @@ public class DynamicProxyInstaller extends BaseComponent {
      * @param m
      * @param catchCodeBlock
      */
-    public void addCatch(CtMethod m, String catchCodeBlock) {
+    public void addCatch(DPMethod m, String catchCodeBlock) {
+
+        /**
+         * source code:
+         * 
+         * try { CtClass throwExp = pool.get(Throwable.class.getName());
+         * 
+         * m.addCatch("{" + catchCodeBlock + ";throw $e;}", throwExp); } catch (NotFoundException e) {
+         * 
+         * this.logger.warn("Do DynamicProxyInstall FAIL for add Catch Block in method[" + m.getName() + "].", e); }
+         * catch (CannotCompileException e) {
+         * 
+         * this.logger.warn("Do DynamicProxyInstall FAIL for add Catch Block in method[" + m.getName() + "].", e); }
+         */
+        Object cc = null;
+        try {
+            cc = ReflectionHelper.invoke("javassist.ClassPool", pool, "get", new Class[] { String.class },
+                    new Object[] { Throwable.class.getName() }, mofExtClassLoader);
+        }
+        catch (RuntimeException e) {
+            return;
+        }
 
         try {
-            CtClass throwExp = pool.get(Throwable.class.getName());
+            Object ctMethodObj = m.getCtMethod();
 
-            m.addCatch("{" + catchCodeBlock + ";throw $e;}", throwExp);
+            ReflectionHelper.invoke("javassist.CtMethod", ctMethodObj, "addCatch",
+                    new Class[] { String.class, cls_CtClass },
+                    new Object[] { "{" + catchCodeBlock + ";throw $e;}", cc }, mofExtClassLoader);
         }
-        catch (NotFoundException e) {
-            this.logger.warn("Do DynamicProxyInstall FAIL for add Catch Block in method[" + m.getName() + "].", e);
-        }
-        catch (CannotCompileException e) {
-            this.logger.warn("Do DynamicProxyInstall FAIL for add Catch Block in method[" + m.getName() + "].", e);
+        catch (RuntimeException e) {
+            this.logger.warn("Do DynamicProxyInstall FAIL for add Catch Block in method[" + m.getName() + "].",
+                    e.getCause());
         }
     }
 
@@ -202,19 +316,74 @@ public class DynamicProxyInstaller extends BaseComponent {
     public void installProxy(String className, String[] importPackages, DynamicProxyProcessor p,
             boolean toSystemClassloader) {
 
+        /**
+         * source code:
+         * 
+         * try {
+         * 
+         * CtClass cc = pool.get(className);
+         * 
+         * if (importPackages != null) {
+         * 
+         * for (String ip : importPackages) {
+         * 
+         * pool.importPackage(ip); } }
+         * 
+         * CtMethod[] ml = cc.getDeclaredMethods();
+         * 
+         * for (CtMethod m : ml) {
+         * 
+         * try {
+         * 
+         * p.process(m); } catch (Exception e) {
+         * 
+         * this.logger.error( "Do DynamicProxyInstall FAIL for class[" + className + "] method[" + m.getName() + "].",
+         * e); } }
+         * 
+         * if (this.cl == null || toSystemClassloader == true) {
+         * 
+         * cc.toClass(); } else {
+         * 
+         * cc.toClass(this.cl, null); }
+         * 
+         * cc.detach(); } catch (NotFoundException e) {
+         * 
+         * // ignore // this.logger.warn("Do DynamicProxyInstall FAIL for class[" + className + "].", e); } catch
+         * (CannotCompileException e) {
+         * 
+         * this.logger.warn("Do DynamicProxyInstall FAIL for class[" + className + "] as Can't Compile.", e); }
+         * 
+         */
+
+        Object cc = null;
+
+        try {
+            cc = ReflectionHelper.invoke("javassist.ClassPool", pool, "get", new Class[] { String.class },
+                    new Object[] { className }, mofExtClassLoader);
+        }
+        catch (RuntimeException e) {
+            // ignore;
+            return;
+        }
+
         try {
 
-            CtClass cc = pool.get(className);
-
             if (importPackages != null) {
+
                 for (String ip : importPackages) {
-                    pool.importPackage(ip);
+
+                    ReflectionHelper.invoke("javassist.ClassPool", pool, "importPackage", new Class[] { String.class },
+                            new Object[] { ip }, mofExtClassLoader);
                 }
             }
 
-            CtMethod[] ml = cc.getDeclaredMethods();
+            Object[] methodArray = (Object[]) ReflectionHelper.invoke("javassist.CtClass", cc, "getDeclaredMethods",
+                    null, null, mofExtClassLoader);
 
-            for (CtMethod m : ml) {
+            for (Object method : methodArray) {
+
+                DPMethod m = new DPMethod(method);
+
                 try {
                     p.process(m);
                 }
@@ -225,21 +394,20 @@ public class DynamicProxyInstaller extends BaseComponent {
             }
 
             if (this.cl == null || toSystemClassloader == true) {
-                cc.toClass();
+                ReflectionHelper.invoke("javassist.CtClass", cc, "toClass", null, null, mofExtClassLoader);
             }
             else {
-                cc.toClass(this.cl, null);
-            }
-            cc.detach();
-        }
-        catch (NotFoundException e) {
-            // ignore
-            // this.logger.warn("Do DynamicProxyInstall FAIL for class[" + className + "].", e);
-        }
-        catch (CannotCompileException e) {
-            this.logger.warn("Do DynamicProxyInstall FAIL for class[" + className + "] as Can't Compile.", e);
-        }
+                ReflectionHelper.invoke("javassist.CtClass", cc, "toClass",
+                        new Class[] { ClassLoader.class, ProtectionDomain.class }, new Object[] { this.cl, null },
+                        mofExtClassLoader);
 
+            }
+
+            ReflectionHelper.invoke("javassist.CtClass", cc, "detach", null, null, mofExtClassLoader);
+        }
+        catch (RuntimeException e) {
+            this.logger.warn("Do DynamicProxyInstall FAIL for class[" + className + "].", e.getCause());
+        }
     }
 
     /**
@@ -265,7 +433,7 @@ public class DynamicProxyInstaller extends BaseComponent {
                     new DynamicProxyProcessor() {
 
                         @Override
-                        public void process(CtMethod m) throws Exception {
+                        public void process(DPMethod m) throws Exception {
 
                             Map cfg = methods.get(m.getName());
 
@@ -275,7 +443,7 @@ public class DynamicProxyInstaller extends BaseComponent {
                             }
 
                             // match params length
-                            CtClass[] pClsLs = m.getParameterTypes();
+                            DPClass[] pClsLs = m.getParameterTypes();
 
                             List<String> pClsNamesLs = (List<String>) cfg.get("args");
 
@@ -286,7 +454,7 @@ public class DynamicProxyInstaller extends BaseComponent {
                             // match params types
                             for (int i = 0; i < pClsNamesLs.size(); i++) {
 
-                                CtClass pCls = pClsLs[0];
+                                DPClass pCls = pClsLs[0];
 
                                 if (!pCls.getName().equals(pClsNamesLs.get(i))) {
                                     return;
@@ -309,17 +477,14 @@ public class DynamicProxyInstaller extends BaseComponent {
         }
     }
 
-	/**
+    /**
      * Unwrap dynamic proxy, Maybe "arguments", "return" or "field".<br>
      * if "field", unwrapping is temporary, so must to wrap at the end again.
      * 
      * @param m
      * @param cfg
-     * @throws CannotCompileException
-     * @throws ClassNotFoundException
      */
-    private void unwrap(CtMethod m, @SuppressWarnings("rawtypes") Map cfg)
-            throws ClassNotFoundException, CannotCompileException {
+    private void unwrap(DPMethod m, @SuppressWarnings("rawtypes") Map cfg) throws ClassNotFoundException {
 
         String before = null;
         String after = null;
@@ -374,25 +539,24 @@ public class DynamicProxyInstaller extends BaseComponent {
         else {
             // eg: "if($1 instanceof com.xxx.Xxx)"
             StringBuilder sb = new StringBuilder();
+            sb.append("Object _proxyObj = " + proxy + ";");
             sb.append("if(" + proxy + " instanceof " + klass + ")");
             sb.append("{");
 
-            if (StringHelper.isEmpty(preMethod)) {
-                sb.append(proxy + "=DynamicProxyInstaller.adapt(" + proxy + ");");
-            }
-            else {
-                // eg: "((com.xxx.Xxx) $1).preMehtod()"
-                sb.append("Object _preObj=((" + klass + ")" + proxy + ")" + "." + preMethod + ";");
-                sb.append(proxy + "=DynamicProxyInstaller.adapt(_preObj);");
+            // eg: "((com.xxx.Xxx) $1).preMehtod()"
+            if (!StringHelper.isEmpty(preMethod)) {
+                sb.append("_proxyObj = ((" + klass + ")" + proxy + ")" + "." + preMethod + ";");
             }
 
             sb.append("}");
+
+            sb.append(proxy + "=DynamicProxyInstaller.adapt(_proxyObj);");
             return sb.toString();
         }
     }
 
-    private void definedOperate(CtMethod m, String before, String after, Map<String, String> localVar)
-            throws ClassNotFoundException, CannotCompileException {
+    private void definedOperate(DPMethod m, String before, String after, Map<String, String> localVar)
+            throws ClassNotFoundException {
 
         if (localVar != null && !localVar.isEmpty()) {
             this.defineLocalVal(m, localVar.get("varName"), Class.forName(localVar.get("varClass")));
@@ -406,4 +570,5 @@ public class DynamicProxyInstaller extends BaseComponent {
             m.insertAfter(after);
         }
     }
+
 }

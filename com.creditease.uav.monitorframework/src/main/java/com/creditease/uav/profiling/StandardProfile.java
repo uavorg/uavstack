@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.uav.common.BaseComponent;
@@ -141,7 +141,7 @@ public class StandardProfile extends BaseComponent implements Profile {
         ProfileHandler caphandler = handlers.get(capClassName);
 
         if (caphandler == null) {
-            caphandler = (ProfileHandler) ReflectHelper.newInstance(capClassName);
+            caphandler = (ProfileHandler) ReflectionHelper.newInstance(capClassName);
             if (caphandler != null) {
                 handlers.put(capClassName, caphandler);
             }
