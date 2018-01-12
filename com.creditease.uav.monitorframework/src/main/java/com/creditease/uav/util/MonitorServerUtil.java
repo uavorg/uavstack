@@ -328,6 +328,14 @@ public class MonitorServerUtil {
             else {
                 String tmp = basePath.replace("\\", "/");
                 int index = tmp.lastIndexOf("/");
+                
+                /** 
+                 * "/app/xxxxx/" remove the last "/" to get the appid 
+                 */ 
+                if (index == tmp.length() - 1) { 
+                    tmp = tmp.substring(0, tmp.length() - 1); 
+                    index = tmp.lastIndexOf("/"); 
+                }
 
                 appid = tmp.substring(index + 1);
             }
