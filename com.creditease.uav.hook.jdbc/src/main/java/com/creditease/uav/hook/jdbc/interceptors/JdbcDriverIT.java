@@ -38,7 +38,7 @@ import javax.naming.RefAddr;
 import javax.naming.Reference;
 import javax.sql.DataSource;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.captureframework.spi.Monitor;
@@ -159,7 +159,7 @@ public class JdbcDriverIT extends BaseComponent {
 
             if ("createStatement".equals(method.getName())) {
 
-                Set<Class<?>> interfaces = ReflectHelper.getAllInterfaces(res.getClass(), true);
+                Set<Class<?>> interfaces = ReflectionHelper.getAllInterfaces(res.getClass(), true);
                 Class<?>[] intArrays = new Class[interfaces.size()];
                 intArrays = interfaces.toArray(intArrays);
 
@@ -169,7 +169,7 @@ public class JdbcDriverIT extends BaseComponent {
             }
             else if ("prepareStatement".equals(method.getName())) {
 
-                Set<Class<?>> interfaces = ReflectHelper.getAllInterfaces(res.getClass(), true);
+                Set<Class<?>> interfaces = ReflectionHelper.getAllInterfaces(res.getClass(), true);
                 Class<?>[] intArrays = new Class[interfaces.size()];
                 intArrays = interfaces.toArray(intArrays);
 
@@ -295,13 +295,13 @@ public class JdbcDriverIT extends BaseComponent {
                 // 为空说明之前不存在参数
                 if (this.parameters.isEmpty()) {
                     Map<Integer, String> paraMap = new HashMap<Integer, String>();
-                    paraMap.put((Integer) args[0], args[1].toString());
+                    paraMap.put((Integer) args[0], String.valueOf(args[1]));
                     this.parameters.add(paraMap);
                 }
                 // 不为空则往最后一位追加参数
                 else {
                     Map<Integer, String> paraMap = this.parameters.get(this.parameters.size() - 1);
-                    paraMap.put((Integer) args[0], args[1] != null ? args[1].toString() : "null");
+                    paraMap.put((Integer) args[0], String.valueOf(args[1]));
                 }
             }
             // batch操作则在末尾追加map
@@ -403,7 +403,7 @@ public class JdbcDriverIT extends BaseComponent {
      */
     public void setJDBCUrlByObjField(Object obj, String fieldName) {
 
-        String jdbcUrl = (String) ReflectHelper.getField(obj.getClass(), obj, fieldName);
+        String jdbcUrl = (String) ReflectionHelper.getField(obj.getClass(), obj, fieldName);
 
         if (jdbcUrl != null) {
             this.jdbcUrl = MonitorServerUtil.formatJDBCURL(jdbcUrl);
@@ -475,7 +475,7 @@ public class JdbcDriverIT extends BaseComponent {
 
         DataSource ds = (DataSource) dataSourceObj;
 
-        Set<Class<?>> ifs = ReflectHelper.getAllInterfaces(dataSourceObj.getClass(), true);
+        Set<Class<?>> ifs = ReflectionHelper.getAllInterfaces(dataSourceObj.getClass(), true);
 
         Class<?>[] dsIfs = new Class<?>[ifs.size()];
 
@@ -554,7 +554,7 @@ public class JdbcDriverIT extends BaseComponent {
 
         ClassLoader cl = this.getClass().getClassLoader();
 
-        Set<Class<?>> connectionInterfaces = ReflectHelper.getAllInterfaces(res.getClass(), true);
+        Set<Class<?>> connectionInterfaces = ReflectionHelper.getAllInterfaces(res.getClass(), true);
 
         connectionInterfaces.add(Connection.class);
 

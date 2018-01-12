@@ -60,7 +60,7 @@ import org.xml.sax.SAXException;
 
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.UAVServer.ServerVendor;
@@ -102,7 +102,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
         for (Class annoCls : annoClses) {
 
-            Map<String, Object> mAnnoInfos = ReflectHelper.getAnnotationAllFieldValues(cls, annoCls);
+            Map<String, Object> mAnnoInfos = ReflectionHelper.getAnnotationAllFieldValues(cls, annoCls);
 
             if (null == mAnnoInfos || mAnnoInfos.size() == 0) {
                 continue;
@@ -170,7 +170,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
         for (Class annoCls : annoClses) {
 
-            Map<String, Object> mAnnoInfos = ReflectHelper.getAnnotationAllFieldValues(cls, m, annoCls);
+            Map<String, Object> mAnnoInfos = ReflectionHelper.getAnnotationAllFieldValues(cls, m, annoCls);
 
             // Enhancement:Avoid mAnnoInfos is Null situation
             if (mAnnoInfos != null) {
@@ -309,7 +309,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 return true;
             }
 
-            List<String> filePaths = getDescriptorFileLocations(webAppRoot);
+            List<String> filePaths = null;
+            try {  
+                filePaths= getDescriptorFileLocations(webAppRoot);
+            }catch(Exception e) {
+                return false;
+            }
 
             if (filePaths.size() == 0) {
                 return false;
@@ -939,13 +944,13 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             // get PathMatchingResourcePatternResolver implements ResourceLoader
             if (resourceloader == null) {
                 if (path.startsWith("classpath") || path.startsWith("file:")) {
-                    resourceloader = ReflectHelper.newInstance(SPRING_ResourcePatternResolver_CLASSNAME,
+                    resourceloader = ReflectionHelper.newInstance(SPRING_ResourcePatternResolver_CLASSNAME,
                             new Class[] { ClassLoader.class }, new Object[] { webappclsLoader }, webappclsLoader);
                 }
                 else {
                     Object sc = this.getContext().get(InterceptContext.class).get(InterceptConstants.SERVLET_CONTEXT);
-                    resourceloader = ReflectHelper.newInstance(SPRING_SC_RESOURCE_LOADER_CLASSNAME,
-                            new Class[] { ReflectHelper.tryLoadClass("javax.servlet.ServletContext", webappclsLoader) },
+                    resourceloader = ReflectionHelper.newInstance(SPRING_SC_RESOURCE_LOADER_CLASSNAME,
+                            new Class[] { ReflectionHelper.tryLoadClass("javax.servlet.ServletContext", webappclsLoader) },
                             new Object[] { sc }, webappclsLoader);
                 }
             }
@@ -954,21 +959,26 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             }
             Object[] resources = null;
             if (path.startsWith("classpath") || path.startsWith("file:")) {
-                resources = (Object[]) ReflectHelper.invoke(SPRING_ResourcePatternResolver_CLASSNAME, resourceloader,
+                resources = (Object[]) ReflectionHelper.invoke(SPRING_ResourcePatternResolver_CLASSNAME, resourceloader,
                         "getResources", new Class[] { String.class }, new String[] { path }, webappclsLoader);
             }
             else {
-                resources = new Object[] { ReflectHelper.invoke(SPRING_RESOURCE_LOADER_CLASSNAME, resourceloader,
+                resources = new Object[] { ReflectionHelper.invoke(SPRING_RESOURCE_LOADER_CLASSNAME, resourceloader,
                         "getResource", new Class[] { String.class }, new String[] { path }, webappclsLoader) };
             }
 
             File location = null;
             if (resources != null) {
                 for (Object resource : resources) {
-                    location = (File) ReflectHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null, null,
-                            webappclsLoader);
-                    if (location != null && location.isFile())
-                        absPaths.add(location.getPath());
+                    try {
+                        location = (File) ReflectionHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null, null,
+                            webappclsLoader);                    
+                        if (location != null && location.isFile())
+                            absPaths.add(location.getPath());
+                    }catch(RuntimeException e) {
+                        // ignore
+                        continue;
+                    }
                 }
             }
             return absPaths;
@@ -1434,7 +1444,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         protected <T> void putAnnoValue(Class<?> c, Class annoCls, String configName, Class<T> configCls,
                 String keyName, Map<String, Object> info) {
 
-            T value = (T) ReflectHelper.getAnnotationValue(c, annoCls, configName);
+            T value = (T) ReflectionHelper.getAnnotationValue(c, annoCls, configName);
 
             if (null == value || DEFAULT_VALUE.equals(value)) {
                 return;
@@ -1718,6 +1728,21 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             catch (ClassNotFoundException e) {
                 // ignore
             }
+
+            // FIX Dubbox Support
+            try {
+                Class<?> DubboClass = webappclsLoader
+                        .loadClass("com.alibaba.dubbo.remoting.http.servlet.DispatcherServlet");
+                if (DubboClass.isAssignableFrom(annoCls)) {
+
+                    String oEngine = (info.containsKey("engine")) ? (String) info.get("engine") + "," : "";
+
+                    info.put("engine", oEngine + "dubbo");
+                }
+            }
+            catch (ClassNotFoundException e) {
+                // ignore
+            }
         }
     }
 
@@ -1792,6 +1817,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             // collect the method info
             getMethodInfo(comCls, info, annoClasses);
+
+            if (DubboProfileHandler.isDubboServiceImplCls(comCls.getName(), context)) {
+                info.put("tag", "dubbo");
+            }
 
             return info;
         }
@@ -2257,8 +2286,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 if (extObj == null) {
                     continue;
                 }
-
-                String[] extArr = ((String) extObj).split(",");
+                /**
+                 * in struts2,config extension as "do,action," means url's suffix could be "do" "action" or "".
+                 * "do,action,".split(",") result is ["do","action"], "do,action,".split(",",limitnum) result
+                 * is["do","action",""].
+                 */
+                String[] extArr = ((String) extObj).split(",", 100);
 
                 List<String> extList = Arrays.asList(extArr);
 
@@ -2439,6 +2472,17 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             Map<String, Object> classInfo, String classPathAnnoClass, String classPathAnnoAttrName,
             String methodPathAnnoClass, boolean isJAXWS) {
 
+        if (isJAXWS) {
+            /**
+             * for JaxWS,only get classPaths
+             */
+            addJAXWSServiceMapBinding(smgr, appid, className, classInfo);
+
+            return;
+        }
+
+        Collection<String> classPaths = new ArrayList<String>();
+
         Map<String, Object> anno = (Map<String, Object>) classInfo.get("anno");
 
         if (anno == null) {
@@ -2463,26 +2507,6 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             value = "/";
         }
         else {
-            return;
-        }
-
-        Collection<String> classPaths = new ArrayList<String>();
-
-        /**
-         * for JaxWS, we can't match the method, so only className is enough
-         */
-        if (isJAXWS == true && value == null) {
-            /**
-             * by default, if without serviceName is declared, using the classSimpleName
-             */
-            String[] classDes = className.split("\\.");
-            classPaths.add(this.formatRelativePath(classDes[classDes.length - 1], false));
-            smgr.addServiceMapBinding(appid, className, null, classPaths, 0);
-            return;
-        }
-        else if (isJAXWS == true && value != null) {
-            classPaths.add(this.formatRelativePath(value.toString(), false));
-            smgr.addServiceMapBinding(appid, className, null, classPaths, 0);
             return;
         }
 
@@ -2575,6 +2599,60 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 smgr.addServiceMapBinding(appid, className, method, finalMethodPaths, 0, allowMethodPathAbMatch);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addJAXWSServiceMapBinding(ProfileServiceMapMgr smgr, String appid, String className,
+            Map<String, Object> classInfo) {
+
+        Collection<String> classPaths = new ArrayList<String>();
+
+        String classPath = null;
+
+        if (classInfo.containsKey("dyn")) {
+
+            Map<String, Object> classDynInfo = (Map<String, Object>) classInfo.get("dyn");
+
+            classPath = (String) classDynInfo.get("url");
+
+            if (StringHelper.isEmpty(classPath)) {
+
+                String[] serviceImplClsInfo = className.split("\\.");
+
+                classPath = serviceImplClsInfo[serviceImplClsInfo.length - 1] + "Service";
+
+            }
+        }
+        else if (classInfo.containsKey("des")) {
+
+            Map<String, Object> classDesInfo = (Map<String, Object>) classInfo.get("des");
+
+            classPath = (String) classDesInfo.get("address");
+
+            if (classPath == null) {
+                classPath = (String) classDesInfo.get("url-pattern");
+            }
+
+        }
+        else if (classInfo.containsKey("anno")) {
+
+            Map<String, Object> classAnnoInfo = (Map<String, Object>) classInfo.get("anno");
+
+            Map<String, Object> annoWebService = (Map<String, Object>) classAnnoInfo.get("javax.jws.WebService");
+
+            classPath = (String) annoWebService.get("serviceName");
+
+            if (StringHelper.isEmpty(classPath)) {
+
+                String[] serviceImplClsInfo = className.split("\\.");
+
+                classPath = serviceImplClsInfo[serviceImplClsInfo.length - 1] + "Service";
+            }
+        }
+
+        classPaths.add(formatRelativePath(classPath, false));
+
+        smgr.addServiceMapBinding(appid, className, null, classPaths, 0);
     }
 
     @SuppressWarnings("unchecked")
@@ -2780,10 +2858,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     private void getDynInfoForServlet(InterceptContext itContext, String componentClassName,
             ProfileElementInstance inst, ProfileContext context) {
 
-        Object obj = ReflectHelper.newInstance("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler");
+        Object obj = ReflectionHelper.newInstance("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler");
 
         if (obj != null) {
-            ReflectHelper.invoke("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler", obj,
+            ReflectionHelper.invoke("com.creditease.monitor.jee.servlet30.DynamicServletConfigProfiler", obj,
                     "loadComponentsByDynamic", new Class<?>[] { InterceptContext.class, String.class,
                             ProfileElementInstance.class, ProfileContext.class },
                     new Object[] { itContext, componentClassName, inst, context });
@@ -2925,7 +3003,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             DescriptorProcessor dpInst = null;
             if (!dpInstances.containsKey(dpClass.getName())) {
 
-                dpInst = (DescriptorProcessor) ReflectHelper.newInstance(dpClass.getName(),
+                dpInst = (DescriptorProcessor) ReflectionHelper.newInstance(dpClass.getName(),
                         new Class<?>[] { ProfileContext.class }, new Object[] { context });
 
                 if (null == dpInst) {
