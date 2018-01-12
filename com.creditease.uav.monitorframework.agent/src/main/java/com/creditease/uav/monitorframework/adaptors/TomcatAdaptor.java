@@ -261,7 +261,23 @@ public class TomcatAdaptor extends AbstractAdaptor {
                             return (version.equalsIgnoreCase("6")) ? "stop" : "stopInternal";
                         }
 
-                    } });
+                    }, new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.TomcatPlusIT");
+                            m.insertAfter(
+                                    "{mObj=new TomcatPlusIT();$_=mObj.chgParentClassloader(new Object[]{$_,this});                                    }");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "getParentClassLoader";
+                        }
+
+                   } });
         }
         // onServletRegist
         else if (className.equals("org.apache.catalina.core.ApplicationContext")) {

@@ -33,6 +33,7 @@ import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.support.RpcUtils;
 import com.creditease.agent.helpers.NetworkHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
@@ -212,10 +213,11 @@ public class DubboIT {
 
         // on service start pre-cap
         if (isDoCap == false) {
-            UAVServer.instance().runMonitorCaptureOnServerCapPoint(CaptureConstants.CAPPOINT_SERVER_CONNECTOR,
-                    Monitor.CapturePhase.PRECAP, null);
-
             Map<String, Object> params = new HashMap<String, Object>();
+            params.put(CaptureConstants.INFO_CAPCONTEXT_TAG, "dubbo");
+            UAVServer.instance().runMonitorCaptureOnServerCapPoint(CaptureConstants.CAPPOINT_SERVER_CONNECTOR,
+                    Monitor.CapturePhase.PRECAP, params);
+
             URL url = invoker.getUrl();
             String method = RpcUtils.getMethodName(invocation); // 获取方法名
             int localPort = url.getPort();
@@ -251,6 +253,7 @@ public class DubboIT {
             String path = url.getPath();
 
             String requestURL = getRequestURL(url, method, localPort, protocol, path);
+            params.put(CaptureConstants.INFO_CAPCONTEXT_TAG, "dubbo");
             params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, requestURL);
             params.put(CaptureConstants.INFO_APPSERVER_APPID, this.appId);
             int respCode = 1;
@@ -290,7 +293,7 @@ public class DubboIT {
 
         String group = url.getParameter(Constants.GROUP_KEY);
 
-        if (group != null) {
+        if (!StringHelper.isEmpty(group)) {
             requestURL.append(":").append(group);
         }
 
@@ -298,7 +301,7 @@ public class DubboIT {
 
         String version = url.getParameter(Constants.VERSION_KEY);
 
-        if (version != null) {
+        if (!StringHelper.isEmpty(version)) {
             requestURL.append(".").append(version);
         }
 
@@ -331,8 +334,22 @@ public class DubboIT {
         ServiceBean sb = (ServiceBean) args[0];
 
         String serviceClass = sb.getInterface();
+
+        String serviceImplClass = sb.getRef().getClass().getName();
+        // the refclass is enhance by SpringCGLIB, className like "ServiceImplClass$$EnhancerBySpringCGLIB$$2a862c3d"
+        if (serviceImplClass.indexOf("$$") > -1) {
+            serviceImplClass = serviceImplClass.substring(0, serviceImplClass.indexOf("$$"));
+        }
+
         String group = (sb.getGroup() == null) ? "" : sb.getGroup();
+        if (sb.getGroup() == null && sb.getProvider() != null && sb.getProvider().getGroup() != null) {
+            group = sb.getProvider().getGroup();
+        }
+
         String version = (sb.getVersion() == null) ? "" : sb.getVersion();
+        if (sb.getVersion() == null && sb.getProvider() != null && sb.getProvider().getVersion() != null) {
+            version = sb.getProvider().getVersion();
+        }
 
         String serviceKey = serviceClass;
 
@@ -361,6 +378,7 @@ public class DubboIT {
         dspi.setAppId(appId);
         dspi.setDbAppId(dbAppId);
         dspi.setServiceClass(serviceClass);
+        dspi.setServiceImplClass(serviceImplClass);
         dspi.setGroup(group);
         dspi.setVersion(version);
 
