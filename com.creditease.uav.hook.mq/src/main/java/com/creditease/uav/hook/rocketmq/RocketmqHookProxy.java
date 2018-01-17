@@ -30,9 +30,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 /**
  * 
@@ -104,7 +103,7 @@ public class RocketmqHookProxy extends HookProxy {
         DynamicProxyProcessor processor = new DynamicProxyProcessor() {
 
             @Override
-            public void process(CtMethod m) throws Exception {
+            public void process(DPMethod m) throws Exception {
 
                 if ((m.getExceptionTypes().length != 0 || "shutdown".equals(m.getName())
                         || "unsubscribe".equals(m.getName()) || "registerMessageListener".equals(m.getName()))

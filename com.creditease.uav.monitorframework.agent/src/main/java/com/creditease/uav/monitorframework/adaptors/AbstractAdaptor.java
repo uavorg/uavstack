@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.creditease.agent.helpers.JSONHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 
 import javassist.CannotCompileException;
@@ -194,7 +194,7 @@ public abstract class AbstractAdaptor {
 
     public void installJar(ClassLoader webapploader, String jarPath, boolean isEnableInject) throws Exception {
 
-        ReflectHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
+        ReflectionHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
                 new Object[] { new URL("file:///" + jarPath) }, this.getClass().getClassLoader());
 
         if (isEnableInject) {

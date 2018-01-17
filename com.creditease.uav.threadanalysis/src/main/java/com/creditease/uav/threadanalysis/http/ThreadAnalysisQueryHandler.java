@@ -47,7 +47,9 @@ import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.http.api.UAVHttpMessage;
 import com.creditease.agent.spi.AbstractHttpHandler;
 import com.creditease.uav.elasticsearch.client.ESClient;
+import com.creditease.uav.threadanalysis.server.ThreadAnalyser;
 import com.creditease.uav.threadanalysis.server.ThreadAnalysisIndexMgr;
+import com.creditease.uav.threadanalysis.server.da.ThreadObject;
 
 public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
 
@@ -58,6 +60,7 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
     private ThreadAnalysisIndexMgr indexMgr;
 
     public ThreadAnalysisQueryHandler(String cName, String feature) {
+
         super(cName, feature);
         client = (ESClient) this.getConfigManager().getComponent(this.feature, "ESClient");
 
@@ -77,6 +80,10 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
     @Override
     public void handle(UAVHttpMessage data) {
 
+        if (log.isDebugEnable()) {
+            log.debug(this, "JTA Server Query Handler start : " + data.getIntent() + ", request: "
+                    + JSONHelper.toString(data.getRequest()));
+        }
         String cmd = data.getIntent();
 
         switch (cmd) {
@@ -93,6 +100,44 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
             case "qDistinct":
                 queryDistinct(data);
                 break;
+            /**
+             * 线程概况：总CPU、线程状态、是否死锁等
+             */
+            case "queryDumpInfo":
+                queryDumpInfo(data);
+                break;
+            /**
+             * 线程锁依赖
+             */
+            case "queryThreadChain":
+                queryThreadChain(data);
+                break;
+            /**
+             * 生成线程有向图
+             */
+            case "queryThreadDigraph":
+                queryThreadDigraph(data);
+                break;
+            /**
+             * 
+             */
+            case "queryMultiDumpInfo":
+                queryMultiDumpInfo(data);
+                break;
+            /**
+             * 
+             */
+            case "queryMultiDumpGraph":
+                queryMultiDumpGraph(data);
+                break;
+            default:
+                log.warn(this, "No action with cmd: " + cmd);
+                break;
+        }
+
+        if (log.isDebugEnable()) {
+            log.debug(this, "JTA Server Query Handler end : " + data.getIntent() + ", response: "
+                    + data.getResponseAsJsonString());
         }
     }
 
@@ -163,9 +208,10 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
 
         try {
             String ipport = data.getRequest("ipport");
-            AggregationBuilder agg = AggregationBuilders.terms("unique_time").field("time")
+            // TODO ES aggregation 默认最多查10条, 这里暂时改到1000，待refine
+            AggregationBuilder agg = AggregationBuilders.terms("unique_time").field("time").size(1000)
                     .order(Terms.Order.term(false))
-                    .subAggregation(AggregationBuilders.terms("unique_user").field("user"));
+                    .subAggregation(AggregationBuilders.terms("unique_user").field("user").size(1000));
 
             String date = data.getRequest("indexdate");
             String currentIndex;
@@ -221,8 +267,138 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
      * 
      * @param data
      */
-    @SuppressWarnings("rawtypes")
     private void queryByField(UAVHttpMessage data) {
+
+        QueryBuilder query = buildQuery(data);
+        if (query == null) {
+            return;
+        }
+
+        SearchResponse sr = query(data, query, null, buildSorts(data));
+
+        List<Map<String, Object>> records = getRecords(sr);
+        long count = getCount(sr);
+
+        data.putResponse("rs", JSONHelper.toString(records));
+        data.putResponse("count", count + ""); // 返回总的条数
+    }
+
+    /**
+     * 
+     * @param data
+     * @return josnString: {cpu: '50', threadCount: '123', runnableCount: '23', blockedCount: '34', waitingCount: '45',
+     *         deadlock: []}
+     */
+    private void queryDumpInfo(UAVHttpMessage data) {
+
+        QueryBuilder query = buildQuery(data);
+        if (query == null) {
+            return;
+        }
+        SearchResponse sr = query(data, query, null, buildSorts(data));
+        List<Map<String, Object>> records = getRecords(sr);
+
+        ThreadAnalyser ta = (ThreadAnalyser) getConfigManager().getComponent(feature, "ThreadAnalyser");
+        Map<String, Object> map = ta.queryDumpInfo(records);
+
+        data.putResponse("rs", JSONHelper.toString(map));
+    }
+
+    /**
+     * 查找线程依赖
+     * 
+     * @param data
+     */
+    private void queryThreadChain(UAVHttpMessage data) {
+
+        QueryBuilder query = buildQuery(data);
+        if (query == null) {
+            return;
+        }
+
+        SearchResponse sr = query(data, query, null, buildSorts(data));
+
+        List<Map<String, Object>> records = getRecords(sr);
+
+        String threadId = data.getRequest("threadId");
+        ThreadAnalyser ta = (ThreadAnalyser) getConfigManager().getComponent(feature, "ThreadAnalyser");
+        List<ThreadObject> chain = ta.findThreadChain(records, threadId);
+        List<String> infoChain = new ArrayList<>();
+        for (ThreadObject to : chain) {
+            infoChain.add(to.getInfo());
+        }
+        data.putResponse("rs", JSONHelper.toString(infoChain));
+    }
+
+    /**
+     * 
+     * @param data
+     * @return {nodes: [{id:0, name:'', type: '', state: ''}], edges: [{from:0, to:1}]}
+     */
+    private void queryThreadDigraph(UAVHttpMessage data) {
+
+        QueryBuilder query = buildQuery(data);
+        if (query == null) {
+            return;
+        }
+
+        SearchResponse sr = query(data, query, null, buildSorts(data));
+
+        List<Map<String, Object>> records = getRecords(sr);
+        ThreadAnalyser ta = (ThreadAnalyser) getConfigManager().getComponent(feature, "ThreadAnalyser");
+        Map<String, Object> rs = ta.buildThreadDigraph(records);
+        data.putResponse("rs", JSONHelper.toString(rs));
+    }
+
+    private void queryMultiDumpInfo(UAVHttpMessage data) {
+
+        String ipport = data.getRequest("ipport");
+        String timesStr = data.getRequest("times");
+        List<String> times = JSONHelper.toObjectArray(timesStr, String.class);
+        List<List<Map<String, Object>>> records = new ArrayList<>();
+        for (String time : times) {
+            long timestamp = DataConvertHelper.toLong(time, -1L);
+            // build query builder
+            BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+            queryBuilder.must(QueryBuilders.rangeQuery("time").gte(timestamp).lte(timestamp));
+            queryBuilder.must(QueryBuilders.termQuery("ipport", ipport));
+            SearchResponse sr = query(data, queryBuilder, null, buildSorts(data));
+            List<Map<String, Object>> record = getRecords(sr);
+
+            records.add(record);
+        }
+
+        ThreadAnalyser ta = (ThreadAnalyser) getConfigManager().getComponent(feature, "ThreadAnalyser");
+        List<Map<String, String>> rs = ta.queryMutilDumpInfo(times, records);
+        data.putResponse("rs", JSONHelper.toString(rs));
+    }
+
+    private void queryMultiDumpGraph(UAVHttpMessage data) {
+
+        String ipport = data.getRequest("ipport");
+        String timesStr = data.getRequest("times");
+        String threadIdsStr = data.getRequest("threadIds");
+        List<String> times = JSONHelper.toObjectArray(timesStr, String.class);
+        List<String> threadIds = JSONHelper.toObjectArray(threadIdsStr, String.class);
+        List<List<Map<String, Object>>> records = new ArrayList<>();
+        for (String time : times) {
+            long timestamp = DataConvertHelper.toLong(time, -1L);
+            // build query builder
+            BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+            queryBuilder.must(QueryBuilders.rangeQuery("time").gte(timestamp).lte(timestamp));
+            queryBuilder.must(QueryBuilders.termQuery("ipport", ipport));
+            SearchResponse sr = query(data, queryBuilder, null, buildSorts(data));
+            List<Map<String, Object>> record = getRecords(sr);
+
+            records.add(record);
+        }
+
+        ThreadAnalyser ta = (ThreadAnalyser) getConfigManager().getComponent(feature, "ThreadAnalyser");
+        Map<String, Object> rs = ta.queryMutilDumpGraph(threadIds, records);
+        data.putResponse("rs", JSONHelper.toString(rs));
+    }
+
+    private QueryBuilder buildQuery(UAVHttpMessage data) {
 
         long startTime = DataConvertHelper.toLong(data.getRequest("stime"), -1L);
         long endTime = DataConvertHelper.toLong(data.getRequest("etime"), -1L);
@@ -230,7 +406,7 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
         if (startTime == -1L || endTime == -1L || endTime < startTime) {
             data.putResponse("rs", "ERR");
             data.putResponse("msg", "The Time Range Error: startTime=" + startTime + ",endTime=" + endTime);
-            return;
+            return null;
         }
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -291,7 +467,7 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
         if (epercpu < spercpu) {
             data.putResponse("rs", "ERR");
             data.putResponse("msg", "The percpu Range Error: spercpu=" + spercpu + ",epercpu=" + epercpu);
-            return;
+            return null;
         }
         queryBuilder.must(percpu);
         // permem
@@ -307,7 +483,7 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
         if (epermem < spermem) {
             data.putResponse("rs", "ERR");
             data.putResponse("msg", "The permem Range Error: spercpu=" + spermem + ",epercpu=" + epermem);
-            return;
+            return null;
         }
         queryBuilder.must(permem);
         // info，已做分词
@@ -316,79 +492,36 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
             queryBuilder.must(QueryBuilders.matchQuery("info", info));
         }
 
-        SortBuilder[] sorts = buildSort(data);
-
-        this.queryToList(data, queryBuilder, null, sorts);
+        return queryBuilder;
     }
 
     @SuppressWarnings("rawtypes")
-    private SortBuilder[] buildSort(UAVHttpMessage data) {
+    private List<SortBuilder> buildSorts(UAVHttpMessage data) {
 
-        SortBuilder[] sorts = null;
+        List<SortBuilder> list = new ArrayList<>();
 
         String sort = data.getRequest("sort");
 
         if (sort != null) {
             String[] sortFieldStrs = sort.split(",");
-            List<SortBuilder> ls = new ArrayList<SortBuilder>();
             for (String sortFieldStr : sortFieldStrs) {
                 String[] sortExp = sortFieldStr.split("=");
                 SortBuilder stimeSort = new FieldSortBuilder(sortExp[0]);
                 stimeSort.order(SortOrder.fromString(sortExp[1]));
-                ls.add(stimeSort);
+                list.add(stimeSort);
             }
-            sorts = new SortBuilder[ls.size()];
-            sorts = ls.toArray(sorts);
         }
         else {
             SortBuilder stimeSort = new FieldSortBuilder("time");
             stimeSort.order(SortOrder.DESC);
-            sorts = new SortBuilder[] { stimeSort };
+            list.add(stimeSort);
         }
-        return sorts;
+        return list;
     }
 
-    /**
-     * 
-     * @param data
-     * @param queryBuilder
-     * @param postFilter
-     */
-    @SuppressWarnings("rawtypes")
-    private void queryToList(UAVHttpMessage data, QueryBuilder queryBuilder, QueryBuilder postFilter,
-            SortBuilder[] sorts) {
-
-        SearchResponse sr = query(data, queryBuilder, postFilter, sorts);
-
-        SearchHits shits = sr.getHits();
-
-        List<Map<String, Object>> records = new ArrayList<Map<String, Object>>();
-
-        for (SearchHit sh : shits) {
-            Map<String, Object> record = sh.getSourceAsMap();
-
-            if (record == null) {
-                continue;
-            }
-
-            records.add(record);
-        }
-
-        data.putResponse("rs", JSONHelper.toString(records));
-        // 返回总的条数
-        data.putResponse("count", shits.getTotalHits() + "");
-    }
-
-    /**
-     * 
-     * @param data
-     * @param queryBuilder
-     * @param postFilter
-     * @return
-     */
     @SuppressWarnings("rawtypes")
     private SearchResponse query(UAVHttpMessage data, QueryBuilder queryBuilder, QueryBuilder postFilter,
-            SortBuilder[] sorts) {
+            List<SortBuilder> sorts) {
 
         String date = data.getRequest("indexdate");
         String currentIndex;
@@ -417,15 +550,35 @@ public class ThreadAnalysisQueryHandler extends AbstractHttpHandler<UAVHttpMessa
             srb.setPostFilter(postFilter);
         }
 
-        if (sorts != null && sorts.length > 0) {
-            for (SortBuilder sb : sorts) {
-                srb.addSort(sb);
-            }
+        for (SortBuilder sb : sorts) {
+            srb.addSort(sb);
         }
 
         SearchResponse sr = srb.get(TimeValue.timeValueMillis(timeout));
 
         return sr;
+    }
+
+    private List<Map<String, Object>> getRecords(SearchResponse sr) {
+
+        SearchHits shits = sr.getHits();
+
+        List<Map<String, Object>> records = new ArrayList<Map<String, Object>>();
+
+        for (SearchHit sh : shits) {
+            Map<String, Object> record = sh.getSourceAsMap();
+            if (record == null) {
+                continue;
+            }
+            records.add(record);
+        }
+
+        return records;
+    }
+
+    private long getCount(SearchResponse sr) {
+
+        return sr.getHits().getTotalHits();
     }
 
 }
