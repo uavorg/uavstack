@@ -328,8 +328,6 @@ public class HealthManager extends AgentFeatureComponent {
 
     private void buildDataStores(IConfigurationManager icm) {
 
-        // log
-        String logKey = MonitorDataFrame.MessageType.Log.toString();
         // monitor
         String monitorKey = MonitorDataFrame.MessageType.Monitor.toString();
 
@@ -341,19 +339,6 @@ public class HealthManager extends AgentFeatureComponent {
 
         // nodeinfo
         String nodeinfoKey = MonitorDataFrame.MessageType.NodeInfo.toString();
-
-        String caching = icm.getFeatureConfiguration(this.feature, logKey + ".ds.cache");
-        String maxResultSize = icm.getFeatureConfiguration(this.feature, logKey + ".ds.maxResultSize");
-        String reverse = icm.getFeatureConfiguration(this.feature, logKey + ".ds.reverse");
-        String psize = icm.getFeatureConfiguration(this.feature, logKey + ".ds.pagesize");
-
-        Map<String, Object> lctx = new HashMap<String, Object>();
-        lctx.put(DataStoreProtocol.HBASE_QUERY_CACHING, caching);
-        lctx.put(DataStoreProtocol.HBASE_QUERY_MAXRESULTSIZE, maxResultSize);
-        lctx.put(DataStoreProtocol.HBASE_QUERY_REVERSE, DataConvertHelper.toBoolean(Boolean.valueOf(reverse), true));
-        lctx.put(DataStoreProtocol.HBASE_QUERY_PAGESIZE, DataConvertHelper.toLong(Long.valueOf(psize), 3000));
-        // build log ds
-        buildDataStore(icm, logKey, DataStoreType.HBASE, new LogDataAdapter(), lctx);
 
         Map<String, Object> mctx = new HashMap<String, Object>();
 
@@ -406,9 +391,7 @@ public class HealthManager extends AgentFeatureComponent {
     private void buildDataStore(IConfigurationManager icm, String dsName, DataStoreType type, DataStoreAdapter adaptor,
             Map<String, Object> context) {
 
-        boolean enable = false;
-
-        enable = Boolean.parseBoolean(icm.getFeatureConfiguration(this.feature, dsName + ".ds.enable"));
+        boolean enable = DataConvertHelper.toBoolean(icm.getFeatureConfiguration(this.feature, dsName + ".ds.enable"),false);
 
         if (enable) {
 
