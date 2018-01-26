@@ -103,6 +103,7 @@ public class DubboIT {
     private String appId;
 
     public DubboIT(String appid) {
+
         this.appId = appid;
     }
 
@@ -230,7 +231,7 @@ public class DubboIT {
                     RpcContext.getContext().getAttachment(InvokeChainConstants.PARAM_RPCHEAD_SPANINFO));
             params.put(InvokeChainConstants.PARAM_RPCHEAD_INFO, "dubbo.provider");
             params.put(InvokeChainConstants.PARAM_REMOTE_SRC_INFO,
-                    RpcContext.getContext().getLocalAddress().getHostString());
+                    RpcContext.getContext().getLocalAddress().toString());
 
             // register adapter
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter",
