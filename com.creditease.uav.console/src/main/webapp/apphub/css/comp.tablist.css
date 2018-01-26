@@ -37,4 +37,17 @@
 	!text-shadow: rgba(0,0,0,0.5) 0px 1px 1px;
 	text-align:left;
 	background:#f8f8f8;
+	height:25px;
+}
+
+.GroupTag {
+	font-size: 12px;
+	color:#888;
+	display:inline-block;
+	background:#fff;
+	padding-left:5px;
+	padding-right:5px;
+	border:1px solid #a8a8a8;
+	border-radius:10px;
+    height:16px;
 }

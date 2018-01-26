@@ -65,8 +65,16 @@ public class MonitorServerUtil {
                 int st = this.curStr.indexOf("@");
                 String ipstr = this.curStr.substring(st + 1);
                 String[] ipInfo = ipstr.split(":");
-                iphosts.add(ipInfo[0] + ":" + ipInfo[1]);
-                this.dbName = ipInfo[2];
+                // 兼容使用"/"分割数据库名场景，样例 ip:port/dbName
+                if (ipInfo.length == 2 && ipInfo[1].indexOf("/") > -1) {
+                    String[] temp = ipInfo[1].split("/");
+                    this.dbName = temp[1];
+                    iphosts.add(ipInfo[0] + ":" + temp[0]);
+                }
+                else {
+                    iphosts.add(ipInfo[0] + ":" + ipInfo[1]);
+                    this.dbName = ipInfo[2];
+                }
                 return;
             }
 
@@ -306,7 +314,7 @@ public class MonitorServerUtil {
 
         if ("".equals(contextroot)) {
 
-			/*
+            /*
              * NOTE: springboot's basePath is a random temp directory,so we use main(usually the jar name) as the appid
              */
             if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
@@ -320,17 +328,35 @@ public class MonitorServerUtil {
             else {
                 String tmp = basePath.replace("\\", "/");
                 int index = tmp.lastIndexOf("/");
+                
+                /** 
+                 * "/app/xxxxx/" remove the last "/" to get the appid 
+                 */ 
+                if (index == tmp.length() - 1) { 
+                    tmp = tmp.substring(0, tmp.length() - 1); 
+                    index = tmp.lastIndexOf("/"); 
+                }
 
                 appid = tmp.substring(index + 1);
             }
-            
         }
         else {
             appid = contextroot;
         }
 
+        // 去除最开始的"/"
         if (appid.indexOf("/") == 0) {
             appid = appid.substring(1);
+        }
+        /**
+         * tomcat等容器在配置了多层虚拟路径以后，appid会存在特殊字符"/"，如：
+         * <Context docBase="/data/source" path="/test/test" reloadable="true" /> 由于存在使用appid创建文件的情况，此处统一将特殊字符进行转义
+         */
+        if (appid.indexOf("/") > -1) {
+            appid = appid.replace("/", "--");
+        }
+        if (appid.indexOf("\\") > -1) {
+            appid = appid.replace("\\", "--");
         }
 
         return appid;
