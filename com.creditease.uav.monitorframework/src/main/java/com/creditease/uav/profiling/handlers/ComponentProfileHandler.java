@@ -1347,7 +1347,6 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                     actionMap.put("name", nameStr);
                     actionMap.put("method", methodStr);
                     actionMap.put("class", classStr);
-                    actionMap.put("extension", extensionStr);
 
                     dc.setProfileElement(inst).loadInfo(classStr, "", actionMap);
 
