@@ -1258,6 +1258,35 @@ var mvcObj={
 			theme: 'BGLight',
 			order: 1005
 		});
+		// build Thread Analysis Multi Dump Window 
+		window.winmgr.build({
+			id: 'AppJTAMultiDumpWnd',
+			height: 'auto',
+			'overflow-y': 'auto',
+			theme: 'BGLight',
+			order: 1006
+		});
+		// build Thread Analysis Graph Window
+		window.winmgr.build({
+			id: 'AppJTAGraphWnd',
+			height: 'auto',
+			'overflow-y': 'auto',
+			theme: 'BGLight',
+			order: 1007,
+			events:{
+				onresize:function(w,h,noTopHeight) {
+					appJTA.resize(w,h,noTopHeight);
+				}
+			}
+		});
+		// build Thread Analysis Message Windows
+		window.winmgr.build({
+			id: 'AppJTAMsgWnd',
+			height: 'auto',
+			'overflow-y': 'auto',
+			theme: 'BGLight',
+			order: 1008
+		});
 		
 		//View Change
 		var view=HtmlHelper.getQParam("view");
@@ -5699,24 +5728,54 @@ var mvcObj={
          */
         // -------------------- thread analysis list window --------------------
         buildAppJTAListWnd: function(sObj) {
-			return appJTA.buildAppJTAListWnd(sObj);
-		},
-		runAppJTAListWnd: function(sObj) {
-			appJTA.runAppJTAListWnd(sObj);
-		},
-		destroyAppJTAListWnd: function() {
-			// ignore
-		},
+            return appJTA.buildAppJTAListWnd(sObj);
+        },
+        runAppJTAListWnd: function(sObj) {
+            appJTA.runAppJTAListWnd(sObj);
+        },
+        destroyAppJTAListWnd: function() {
+            // ignore
+        },
         // -------------------- thread analysis detail window --------------------
-		buildAppJTADetailWnd: function(sObj) {
-			return appJTA.buildAppJTADetailWnd(sObj);
-		},
-		runAppJTADetailWnd: function(sObj) {
-			appJTA.runAppJTADetailWnd(sObj);
-		},
-		destroyAppJTADetailWnd: function() {
-			// ignore
-		}
+        buildAppJTADetailWnd: function(sObj) {
+            return appJTA.buildAppJTADetailWnd(sObj);
+        },
+        runAppJTADetailWnd: function(sObj) {
+            appJTA.runAppJTADetailWnd(sObj);
+        },
+        destroyAppJTADetailWnd: function() {
+            // ignore
+        },
+        // -------------------- thread analysis multi dump window --------------------
+        buildAppJTAMultiDumpWnd: function(sObj) {
+            return appJTA.buildJTAMultiDumpWnd(sObj);
+        },
+        runAppJTAMultiDumpWnd: function(sObj) {
+            appJTA.runJTAMultiDumpWnd(sObj);
+        },
+        destroyAppJTAMultiDumpWnd: function() {
+            // ignore
+        },
+        // -------------------- thread analysis graph window --------------------
+        buildAppJTAGraphWnd: function(sObj) {
+            return appJTA.buildAppJTAGraphWnd(sObj);
+        },
+        runAppJTAGraphWnd: function(sObj) {
+            appJTA.runAppJTAGraphWnd(sObj);
+        },
+        destroyAppJTAGraphWnd: function(sObj) {
+            // ignore
+        },
+        // -------------------- thread analysis graph window --------------------
+        buildAppJTAMsgWnd: function(sObj) {
+        	return appJTA.buildJTAMsgWnd(sObj);
+        },
+        runAppJTAMsgWnd: function(sObj) {
+        	appJTA.runJTAMsgWnd(sObj);
+        },
+        destroyAppJTAMsgWnd: function() {
+        	// ignore
+        }
 	}	
 };
 

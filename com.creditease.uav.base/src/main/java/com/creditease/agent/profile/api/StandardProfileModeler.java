@@ -751,7 +751,7 @@ public class StandardProfileModeler extends AbstractBaseAction {
             String key = entry.getKey();
             Object value = entry.getValue();
 
-            if ("com.opensymphony.xwork2.ActionSupport".equals(key)) {
+            if (!"com.opensymphony.xwork2.ActionSupport".equals(key)) {
                 continue;
             }
 
