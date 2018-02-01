@@ -303,8 +303,8 @@ function JTATool(app) {
 		        		data[k]['actionQChain'] = '<button type="button" class="btn btn-info" title="查找" onclick="appJTA.findThreadChain(\''+time+'\',\''+ipport+'\',this)">查找</button>';
 		        	}
 					that.detailList.clearTable();
-		        	that.detailList.setTotalRow(parseInt(count));
-		        	that.detailList.renderPagination();
+//		        	that.detailList.setTotalRow(parseInt(count));
+//		        	that.detailList.renderPagination();
 		        	that.detailList.addRows(data);
 		        	
 		        	that.queryDumpInfo(time, ipport, that.detailList);
@@ -416,8 +416,8 @@ function JTATool(app) {
 						data[i]['ckbox'] = '<input type="checkbox" hiddenValue="'+data[i]['thread']+'" >';
 					}
 					that.multiDumpList.clearTable();
-		        	that.multiDumpList.setTotalRow(data.length);
-		        	that.multiDumpList.renderPagination();
+//		        	that.multiDumpList.setTotalRow(data.length);
+//		        	that.multiDumpList.renderPagination();
 		        	that.multiDumpList.addRows(data);
 				});
 	}
