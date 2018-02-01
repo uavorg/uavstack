@@ -450,7 +450,7 @@ public class TomcatPlusIT {
         if("/com.creditease.uav".equals(servletContext.getContextPath())) {
             return servletContext;
         }
-          
+        
         ServletContext scProxy = (ServletContext) servletContext
                 .getAttribute("com.creditease.uav.mof.tomcat.servletcontext");
 

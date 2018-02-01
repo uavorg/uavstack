@@ -30,6 +30,7 @@ import org.apache.catalina.loader.WebappClassLoader;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.JarScanner;
+
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
@@ -48,9 +49,9 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      */
     public void startServer(String port, String contextPath, String appName, Object arg) {
 
-        if(!isWebServerContext(arg)) {
+        if (!"AnnotationConfigEmbeddedWebApplicationContext".equals(arg.getClass().getSimpleName())) {
             return;
-        }        
+        }
 
         // integrate Tomcat log
         UAVServer.instance().setLog(new TomcatLog("MonitorServer"));
@@ -65,7 +66,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         // this context will be transmited from springboot mainThread to webcontainerInit thread then back to mainThread
         InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
         context.put(InterceptConstants.APPNAME, appName);
-    }  
+    }
 
     /**
      * setAppid
@@ -90,7 +91,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     @Override
     public void onAppStarting(Object... args) {
 
-        StandardContext sc = (StandardContext) args[0];           
+        StandardContext sc = (StandardContext) args[0];
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.createInterceptContext(Event.WEBCONTAINER_INIT);
         /**
@@ -261,12 +262,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     @Override
     public void onAppStart(Object... args) {
 
-        StandardContext sc = (StandardContext) args[0];        
+        StandardContext sc = (StandardContext) args[0];
         String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         //springboot use threadlocalContext to store the WEBCONTAINER_STARTED Event context, just return when it's uav's inner app in case of rewriting the real app's context 
         if("/com.creditease.uav".equals(contextPath)) {
             return;
-        }   
+        }
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
 
@@ -397,7 +398,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         
         if(!isWebServerContext(args[0])) {
             return;
-        }
+        }  
         
         String contextPath=(String) args[1];
         
@@ -418,10 +419,11 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      * 
      */
     public void onSpringFinishRefresh(Object arg) {
-        
+
         if(!isWebServerContext(arg)) {
             return;
-        }
+        }  
+        
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
 
@@ -467,7 +469,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
             context.setJarScanner((JarScanner) obj);      
         }        
     }
-    
+
     /**
      * judge if the AbstractApplicationContext is WebServerContext,cause we only hook the WebServerContext's lifecycle
      * 
