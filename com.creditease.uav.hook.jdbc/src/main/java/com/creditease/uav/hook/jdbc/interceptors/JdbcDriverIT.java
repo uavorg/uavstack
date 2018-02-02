@@ -295,13 +295,13 @@ public class JdbcDriverIT extends BaseComponent {
                 // 为空说明之前不存在参数
                 if (this.parameters.isEmpty()) {
                     Map<Integer, String> paraMap = new HashMap<Integer, String>();
-                    paraMap.put((Integer) args[0], args[1].toString());
+                    paraMap.put((Integer) args[0], String.valueOf(args[1]));
                     this.parameters.add(paraMap);
                 }
                 // 不为空则往最后一位追加参数
                 else {
                     Map<Integer, String> paraMap = this.parameters.get(this.parameters.size() - 1);
-                    paraMap.put((Integer) args[0], args[1] != null ? args[1].toString() : "null");
+                    paraMap.put((Integer) args[0], String.valueOf(args[1]));
                 }
             }
             // batch操作则在末尾追加map

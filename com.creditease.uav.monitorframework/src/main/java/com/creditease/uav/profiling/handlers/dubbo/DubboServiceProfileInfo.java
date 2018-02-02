@@ -96,6 +96,8 @@ public class DubboServiceProfileInfo {
 
     private String serviceClass;
     
+    private String serviceImplClass;
+    
     private String group;
     
     private String version;
@@ -136,7 +138,17 @@ public class DubboServiceProfileInfo {
 
         this.serviceClass = serviceClass;
     }
+    
+    public String getServiceImplClass() {
 
+        return serviceImplClass;
+    }
+
+    public void setServiceImplClass(String serviceImplClass) {
+
+        this.serviceImplClass = serviceImplClass;
+    }
+    
     public List<Protocol> getProtocols() {
 
         return protocols;

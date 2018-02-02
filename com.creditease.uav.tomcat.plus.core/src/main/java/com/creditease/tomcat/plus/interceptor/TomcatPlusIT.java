@@ -445,7 +445,12 @@ public class TomcatPlusIT {
     public ServletContext onServletRegist(Object... args) {
 
         ServletContext servletContext = (ServletContext) args[0];
-
+        
+        //uav's inner app doesn't need Profiling,just return origin servletContext here. 
+        if("/com.creditease.uav".equals(servletContext.getContextPath())) {
+            return servletContext;
+        }
+        
         ServletContext scProxy = (ServletContext) servletContext
                 .getAttribute("com.creditease.uav.mof.tomcat.servletcontext");
 
@@ -558,5 +563,22 @@ public class TomcatPlusIT {
 
         System.setProperty("com.creditease.uav.iapp.install", "true");
     }
+    
+    /**
+     *  when use embeddedTomcat and the webappclassloader is undefined, the webappclassloader will use systemclassloader as it's parentclassloader which coundn't load mof jars.
+     *  we chg it's parentclassloader to currentThread's contextclassloader(normally it counld load uavmof jars).
+     */
+    public ClassLoader chgParentClassloader(Object... args) {
 
+        ClassLoader cl = (ClassLoader) args[0];
+
+        StandardContext sc = (StandardContext) args[1];
+        if (cl != ClassLoader.getSystemClassLoader()) {
+            return cl;
+        }
+        else {
+            sc.setDelegate(true);
+            return Thread.currentThread().getContextClassLoader();
+        }
+    }
 }
