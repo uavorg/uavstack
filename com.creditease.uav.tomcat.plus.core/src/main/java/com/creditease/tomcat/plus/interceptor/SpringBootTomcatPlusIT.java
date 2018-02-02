@@ -49,9 +49,9 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      */
     public void startServer(String port, String contextPath, String appName, Object arg) {
 
-        if (!"AnnotationConfigEmbeddedWebApplicationContext".equals(arg.getClass().getSimpleName())) {
+        if(!isWebServerContext(arg)) {
             return;
-        }
+        } 
 
         // integrate Tomcat log
         UAVServer.instance().setLog(new TomcatLog("MonitorServer"));
