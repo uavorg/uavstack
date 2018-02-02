@@ -250,6 +250,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             private short index;
 
             private XMLNodeType(short i) {
+
                 index = i;
             }
 
@@ -270,6 +271,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         protected DocumentBuilder db = null;
 
         public DescriptorProcessor(ProfileContext context) {
+
             XPathFactory factory = XPathFactory.newInstance();
             xpath = factory.newXPath();
             this.context = context;
@@ -310,9 +312,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             }
 
             List<String> filePaths = null;
-            try {  
-                filePaths= getDescriptorFileLocations(webAppRoot);
-            }catch(Exception e) {
+            try {
+                filePaths = getDescriptorFileLocations(webAppRoot);
+            }
+            catch (Exception e) {
                 return false;
             }
 
@@ -663,6 +666,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         private Object resourceloader = null;
 
         public SpringXmlProcessor(ProfileContext context) {
+
             super(context);
         }
 
@@ -723,7 +727,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                         String importFilePathPart2 = nodes.item(i).getTextContent();
 
                         importFilePathPart2 = (importFilePathPart2.startsWith("/") == true)
-                                ? importFilePathPart2.substring(1) : importFilePathPart2;
+                                ? importFilePathPart2.substring(1)
+                                : importFilePathPart2;
 
                         String importFileRelativePath = importFilePathPart1 + "/" + importFilePathPart2;
 
@@ -950,7 +955,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 else {
                     Object sc = this.getContext().get(InterceptContext.class).get(InterceptConstants.SERVLET_CONTEXT);
                     resourceloader = ReflectionHelper.newInstance(SPRING_SC_RESOURCE_LOADER_CLASSNAME,
-                            new Class[] { ReflectionHelper.tryLoadClass("javax.servlet.ServletContext", webappclsLoader) },
+                            new Class[] {
+                                    ReflectionHelper.tryLoadClass("javax.servlet.ServletContext", webappclsLoader) },
                             new Object[] { sc }, webappclsLoader);
                 }
             }
@@ -971,11 +977,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             if (resources != null) {
                 for (Object resource : resources) {
                     try {
-                        location = (File) ReflectionHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null, null,
-                            webappclsLoader);                    
+                        location = (File) ReflectionHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null,
+                                null, webappclsLoader);
                         if (location != null && location.isFile())
                             absPaths.add(location.getPath());
-                    }catch(RuntimeException e) {
+                    }
+                    catch (RuntimeException e) {
                         // ignore
                         continue;
                     }
@@ -995,6 +1002,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     public static class WebXmlProcessor extends DescriptorProcessor {
 
         public WebXmlProcessor(ProfileContext context) {
+
             super(context);
         }
 
@@ -1129,6 +1137,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     public static class SunJaxWSXmlProcessor extends DescriptorProcessor {
 
         public SunJaxWSXmlProcessor(ProfileContext context) {
+
             super(context);
         }
 
@@ -1185,6 +1194,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     public static class Struts2XmlProcessor extends DescriptorProcessor {
 
         public Struts2XmlProcessor(ProfileContext context) {
+
             super(context);
         }
 
@@ -1193,7 +1203,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             DescriptorCollector ic = null;
 
-            if ("/struts/package/action".equals(xpath)) {
+            if ("/struts/package/action".equals(xpath)
+                    || "/struts/constant[@name='struts.action.extension']".equals(xpath)) {
 
                 // get actions
                 ic = new DescriptorCollector() {
@@ -1281,20 +1292,32 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         public void parseToPEI(final ProfileElementInstance inst, String webAppRoot, String xpath,
                 XMLNodeType... xmlNodeTypes) {
 
-            final DescriptorProcessor dp = this;
-
             XMLParseHandler handler = new XMLParseHandler() {
 
                 @Override
                 public boolean parse(DescriptorCollector dc, Node node) {
 
-                    Node extensionNode = dp.selectXMLNode("/struts/constant[@name='struts.action.extension']/@value");
-                    String extensionStr = "action";
+                    /**
+                     * 解析/struts/constant[@name='struts.action.extension']
+                     */
+                    if ("constant".equals(node.getNodeName())) {
 
-                    if (extensionNode != null) {
-                        extensionStr = extensionNode.getNodeValue();
+                        Node extensionNode = node.getAttributes().getNamedItem("value");
+                        String extensionStr = "action";
+                        if (extensionNode != null) {
+                            extensionStr = extensionNode.getNodeValue();
+                        }
+
+                        Map<String, Object> actionMap = new HashMap<String, Object>();
+                        actionMap.put("extension", extensionStr);
+                        // com.opensymphony.xwork2.ActionSupport 用作一个临时存储的key,extension是个全局属性
+                        dc.setProfileElement(inst).loadInfo("com.opensymphony.xwork2.ActionSupport", "", actionMap);
+                        return true;
                     }
 
+                    /**
+                     * 解析/struts/package/action
+                     */
                     Node pNode = node.getParentNode();
 
                     Node namespaceNode = pNode.getAttributes().getNamedItem("namespace");
@@ -1324,7 +1347,6 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                     actionMap.put("name", nameStr);
                     actionMap.put("method", methodStr);
                     actionMap.put("class", classStr);
-                    actionMap.put("extension", extensionStr);
 
                     dc.setProfileElement(inst).loadInfo(classStr, "", actionMap);
 
@@ -1728,6 +1750,21 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             catch (ClassNotFoundException e) {
                 // ignore
             }
+
+            // FIX Dubbox Support
+            try {
+                Class<?> DubboClass = webappclsLoader
+                        .loadClass("com.alibaba.dubbo.remoting.http.servlet.DispatcherServlet");
+                if (DubboClass.isAssignableFrom(annoCls)) {
+
+                    String oEngine = (info.containsKey("engine")) ? (String) info.get("engine") + "," : "";
+
+                    info.put("engine", oEngine + "dubbo");
+                }
+            }
+            catch (ClassNotFoundException e) {
+                // ignore
+            }
         }
     }
 
@@ -1802,6 +1839,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             // collect the method info
             getMethodInfo(comCls, info, annoClasses);
+
+            if (DubboProfileHandler.isDubboServiceImplCls(comCls.getName(), context)) {
+                info.put("tag", "dubbo");
+            }
 
             return info;
         }
@@ -1947,7 +1988,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 new String[] { "/web-app/listener/listener-class" });
         component2xpath.put("javax.jws.WebService",
                 new String[] { "/beans/endpoint/@id", "/beans/server/@id", "/endpoints/endpoint/@implementation" });
-        component2xpath.put("com.opensymphony.xwork2.Action", new String[] { "/struts/package/action" });
+        component2xpath.put("com.opensymphony.xwork2.Action",
+                new String[] { "/struts/constant[@name='struts.action.extension']", "/struts/package/action" });
 
         /**
          * init the mapping of anno class to their info processor
@@ -1978,6 +2020,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         xpathProcessors.put("/beans/server/@id", SpringXmlProcessor.class);
         xpathProcessors.put("/endpoints/endpoint/@implementation", SunJaxWSXmlProcessor.class);
         xpathProcessors.put("/struts/package/action", Struts2XmlProcessor.class);
+        xpathProcessors.put("/struts/constant[@name='struts.action.extension']", Struts2XmlProcessor.class);
 
         /**
          * init methodBlackListMap
@@ -1993,6 +2036,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
     private DubboProfileHandler dubboProfileHandler;
 
     public ComponentProfileHandler() {
+
         dubboProfileHandler = new DubboProfileHandler();
     }
 
@@ -2249,7 +2293,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             String key = entry.getKey();
             Object value = entry.getValue();
 
-            if ("com.opensymphony.xwork2.ActionSupport".equals(key)) {
+            if (!"com.opensymphony.xwork2.ActionSupport".equals(key)) {
                 continue;
             }
 
@@ -2267,8 +2311,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 if (extObj == null) {
                     continue;
                 }
-
-                String[] extArr = ((String) extObj).split(",");
+                /**
+                 * in struts2,config extension as "do,action," means url's suffix could be "do" "action" or "".
+                 * "do,action,".split(",") result is ["do","action"], "do,action,".split(",",limitnum) result
+                 * is["do","action",""].
+                 */
+                String[] extArr = ((String) extObj).split(",", 100);
 
                 List<String> extList = Arrays.asList(extArr);
 
@@ -2449,6 +2497,17 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             Map<String, Object> classInfo, String classPathAnnoClass, String classPathAnnoAttrName,
             String methodPathAnnoClass, boolean isJAXWS) {
 
+        if (isJAXWS) {
+            /**
+             * for JaxWS,only get classPaths
+             */
+            addJAXWSServiceMapBinding(smgr, appid, className, classInfo);
+
+            return;
+        }
+
+        Collection<String> classPaths = new ArrayList<String>();
+
         Map<String, Object> anno = (Map<String, Object>) classInfo.get("anno");
 
         if (anno == null) {
@@ -2476,26 +2535,6 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             return;
         }
 
-        Collection<String> classPaths = new ArrayList<String>();
-
-        /**
-         * for JaxWS, we can't match the method, so only className is enough
-         */
-        if (isJAXWS == true && value == null) {
-            /**
-             * by default, if without serviceName is declared, using the classSimpleName
-             */
-            String[] classDes = className.split("\\.");
-            classPaths.add(this.formatRelativePath(classDes[classDes.length - 1], false));
-            smgr.addServiceMapBinding(appid, className, null, classPaths, 0);
-            return;
-        }
-        else if (isJAXWS == true && value != null) {
-            classPaths.add(this.formatRelativePath(value.toString(), false));
-            smgr.addServiceMapBinding(appid, className, null, classPaths, 0);
-            return;
-        }
-
         if (value == null) {
             return;
         }
@@ -2508,6 +2547,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         }
 
         Map<String, Object> methods = (Map<String, Object>) classInfo.get("methods");
+
+        if (methods == null) {
+            return;
+        }
 
         /**
          * Step 2: get methods' url path
@@ -2585,6 +2628,60 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 smgr.addServiceMapBinding(appid, className, method, finalMethodPaths, 0, allowMethodPathAbMatch);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addJAXWSServiceMapBinding(ProfileServiceMapMgr smgr, String appid, String className,
+            Map<String, Object> classInfo) {
+
+        Collection<String> classPaths = new ArrayList<String>();
+
+        String classPath = null;
+
+        if (classInfo.containsKey("dyn")) {
+
+            Map<String, Object> classDynInfo = (Map<String, Object>) classInfo.get("dyn");
+
+            classPath = (String) classDynInfo.get("url");
+
+            if (StringHelper.isEmpty(classPath)) {
+
+                String[] serviceImplClsInfo = className.split("\\.");
+
+                classPath = serviceImplClsInfo[serviceImplClsInfo.length - 1] + "Service";
+
+            }
+        }
+        else if (classInfo.containsKey("des")) {
+
+            Map<String, Object> classDesInfo = (Map<String, Object>) classInfo.get("des");
+
+            classPath = (String) classDesInfo.get("address");
+
+            if (classPath == null) {
+                classPath = (String) classDesInfo.get("url-pattern");
+            }
+
+        }
+        else if (classInfo.containsKey("anno")) {
+
+            Map<String, Object> classAnnoInfo = (Map<String, Object>) classInfo.get("anno");
+
+            Map<String, Object> annoWebService = (Map<String, Object>) classAnnoInfo.get("javax.jws.WebService");
+
+            classPath = (String) annoWebService.get("serviceName");
+
+            if (StringHelper.isEmpty(classPath)) {
+
+                String[] serviceImplClsInfo = className.split("\\.");
+
+                classPath = serviceImplClsInfo[serviceImplClsInfo.length - 1] + "Service";
+            }
+        }
+
+        classPaths.add(formatRelativePath(classPath, false));
+
+        smgr.addServiceMapBinding(appid, className, null, classPaths, 0);
     }
 
     @SuppressWarnings("unchecked")

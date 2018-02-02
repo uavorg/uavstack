@@ -266,9 +266,11 @@ public class GodEyeRestService extends AppHubBaseRestService {
         @Override
         public void completed(HttpClientCallbackResult result) {
 
-            InputStream input = result.getReplyData();
-
-            response.resume(input);
+            String replyData = result.getReplyDataAsString();
+            if (logger.isDebugEnable()) {
+                logger.debug(this, "LoadMonitorDataFromOpenTSDB suc,replyDataAsString:" + replyData);
+            }
+            response.resume(replyData);
         }
 
         @Override
@@ -871,6 +873,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         private AsyncResponse response;
 
         public SearchNewLogCallback(AsyncResponse response) {
+
             this.response = response;
         }
 
