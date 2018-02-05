@@ -92,7 +92,6 @@
 									<fileset file="../com.creditease.uav.hook.httpclients/target/com.creditease.uav.hook.httpclients-1.0-sync.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.httpclients/target/com.creditease.uav.hook.httpclients-1.0-sync3.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.httpclients/target/com.creditease.uav.hook.httpclients-1.0-async.jar" ></fileset>
-									<fileset file="../com.creditease.uav.monitorframework.dproxy/target/com.creditease.uav.monitorframework.dproxy-1.0-dproxy.jar"></fileset>
 									<fileset file="../com.creditease.uav.hook.jdbc/target/com.creditease.uav.hook.jdbc-1.0.jar" ></fileset>		
 									<fileset file="../com.creditease.uav.hook.jaxws/target/com.creditease.uav.hook.jaxws-1.0.jar"></fileset>
 									<fileset file="../com.creditease.uav.hook.redis/target/com.creditease.uav.hook.redis-1.0-jedis.jar" ></fileset>

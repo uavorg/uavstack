@@ -34,9 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ReflectHelper {
+public class ReflectionHelper {
 
-    private ReflectHelper() {
+    private ReflectionHelper() {
 
     }
 
@@ -208,7 +208,7 @@ public class ReflectHelper {
 
         Class<?> capClass = null;
         try {
-            capClass = ReflectHelper.class.getClassLoader().loadClass(className);
+            capClass = ReflectionHelper.class.getClassLoader().loadClass(className);
         }
         catch (ClassNotFoundException e1) {
             // ignore
@@ -297,7 +297,7 @@ public class ReflectHelper {
 
         if (cls == null) {
             try {
-                cls = ReflectHelper.class.getClassLoader().loadClass(clsName);
+                cls = ReflectionHelper.class.getClassLoader().loadClass(clsName);
             }
             catch (ClassNotFoundException e) {
                 return null;
@@ -347,8 +347,8 @@ public class ReflectHelper {
             return null;
         }
         catch (InvocationTargetException e) {
-            // ignore
-            return null;
+
+            throw new RuntimeException(e.getTargetException());
         }
     }
 
@@ -429,15 +429,15 @@ public class ReflectHelper {
 
         Annotation anno = c.getAnnotation(annoCls);
         if (anno == null) {
-            // ----- START
-            Set<Class<?>> interfaces = ReflectHelper.getAllInterfaces(c, false);
+            // -----xinyuzhou1 START
+            Set<Class<?>> interfaces = ReflectionHelper.getAllInterfaces(c, false);
             for (Class intface : interfaces) {
                 Annotation anno4Interface = intface.getAnnotation(annoCls);
                 if (anno4Interface != null) {
                     return getAllFieldValuesOfAnnotation(fieldValues, anno4Interface);
                 }
             }
-            // ----- END
+            // -----xinyuzhou1 END
             return null;
         }
 
@@ -457,8 +457,8 @@ public class ReflectHelper {
 
         Annotation anno = method.getAnnotation(annoCls);
         if (anno == null) {
-            // ----- START
-            Set<Class<?>> interfaces = ReflectHelper.getAllInterfaces(cls, false);
+            // -----xinyuzhou1 START
+            Set<Class<?>> interfaces = ReflectionHelper.getAllInterfaces(cls, false);
             for (Class intface : interfaces) {
                 Method[] mthd = intface.getMethods();
                 Set<Method> mthds = new HashSet<Method>(Arrays.asList(mthd));
@@ -471,14 +471,14 @@ public class ReflectHelper {
                 }
 
             }
-            // ----- END
+            // -----xinyuzhou1 END
             return null;
         }
 
         return getAllFieldValuesOfAnnotation(fieldValues, anno);
     }
 
-    // ----- START
+    // -----xinyuzhou1 START
     private static boolean ifMethodEquals(Method m1, Method m2) {
 
         if (m1.getName().equals(m2.getName())) {
@@ -497,7 +497,7 @@ public class ReflectHelper {
         return false;
 
     }
-    // ----- END
+    // -----xinyuzhou1 END
 
     private static Map<String, Object> getAllFieldValuesOfAnnotation(Map<String, Object> fieldValues, Annotation anno) {
 

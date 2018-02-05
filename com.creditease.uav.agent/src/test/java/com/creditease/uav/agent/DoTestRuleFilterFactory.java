@@ -48,7 +48,7 @@ import org.junit.Test;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.creditease.agent.feature.logagent.api.LogFilterAndRule;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.base.Ticker;
@@ -144,7 +144,7 @@ public class DoTestRuleFilterFactory {
     @Test
     public void getNewInstance() {
 
-        Object obj = ReflectHelper.newInstance("com.creditease.agent.feature.logagent.SystemLogFilterAndRule");
+        Object obj = ReflectionHelper.newInstance("com.creditease.agent.feature.logagent.SystemLogFilterAndRule");
         assertNotNull(obj);
         System.out.println(obj);
     }
@@ -186,7 +186,7 @@ public class DoTestRuleFilterFactory {
                 .or(JSON.parseObject("{content:1}"));
         // Verify timeStamp number is available
         int timestampNumber = robject.getIntValue("timestamp");
-        LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectHelper.newInstance(
+        LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectionHelper.newInstance(
                 "com.creditease.agent.feature.logagent.far." + classname + "LogFilterAndRule",
                 new Class[] { String.class, String.class, JSONObject.class, int.class },
                 new Object[] { filterregex, separator, assignFields, timestampNumber });

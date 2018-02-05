@@ -30,16 +30,16 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext;
 import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPClass;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtClass;
-import javassist.CtMethod;
 
 public class LettuceHookProxy extends HookProxy {
 
     private DynamicProxyInstaller dpInstaller;
 
     public LettuceHookProxy(String id, @SuppressWarnings("rawtypes") Map config) {
+
         super(id, config);
         dpInstaller = new DynamicProxyInstaller();
     }
@@ -71,10 +71,10 @@ public class LettuceHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.redis.lettuce.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("write".equals(m.getName())) {
-                            CtClass[] ccs = m.getParameterTypes();
+                            DPClass[] ccs = m.getParameterTypes();
                             if (ccs.length == 1) {
 
                                 m.insertBefore("{LettuceCommandHandlerIT.start(\"" + appid

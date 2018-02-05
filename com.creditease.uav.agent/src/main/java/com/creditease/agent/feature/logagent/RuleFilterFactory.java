@@ -38,7 +38,7 @@ import com.creditease.agent.feature.logagent.event.Event;
 import com.creditease.agent.feature.logagent.far.DefaultLogFilterAndRule;
 import com.creditease.agent.feature.logagent.objects.LogPatternInfo;
 import com.creditease.agent.helpers.JSONHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.log.api.ISystemLogger;
 import com.google.common.base.Charsets;
@@ -97,14 +97,14 @@ public class RuleFilterFactory {
 
     protected List<LogFilterAndRule> getAidLogFilterAndRuleList(String id) {
 
-        id = id.replace('\\', '/');
+        // id = id.replace('\\', '/');
         return aidlogcollection.getIfPresent(id);
     }
 
     // this key should be absFilePath --- by hongqiang
     public LogFilterAndRule getLogFilterAndRule(String id) {
 
-        id = id.replace('\\', '/');
+        // id = id.replace('\\', '/');
         LogFilterAndRule lfar = null;
 
         lfar = logcollection.getIfPresent(id);
@@ -253,7 +253,7 @@ public class RuleFilterFactory {
             // Verify timeStamp number is available
             int timestampNumber = robject.getIntValue("timestamp");
             // build by reflect
-            LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectHelper.newInstance(
+            LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectionHelper.newInstance(
                     "com.creditease.agent.feature.logagent.far." + classname + "LogFilterAndRule",
                     new Class[] { String.class, String.class, JSONObject.class, int.class, int.class },
                     new Object[] { filterregex, separator, assignFields, timestampNumber, version },
@@ -265,7 +265,7 @@ public class RuleFilterFactory {
             if (aids != null && aids.length > 0) {
                 aidLogFARlist = Lists.newArrayList();
                 for (String name : aids) {
-                    aid = (LogFilterAndRule) ReflectHelper
+                    aid = (LogFilterAndRule) ReflectionHelper
                             .newInstance("com.creditease.agent.feature.logagent.far." + name + "LogFilterAndRule");
                     aidLogFARlist.add(aid);
                 }
@@ -275,9 +275,10 @@ public class RuleFilterFactory {
             AppLogPatternInfoCollection profileMap = logAgent.getLatestLogProfileDataMap();
             LogPatternInfo logPatternInfo = profileMap.get(serverid + "-" + appid,
                     serverid + "-" + appid + "-" + logid);
-            logcollection.put(logPatternInfo.getAbsolutePath(), mainLogFAR);
-            if (aidLogFARlist != null)
-                aidlogcollection.put(logPatternInfo.getAbsolutePath(), aidLogFARlist);
+            pubLogFilterAndRule(logPatternInfo.getAbsolutePath(), mainLogFAR);
+            if (aidLogFARlist != null) {
+                pubAidLogFilterAndRule(logPatternInfo.getAbsolutePath(), aidLogFARlist);
+            }
             return mainLogFAR;
         }
 
@@ -380,6 +381,14 @@ public class RuleFilterFactory {
         id = new File(id).getAbsolutePath();
 
         logcollection.put(id, lfar);
+    }
+
+    public void pubAidLogFilterAndRule(String id, List<LogFilterAndRule> lfar) {
+
+        // 保证路径不存在多余的'/'等
+        id = new File(id).getAbsolutePath();
+
+        aidlogcollection.put(id, lfar);
     }
 
     public boolean hasLogFilterAndRule(String id) {

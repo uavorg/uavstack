@@ -47,9 +47,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.log.hook.interceptors.LogIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.profiling.handlers.log.LogProfileInfo;
-
-import javassist.CtMethod;
 
 public class Log4jHookProxy extends HookProxy {
 
@@ -231,7 +230,7 @@ public class Log4jHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.log.hook.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("write".equals(m.getName())) {
                             m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
