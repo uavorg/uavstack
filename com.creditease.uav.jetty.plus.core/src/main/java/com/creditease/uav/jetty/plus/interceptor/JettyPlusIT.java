@@ -41,7 +41,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.captureframework.spi.Monitor;
@@ -205,7 +205,7 @@ public class JettyPlusIT {
         ScanningAppProvider sap = (ScanningAppProvider) args[0];
         String mofRoot = (String) args[1];
 
-        ReflectHelper.invoke(sap.getClass().getName(), sap, "fileAdded", new Class<?>[] { String.class },
+        ReflectionHelper.invoke(sap.getClass().getName(), sap, "fileAdded", new Class<?>[] { String.class },
                 new Object[] { mofRoot + "/com.creditease.uav" }, this.getClass().getClassLoader());
 
         System.setProperty("com.creditease.uav.iapp.install", "true");
