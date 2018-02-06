@@ -445,7 +445,12 @@ public class TomcatPlusIT {
     public ServletContext onServletRegist(Object... args) {
 
         ServletContext servletContext = (ServletContext) args[0];
-
+        
+        //uav's inner app doesn't need Profiling,just return origin servletContext here. 
+        if("/com.creditease.uav".equals(servletContext.getContextPath())) {
+            return servletContext;
+        }
+        
         ServletContext scProxy = (ServletContext) servletContext
                 .getAttribute("com.creditease.uav.mof.tomcat.servletcontext");
 
