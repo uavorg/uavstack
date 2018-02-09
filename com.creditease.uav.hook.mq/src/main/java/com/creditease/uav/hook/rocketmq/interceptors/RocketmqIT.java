@@ -444,5 +444,4 @@ public class RocketmqIT extends BaseComponent {
         return null;
     }
 
-
 }
