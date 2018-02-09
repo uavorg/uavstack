@@ -74,7 +74,7 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
                         @Override
                         public String getMethodName() {
 
-                            return "initialize";
+                            return "prepareEnvironment";
                         }
 
                     });
@@ -83,7 +83,7 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
     }
 
     @Override
-    public byte[] onLoadClass(ClassLoader clsLoader, String uavMofRoot, String className) {
+    public byte[] onLoadClass(ClassLoader clsLoader, final String uavMofRoot, String className) {
 
         this.addClassPath(clsLoader);
 
@@ -166,14 +166,16 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                         /**
                          * we need startServer before ApplicationContext's refresh cause some hook operation could
-                         * happen when refresh.
+                         * happen when refresh. the hook is done after startServer before refresh, and profiling will be done after refresh
                          */
                         @Override
                         public void process(CtMethod m) throws Exception {
 
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
                             m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"server.context-path\"),this.getEnvironment().getProperty(\"spring.application.name\"),this);}");
+                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"server.context-path\"),this.getEnvironment().getProperty(\"spring.application.name\"),this);mObj.onSpringBeanRegist(new Object[]{this,this.getEnvironment().getProperty(\"server.context-path\")});}");
+                            m.insertAfter("{mObj.onSpringFinishRefresh(this);}");
+                            
                         }
 
                         @Override
@@ -354,29 +356,16 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                     } });
         }
-        else if (className.equals("org.springframework.boot.context.embedded.EmbeddedWebApplicationContext")) {
+        // onDeployUAVApp 
+        else if (className.equals("org.apache.catalina.startup.Tomcat")) {
+
             return this.inject(className, new String[] { "com.creditease.tomcat.plus.interceptor" },
                     new AdaptorProcessor[] { new AdaptorProcessor() {
 
                         @Override
                         public String getMethodName() {
 
-                            return "finishRefresh";
-                        }
-
-                        @Override
-                        public void process(CtMethod m) throws Exception {
-
-                            aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
-                            m.insertAfter("{mObj=new SpringBootTomcatPlusIT();mObj.onSpringFinishRefresh();}");
-                        }
-
-                    }, new AdaptorProcessor() {
-
-                        @Override
-                        public String getMethodName() {
-
-                            return "postProcessBeanFactory";
+                            return "start";
                         }
 
                         @Override
@@ -384,7 +373,8 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
                             m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.onSpringBeanRegist(this.getEnvironment().getProperty(\"server.context-path\"));}");
+                                    "{mObj=new SpringBootTomcatPlusIT();mObj.onDeployUAVApp(new Object[]{this,\""
+                                            + uavMofRoot + "\"});}");
                         }
 
                     } });

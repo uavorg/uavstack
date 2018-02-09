@@ -42,6 +42,7 @@ package com.creditease.uav.monitorframework.dproxy.bytecode;
 import java.net.URLClassLoader;
 
 import com.creditease.agent.helpers.ReflectionHelper;
+import com.creditease.uav.monitorframework.agent.MOFAgent;
 
 /**
  * DPClass description: ???
@@ -55,7 +56,7 @@ public class DPClass {
 
     public DPClass(Object ctClass) {
 
-        mofExtClassLoader = (URLClassLoader) System.getProperties().get("org.uavstack.mof.ext.clsloader");
+        mofExtClassLoader = (URLClassLoader) MOFAgent.mofContext.get("org.uavstack.mof.ext.clsloader");
 
         this.ctClass = ctClass;
     }
