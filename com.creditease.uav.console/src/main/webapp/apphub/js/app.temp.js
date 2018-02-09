@@ -24,6 +24,8 @@ function LoadSidebarMenu(appInfo){
 			var key = "jumpurl@";
 			var begin = clickUrl.indexOf(key)+key.length;
 			clickUrl = clickUrl.substring(begin);
+			
+			window["sidebarMenuType"] = "jumpurl";
 		}
 		paraA.setAttribute("onclick","javascript:sidebarMenuOnclick(this,'"+clickUrl+"','"+appInfo.menu[j].functions+"')");
 		
@@ -54,7 +56,6 @@ function LoadNavbarMenu(appInfo){
 
 function jumpUrl(url,desc){
 	guiPing_RSClient(jumpUrlCallBack(url),"menuclick",url,desc);
-	//jumpUrlCallBack(url);
 }
 
 function jumpUrlCallBack(url){
@@ -75,19 +76,29 @@ function jumpUrlCallBack(url){
 	*/
 
 	setContentHeight();
-	if(url.indexOf("?")==-1) {
-		url += "?r="+uavRandom(9999,1); /*刷新，处理缓存*/
-	}
-	else {
-		url +="&r="+uavRandom(9999,1); /*刷新，处理缓存*/
-	}
 	
-	console.log(document.getElementById("appContent").contentWindow.document.body.innerText);
+	/**
+	 * 用户数据穿透 begin
+	 * 
+	 * 是跳转菜单，则获取apphub信息 ，因为跳转表示不是apphub自应用。
+	 * 如果是apphub自应用，不需要透传信息，因为都可以在自应用拿到。
+	 */	
+	if(window["sidebarMenuType"] && "jumpurl"==window["sidebarMenuType"] ){
+		loadApphubInfoByAES_RSClient();
+		if(url.indexOf("?")==-1) {
+			url += "?apphubkey="+window["apphubAesInfo"]; 
+		}
+		else {
+			url +="&apphubkey="+window["apphubAesInfo"];  
+		}
+	}
+	/**
+	 * 用户数据穿透 end
+	 * @returns
+	 */
 	
 	document.getElementById("appContent").contentWindow.document.body.innerText = "";
-	
-	console.log(document.getElementById("appContent").contentWindow.document.body.innerText);
-	
+		
 	$("#appContent").attr("src",url);
 	$("#navbar").removeClass("in");
 	
