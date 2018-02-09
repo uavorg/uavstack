@@ -20,6 +20,7 @@
 
 package com.creditease.agent.feature.nodeopagent.actions;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -192,6 +193,14 @@ public class MOFInstallMgtAction extends AbstractBaseAction {
 
         for (String filePath : filePaths) {
 
+            if (!IOHelper.exists(filePath)) {
+                try {
+                    new File(filePath).createNewFile();
+                }
+                catch (Exception e) {
+                    log.err(this, "UNInstall UAVMOF FAIL:filePath=" + filePath + " not exits and create file fail", e);
+                }
+            }
             String content = IOHelper.readTxtFile(filePath, "UTF-8");
 
             String[] lines = content.split("\n");
