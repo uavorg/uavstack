@@ -23,7 +23,7 @@ package com.creditease.uav.apm.supporters;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVMonitor;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.UAVServer.ServerVendor;
@@ -256,7 +256,7 @@ public class InvokeChainSupporter extends Supporter {
                     return true;
                 }
 
-                InvokeChainAdapter adapter = (InvokeChainAdapter) ReflectHelper.newInstance(adapterClassName);
+                InvokeChainAdapter adapter = (InvokeChainAdapter) ReflectionHelper.newInstance(adapterClassName);
 
                 adapterMap.put(adapterUUID, adapter);
 

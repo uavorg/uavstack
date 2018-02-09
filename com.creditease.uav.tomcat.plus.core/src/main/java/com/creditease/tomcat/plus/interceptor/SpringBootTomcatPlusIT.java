@@ -23,12 +23,16 @@ package com.creditease.tomcat.plus.interceptor;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 
+import org.apache.catalina.Wrapper;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappClassLoader;
+import org.apache.catalina.loader.WebappLoader;
+import org.apache.catalina.startup.Tomcat;
+import org.apache.tomcat.JarScanner;
 
 import com.creditease.agent.helpers.DataConvertHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.interceptframework.InterceptSupport;
@@ -45,9 +49,9 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      */
     public void startServer(String port, String contextPath, String appName, Object arg) {
 
-        if (!"AnnotationConfigEmbeddedWebApplicationContext".equals(arg.getClass().getSimpleName())) {
+        if(!isWebServerContext(arg)) {
             return;
-        }
+        } 
 
         // integrate Tomcat log
         UAVServer.instance().setLog(new TomcatLog("MonitorServer"));
@@ -97,12 +101,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, sc.getLoader().getClassLoader().getParent());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -166,12 +170,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -218,12 +222,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -259,6 +263,11 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     public void onAppStart(Object... args) {
 
         StandardContext sc = (StandardContext) args[0];
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        //springboot use threadlocalContext to store the WEBCONTAINER_STARTED Event context, just return when it's uav's inner app in case of rewriting the real app's context 
+        if("/com.creditease.uav".equals(contextPath)) {
+            return;
+        }
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
 
@@ -270,15 +279,14 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
 
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
         if (context.get(InterceptConstants.APPNAME) == null) {
             context.put(InterceptConstants.APPNAME,
-                    ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+                    ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
         }
 
-        ServletContext sContext = (ServletContext) ReflectHelper.getField(StandardContext.class, sc, "context", true);
+        ServletContext sContext = (ServletContext) ReflectionHelper.getField(StandardContext.class, sc, "context", true);
 
         context.put(InterceptConstants.SERVLET_CONTEXT, sContext);
 
@@ -324,12 +332,12 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         context.put(InterceptConstants.WEBAPPLOADER, Thread.currentThread().getContextClassLoader());
         context.put(InterceptConstants.WEBWORKDIR, sc.getWorkPath());
 
-        String contextPath = (String) ReflectHelper.getField(StandardContext.class, sc, "encodedPath", true);
+        String contextPath = (String) ReflectionHelper.getField(StandardContext.class, sc, "encodedPath", true);
         context.put(InterceptConstants.CONTEXTPATH, contextPath);
 
-        context.put(InterceptConstants.APPNAME, ReflectHelper.getField(StandardContext.class, sc, "displayName", true));
+        context.put(InterceptConstants.APPNAME, ReflectionHelper.getField(StandardContext.class, sc, "displayName", true));
         context.put(InterceptConstants.SERVLET_CONTEXT,
-                ReflectHelper.getField(StandardContext.class, sc, "context", true));
+                ReflectionHelper.getField(StandardContext.class, sc, "context", true));
 
         iSupport.doIntercept(context);
     }
@@ -386,8 +394,14 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      * springboot load beans before web container start, hook opr should be done before beanRegist in case of duplicate
      * definition ,so we define SPRING_BEAN_REGIST event to trigger hook
      */
-    public void onSpringBeanRegist(String contextPath) {
-
+    public void onSpringBeanRegist(Object... args) {
+        
+        if(!isWebServerContext(args[0])) {
+            return;
+        }  
+        
+        String contextPath=(String) args[1];
+        
         if (contextPath == null || "/".equals(contextPath)) {
             contextPath = "";
         }
@@ -404,11 +418,64 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      * is ready.
      * 
      */
-    public void onSpringFinishRefresh() {
+    public void onSpringFinishRefresh(Object arg) {
 
+        if(!isWebServerContext(arg)) {
+            return;
+        }  
+        
         InterceptSupport iSupport = InterceptSupport.instance();
         InterceptContext context = iSupport.getThreadLocalContext(Event.WEBCONTAINER_STARTED);
 
         iSupport.doIntercept(context);
+    }
+    
+    public void onDeployUAVApp(Object... args) {
+        
+        if(UAVServer.ServerVendor.SPRINGBOOT!=UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)) {
+            return;
+        }
+        
+        Tomcat tomcat=(Tomcat) args[0];
+        String mofRoot=(String) args[1];
+        
+        //add uavApp
+        StandardContext context=new StandardContext();
+        context.setName("com.creditease.uav");
+        context.setPath("/com.creditease.uav");
+        context.setDocBase(mofRoot + "/com.creditease.uav");
+        context.addLifecycleListener(new Tomcat.FixContextListener());
+        tomcat.getHost().addChild(context);
+        
+        //add default servlet
+        Wrapper servlet = context.createWrapper();
+        servlet.setServletClass("org.apache.catalina.servlets.DefaultServlet");
+        servlet.setName("default");
+        context.addChild(servlet);    
+        servlet.setOverridable(true);
+        context.addServletMapping("/", "default");
+        
+        //init webapp classloader
+        context.setLoader(new WebappLoader(Thread.currentThread().getContextClassLoader()));
+        context.setDelegate(true);
+        
+        //after tomcat8, skip jarscan
+        Object obj=ReflectionHelper.newInstance("org.apache.tomcat.util.scan.StandardJarScanner", Thread.currentThread().getContextClassLoader());
+        if(obj!=null) {
+            ReflectionHelper.invoke("org.apache.tomcat.util.scan.StandardJarScanner", obj, "setScanAllFiles", new Class<?>[]{Boolean.class}, new Object[] { false}, Thread.currentThread().getContextClassLoader());
+            ReflectionHelper.invoke("org.apache.tomcat.util.scan.StandardJarScanner", obj, "setScanClassPath", new Class<?>[]{Boolean.class}, new Object[] { false}, Thread.currentThread().getContextClassLoader());
+            ReflectionHelper.invoke("org.apache.tomcat.util.scan.StandardJarScanner", obj, "setScanAllDirectories", new Class<?>[]{Boolean.class}, new Object[] { false}, Thread.currentThread().getContextClassLoader());            
+            
+            context.setJarScanner((JarScanner) obj);      
+        }        
+    }
+
+    /**
+     * judge if the AbstractApplicationContext is WebServerContext,cause we only hook the WebServerContext's lifecycle
+     * 
+     */
+    private boolean isWebServerContext(Object arg) {
+        //before SpringBoot 2.0.0, the WebServerContext class is 'AnnotationConfigEmbeddedWebApplicationContext',after SpringBoot 2.0.0(include) change to 'AnnotationConfigServletWebServerApplicationContext'
+        return ("AnnotationConfigEmbeddedWebApplicationContext".equals(arg.getClass().getSimpleName())||"AnnotationConfigServletWebServerApplicationContext".equals(arg.getClass().getSimpleName()));
     }
 }
