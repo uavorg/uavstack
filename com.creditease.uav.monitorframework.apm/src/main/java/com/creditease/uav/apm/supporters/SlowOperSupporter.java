@@ -29,9 +29,8 @@ import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
 import com.creditease.uav.apm.slowoper.handlers.HttpClientSlowOperHandler;
 import com.creditease.uav.apm.slowoper.handlers.HttpServerSlowOperHandler;
 import com.creditease.uav.apm.slowoper.handlers.JdbcSlowOperHandler;
+import com.creditease.uav.apm.slowoper.handlers.MQSlowOperHandler;
 import com.creditease.uav.apm.slowoper.handlers.MethodSlowOperHandler;
-import com.creditease.uav.apm.slowoper.handlers.MqRabbitConsumerSlowOperHandler;
-import com.creditease.uav.apm.slowoper.handlers.MqRabbitProducerSlowOperHandler;
 import com.creditease.uav.apm.slowoper.spi.SlowOperCapHandler;
 import com.creditease.uav.apm.slowoper.spi.SlowOperConstants;
 import com.creditease.uav.common.Supporter;
@@ -68,10 +67,10 @@ public class SlowOperSupporter extends Supporter {
         handlerMap.put(SlowOperConstants.SLOW_OPER_HTTP_ASY_CLIENT, new HttpClientSlowOperHandler());
 
         // register 处理rabbit mq协议的consumer类型的handler
-        handlerMap.put(SlowOperConstants.SLOW_OPER_MQ_RABBIT_CONSUMER, new MqRabbitConsumerSlowOperHandler());
+        handlerMap.put(SlowOperConstants.SLOW_OPER_MQ_RABBIT_CONSUMER, new MQSlowOperHandler());
 
         // register 处理rabbit mq协议的producer类型的handler
-        handlerMap.put(SlowOperConstants.SLOW_OPER_MQ_RABBIT_PRODUCER, new MqRabbitProducerSlowOperHandler());
+        handlerMap.put(SlowOperConstants.SLOW_OPER_MQ_RABBIT_PRODUCER, new MQSlowOperHandler());
 
         // register 处理jdbc协议类型的handler
         handlerMap.put(SlowOperConstants.SLOW_OPER_JDBC_CLIENT, new JdbcSlowOperHandler());
@@ -84,6 +83,8 @@ public class SlowOperSupporter extends Supporter {
 
         // register 处理dubbo provider类型的handler
         handlerMap.put(SlowOperConstants.SLOW_OPER_DUBBO_PROVIDER, new MethodSlowOperHandler());
+
+        handlerMap.put(SlowOperConstants.SLOW_OPER_MQ_ROCKET, new MQSlowOperHandler());
     }
 
     @Override
