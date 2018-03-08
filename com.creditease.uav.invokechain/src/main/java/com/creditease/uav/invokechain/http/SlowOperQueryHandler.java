@@ -64,6 +64,7 @@ public class SlowOperQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
         typeMap.put("apache.http.AsyncClient", "rpc");
         typeMap.put("mq.service", "mq");
         typeMap.put("rabbitmq.client", "mq");
+        typeMap.put("rocketmq.client", "mq");
         typeMap.put("jdbc.client", "jdbc");
         typeMap.put("method", "method");
         typeMap.put("dubbo.provider", "dubbo");
@@ -77,6 +78,7 @@ public class SlowOperQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
     }
 
     public SlowOperQueryHandler(String cName, String feature) {
+
         super(cName, feature);
         client = (ESClient) this.getConfigManager().getComponent(this.feature, "ESClient");
 

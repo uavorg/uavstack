@@ -50,6 +50,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
+import com.creditease.agent.helpers.EncryptionHelper;
 import com.creditease.agent.helpers.IOHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
@@ -366,7 +367,45 @@ public class GUIService extends AppHubBaseRestService {
         CaptchaTools vcTools = new CaptchaTools();
         vcTools.newVC(request.getSession(), response.getOutputStream());
     }
+    
+    /**
+     * 获取apphub相关信息，并且经行AES CBC加密
+     *
+     * 目前封装信息有：用户信息
+     * 
+     * @return
+     */
+    @GET
+    @Path("loadApphubInfoByAES")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public String loadApphubInfoByAES() throws IOException {
 
+        HttpSession session = request.getSession(false);
+        Object userId = null == session ? null : session.getAttribute("apphub.gui.session.login.user.id");
+        Map<String, String> apphubInfo = new HashMap<String, String>();
+        if (null != userId) {
+            Object userGroup = null == session ? null : session.getAttribute("apphub.gui.session.login.user.group");
+            Object emailList = null == session ? null : session.getAttribute("apphub.gui.session.login.user.emailList");
+            Object emailAuthList = null == session ? null
+                    : session.getAttribute("apphub.gui.session.login.user.authorize.emailList");
+            Object systemAuthList = null == session ? null
+                    : session.getAttribute("apphub.gui.session.login.user.authorize.systems");
+
+            apphubInfo.put("userId", String.valueOf(userId));
+            apphubInfo.put("groupId", String.valueOf(userGroup));
+            apphubInfo.put("emailList", String.valueOf(emailList));
+            apphubInfo.put("emailAuthList", String.valueOf(emailAuthList));
+            apphubInfo.put("systemAuthList", String.valueOf(systemAuthList));
+            apphubInfo.put("timeStamp", String.valueOf(new Date().getTime()));
+
+        }
+
+        String strMsg = JSONHelper.toString(apphubInfo);
+        String resultStr = EncryptionHelper.encryptByAesCBC(strMsg, "UavappHubaEs_keY", false, "UavappHubaEs_keY",
+                "utf-8");
+        return createResponeJson(RespCode.SUCCESS, "", resultStr);
+    }
+    
     // ------------------------------------------------以下为api支持----------------------------------------------------------->
 
     /**

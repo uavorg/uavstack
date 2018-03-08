@@ -227,6 +227,31 @@ function guiPing_RSClient(func,type,url,desc) {
 }
 
 
+/**
+ * 获取apphub信息（信息经过加密）
+ * 同步方法，调用后会将结果写在window
+ */
+function loadApphubInfoByAES_RSClient() {
+	
+	 AjaxHelper.call({
+	        url: restfulUrl +"loadApphubInfoByAES" ,
+	        data: {},
+	        async: false,
+	        cache: false,
+	        type: "GET",
+	        dataType: "html",
+	        success: function (result) { 
+				var resultObj = eval("(" + result + ")");
+				if (resultObj.CODE == "SUCCESS") {
+		        	window["apphubAesInfo"] = resultObj.DATA;
+				}
+	        },
+	        error: function (result) {
+	            reloadErrorContent("loadApphubInfoByAES_RSClient",result);
+	        },
+	    });
+}
+
 function loginOut_RSClient(){
 	 AjaxHelper.call({
 	        url: restfulUrl +"loginOut",
