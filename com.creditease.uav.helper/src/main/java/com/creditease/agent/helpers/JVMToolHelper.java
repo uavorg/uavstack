@@ -192,7 +192,7 @@ public class JVMToolHelper {
             try {
                 String id = (String) method_VMId.invoke(vmInstance, (Object[]) null);
 				
-				//if the jvm is not started by the same user as MA, do not attach it (just in case of linux)             
+                //if the jvm is not started by the same user as MA, do not attach it (just in case of linux)             
                 if(isLinux() && !username.equals(Files.getOwner(Paths.get(("/proc/"+id))).getName())) {
                     continue;
                 }
