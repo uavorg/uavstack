@@ -61,7 +61,7 @@ import com.creditease.agent.helpers.jvmtool.JVMPropertyFilter;
 public class JVMToolHelper {
 
     public static final String osname = System.getProperty("os.name").toLowerCase();
-	public static final String username = System.getProperty("user.name");
+    public static final String username = System.getProperty("user.name");
     public static final String JMX_CONNECTOR_ADDRESS = "com.sun.management.jmxremote.localConnectorAddress";
 
     private static ClassLoader JVMToolClassloader = null;
