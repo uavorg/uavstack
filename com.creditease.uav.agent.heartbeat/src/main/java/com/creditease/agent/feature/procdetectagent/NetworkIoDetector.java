@@ -64,16 +64,16 @@ public class NetworkIoDetector extends AbstractTimerWork {
             JpcapCaptor jpcap =null;
             try {
                 String Local_ip = "/" + ip;
-                // ��˿�����
+                // 存端口流量
                 HashMap<String, Integer> counter = new HashMap<String, Integer>();
                 String[] split_ProtList = portList.split(" ");
                 for (String str : split_ProtList) {
                     counter.put("in_" + str, 0);
                     counter.put("out_" + str, 0);
                 }
-                // ��ȡ�����豸�б�
+                // 获取网卡设备列表
                 NetworkInterface[] devices = JpcapCaptor.getDeviceList();
-                // ȷ�������豸�ӿ�
+                // 确定网卡设备接口
                 boolean true_devices = false;
                 int i = 0;
                 for (; i < devices.length; i++) {
@@ -89,11 +89,11 @@ public class NetworkIoDetector extends AbstractTimerWork {
                     }
                 }
                 NetworkInterface nc = devices[i];
-                // �������豸 ������ĳ�������ϵ�ץȡ����,���Ϊ65535��
+                // 打开网卡设备 ，创建某个卡口上的抓取对象,最大为65535个
                 jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
-                jpcap.setFilter("tcp", true);// ���ù�����
+                jpcap.setFilter("tcp", true);// 设置过滤器
 
-                // ץ�� ͳ������
+                // 抓包 统计流量
                 result = portFlux(jpcap, counter, nc, networkdetectTime, Local_ip);
 
             }
@@ -101,11 +101,11 @@ public class NetworkIoDetector extends AbstractTimerWork {
                 log.err(this, "NetworkIo Monitor runs FAIL.", e);
             }
             finally {
-                if(jpcap!=null) {
+                if (jpcap != null) {
                     // 关闭
                     jpcap.close();
                 }
-             }
+            }
 
         }
 
@@ -164,16 +164,16 @@ public class NetworkIoDetector extends AbstractTimerWork {
         long time = Long.parseLong(networkdetectTime);
         long startTime = System.currentTimeMillis();
         while (startTime + time >= System.currentTimeMillis()) {
-            // ץ��
+            // 抓包
             packet = jpcap.getPacket();
             if (null == packet) {
                 continue;
             }
             TCPPacket p = (TCPPacket) packet;
-            // �˿ڲ���protList ����
+            // 端口不在protList 忽略
             String dst_ip = p.dst_ip.toString();
             String src_ip = p.src_ip.toString();
-            // ͳ���������
+            // 统计入口流量
             if (dst_ip.equals(Local_ip)) {
                 String in_port = "in_" + p.dst_port;
                 if (counter.containsKey(in_port)) {
@@ -181,7 +181,7 @@ public class NetworkIoDetector extends AbstractTimerWork {
                     counter.put(in_port, in_value);
                 }
             }
-            // ͳ�Ƴ�������
+            // 统计出口流量
             if (src_ip.equals(Local_ip)) {
                 String out_port = "out_" + p.src_port;
                 if (counter.containsKey(out_port)) {
@@ -192,13 +192,13 @@ public class NetworkIoDetector extends AbstractTimerWork {
         }
 
         HashMap<String, String> counterValueIntToString = new HashMap<String, String>();
-        // �ֽ�תkb/s
+        // 字节转kb/s
         for (String key : counter.keySet()) {
             DecimalFormat df = new DecimalFormat("#0.00");
             Double value = Double.valueOf(df.format(counter.get(key) / int_networkdetectTime * 1.0));
             counterValueIntToString.put(key, value.toString());
         }
-        // ��hashmap תΪjson ����
+        // 将hashmap 转为json 返回
         return JSONHelper.toString(counterValueIntToString);
     }
 
