@@ -61,18 +61,19 @@ public class NetworkIoDetector extends AbstractTimerWork {
         // windows
         if (JVMToolHelper.isWindows()) {
 
+            JpcapCaptor jpcap =null;
             try {
                 String Local_ip = "/" + ip;
-                // ´æ¶Ë¿ÚÁ÷Á¿
+                // å­˜ç«¯å£æµé‡
                 HashMap<String, Integer> counter = new HashMap<String, Integer>();
                 String[] split_ProtList = portList.split(" ");
                 for (String str : split_ProtList) {
                     counter.put("in_" + str, 0);
                     counter.put("out_" + str, 0);
                 }
-                // »ñÈ¡Íø¿¨Éè±¸ÁĞ±í
+                // è·å–ç½‘å¡è®¾å¤‡åˆ—è¡¨
                 NetworkInterface[] devices = JpcapCaptor.getDeviceList();
-                // È·¶¨Íø¿¨Éè±¸½Ó¿Ú
+                // ç¡®å®šç½‘å¡è®¾å¤‡æ¥å£
                 boolean true_devices = false;
                 int i = 0;
                 for (; i < devices.length; i++) {
@@ -88,16 +89,22 @@ public class NetworkIoDetector extends AbstractTimerWork {
                     }
                 }
                 NetworkInterface nc = devices[i];
-                // ´ò¿ªÍø¿¨Éè±¸ £¬´´½¨Ä³¸ö¿¨¿ÚÉÏµÄ×¥È¡¶ÔÏó,×î´óÎª65535¸ö
-                JpcapCaptor jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
-                jpcap.setFilter("tcp", true);// ÉèÖÃ¹ıÂËÆ÷
+                // æ‰“å¼€ç½‘å¡è®¾å¤‡ ï¼Œåˆ›å»ºæŸä¸ªå¡å£ä¸Šçš„æŠ“å–å¯¹è±¡,æœ€å¤§ä¸º65535ä¸ª
+                jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
+                jpcap.setFilter("tcp", true);// è®¾ç½®è¿‡æ»¤å™¨
 
-                // ×¥°ü Í³¼ÆÁ÷Á¿
+                // æŠ“åŒ… ç»Ÿè®¡æµé‡
                 result = portFlux(jpcap, counter, nc, networkdetectTime, Local_ip);
 
             }
             catch (Exception e) {
                 log.err(this, "NetworkIo Monitor runs FAIL.", e);
+            }
+            finally {
+                if (jpcap != null) {
+                    // å…³é—­
+                    jpcap.close();
+                }
             }
 
         }
@@ -157,16 +164,16 @@ public class NetworkIoDetector extends AbstractTimerWork {
         long time = Long.parseLong(networkdetectTime);
         long startTime = System.currentTimeMillis();
         while (startTime + time >= System.currentTimeMillis()) {
-            // ×¥°ü
+            // æŠ“åŒ…
             packet = jpcap.getPacket();
             if (null == packet) {
                 continue;
             }
             TCPPacket p = (TCPPacket) packet;
-            // ¶Ë¿Ú²»ÔÚprotList ºöÂÔ
+            // ç«¯å£ä¸åœ¨protList å¿½ç•¥
             String dst_ip = p.dst_ip.toString();
             String src_ip = p.src_ip.toString();
-            // Í³¼ÆÈë¿ÚÁ÷Á¿
+            // ç»Ÿè®¡å…¥å£æµé‡
             if (dst_ip.equals(Local_ip)) {
                 String in_port = "in_" + p.dst_port;
                 if (counter.containsKey(in_port)) {
@@ -174,7 +181,7 @@ public class NetworkIoDetector extends AbstractTimerWork {
                     counter.put(in_port, in_value);
                 }
             }
-            // Í³¼Æ³ö¿ÚÁ÷Á¿
+            // ç»Ÿè®¡å‡ºå£æµé‡
             if (src_ip.equals(Local_ip)) {
                 String out_port = "out_" + p.src_port;
                 if (counter.containsKey(out_port)) {
@@ -185,13 +192,13 @@ public class NetworkIoDetector extends AbstractTimerWork {
         }
 
         HashMap<String, String> counterValueIntToString = new HashMap<String, String>();
-        // ×Ö½Ú×ªkb/s
+        // å­—èŠ‚è½¬kb/s
         for (String key : counter.keySet()) {
             DecimalFormat df = new DecimalFormat("#0.00");
             Double value = Double.valueOf(df.format(counter.get(key) / int_networkdetectTime * 1.0));
             counterValueIntToString.put(key, value.toString());
         }
-        // ½«hashmap ×ªÎªjson ·µ»Ø
+        // å°†hashmap è½¬ä¸ºjson è¿”å›
         return JSONHelper.toString(counterValueIntToString);
     }
 
