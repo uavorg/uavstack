@@ -141,7 +141,7 @@ public class AbstractIT {
                         + url.toString() + "]");
             }
             
-            System.getProperties().put("org.uavstack.mof.ext.clsloader", mofExtClassloader);
+            MOFAgent.mofContext.put("org.uavstack.mof.ext.clsloader", mofExtClassloader);
             
             System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install MonitorFramework Jars End.");
 
