@@ -38,7 +38,7 @@ import com.creditease.agent.feature.logagent.event.Event;
 import com.creditease.agent.feature.logagent.far.DefaultLogFilterAndRule;
 import com.creditease.agent.feature.logagent.objects.LogPatternInfo;
 import com.creditease.agent.helpers.JSONHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.log.api.ISystemLogger;
 import com.google.common.base.Charsets;
@@ -253,7 +253,7 @@ public class RuleFilterFactory {
             // Verify timeStamp number is available
             int timestampNumber = robject.getIntValue("timestamp");
             // build by reflect
-            LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectHelper.newInstance(
+            LogFilterAndRule mainLogFAR = (LogFilterAndRule) ReflectionHelper.newInstance(
                     "com.creditease.agent.feature.logagent.far." + classname + "LogFilterAndRule",
                     new Class[] { String.class, String.class, JSONObject.class, int.class, int.class },
                     new Object[] { filterregex, separator, assignFields, timestampNumber, version },
@@ -265,7 +265,7 @@ public class RuleFilterFactory {
             if (aids != null && aids.length > 0) {
                 aidLogFARlist = Lists.newArrayList();
                 for (String name : aids) {
-                    aid = (LogFilterAndRule) ReflectHelper
+                    aid = (LogFilterAndRule) ReflectionHelper
                             .newInstance("com.creditease.agent.feature.logagent.far." + name + "LogFilterAndRule");
                     aidLogFARlist.add(aid);
                 }

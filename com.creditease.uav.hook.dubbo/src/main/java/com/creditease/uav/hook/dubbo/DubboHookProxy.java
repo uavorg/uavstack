@@ -31,9 +31,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.hook.dubbo.interceptors.DubboIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 public class DubboHookProxy extends HookProxy {
 
@@ -92,7 +91,7 @@ public class DubboHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.dubbo.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("onApplicationEvent".equals(m.getName())) {
 
@@ -111,7 +110,7 @@ public class DubboHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.dubbo.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("invoke".equals(m.getName())) {
 

@@ -123,11 +123,20 @@ public class ThreadAnalysisSupporter extends Supporter {
             return "ERR:FILE PERMISSION DENIED";
         }
 
-        if (JVMToolHelper.isWindows()) {
-            /**
-             * TODO： window系统不支持线程分析功能，以后再做适配
-             */
-            return "ERR:NOT SUPPORT WINDOWNS";
+        String cmd = "";
+        String dateTime = DateTimeHelper.toFormat("yyyy-MM-dd_HH-mm-ss.SSS", execTime);
+        // 规定线程分析结果文件名
+        String name = ip + SYMBOL + port + SYMBOL + dateTime + ".log";
+        String file = fileBase + "/" + name;
+
+        // 生成线程分析结果文件需要执行的命令
+        boolean isWin = JVMToolHelper.isWindows();
+        if (isWin) {
+            cmd = jdkBinPath + "/jstack " + pid + " >> " + file;
+        }
+        else {
+            cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jdkBinPath
+                    + "/jstack " + pid + " >>  " + file;
         }
 
         // 生成线程分析文件即将开始运行，在日志中记录开始运行记录
@@ -135,19 +144,14 @@ public class ThreadAnalysisSupporter extends Supporter {
             logger.debug("RUN Java Thread Analysis START: pid=" + pid, null);
         }
 
-        String dateTime = DateTimeHelper.toFormat("yyyy-MM-dd_HH-mm-ss.SSS", execTime);
-        // 规定线程分析结果文件名
-        String name = ip + SYMBOL + port + SYMBOL + dateTime + ".log";
-        String file = fileBase + "/" + name;
-
-        // 生成线程分析结果文件需要执行的命令
-        String cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jdkBinPath
-                + "/jstack " + pid + " >>  " + file;
-
         try {
             synchronized (lock) {
-                // 执行命令
-                RuntimeHelper.exec(10000, "/bin/sh", "-c", cmd);
+                if (isWin) {
+                    RuntimeHelper.exec(10000, "cmd.exe", "/C", cmd);
+                }
+                else {
+                    RuntimeHelper.exec(10000, "/bin/bash", "-c", cmd);
+                }
             }
         }
         catch (Exception e) {

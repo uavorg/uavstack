@@ -211,7 +211,7 @@ public class JVMContainerOSDetector extends BaseDetector {
 
         for (String port : scanPorts) {
 
-            String baseurl = "http://127.0.0.1:" + port;
+            String baseurl = port.indexOf(":") == -1 ? "http://127.0.0.1:" + port : "http://" + port;
 
             client.doAsyncHttpGet(baseurl + UAV_MOF_ROOT + "jvm?action=ping", new ScanPingCallback(null, baseurl));
         }
