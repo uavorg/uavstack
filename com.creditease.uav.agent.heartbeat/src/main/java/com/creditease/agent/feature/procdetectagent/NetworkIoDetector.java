@@ -61,18 +61,19 @@ public class NetworkIoDetector extends AbstractTimerWork {
         // windows
         if (JVMToolHelper.isWindows()) {
 
+            JpcapCaptor jpcap =null;
             try {
                 String Local_ip = "/" + ip;
-                // ´æ¶Ë¿ÚÁ÷Á¿
+                // ï¿½ï¿½Ë¿ï¿½ï¿½ï¿½ï¿½ï¿½
                 HashMap<String, Integer> counter = new HashMap<String, Integer>();
                 String[] split_ProtList = portList.split(" ");
                 for (String str : split_ProtList) {
                     counter.put("in_" + str, 0);
                     counter.put("out_" + str, 0);
                 }
-                // »ñÈ¡Íø¿¨Éè±¸ÁÐ±í
+                // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½Ð±ï¿½
                 NetworkInterface[] devices = JpcapCaptor.getDeviceList();
-                // È·¶¨Íø¿¨Éè±¸½Ó¿Ú
+                // È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½Ó¿ï¿½
                 boolean true_devices = false;
                 int i = 0;
                 for (; i < devices.length; i++) {
@@ -88,17 +89,23 @@ public class NetworkIoDetector extends AbstractTimerWork {
                     }
                 }
                 NetworkInterface nc = devices[i];
-                // ´ò¿ªÍø¿¨Éè±¸ £¬´´½¨Ä³¸ö¿¨¿ÚÉÏµÄ×¥È¡¶ÔÏó,×î´óÎª65535¸ö
-                JpcapCaptor jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
-                jpcap.setFilter("tcp", true);// ÉèÖÃ¹ýÂËÆ÷
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½×¥È¡ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½Îª65535ï¿½ï¿½
+                jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
+                jpcap.setFilter("tcp", true);// ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½ï¿½ï¿½ï¿½
 
-                // ×¥°ü Í³¼ÆÁ÷Á¿
+                // ×¥ï¿½ï¿½ Í³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 result = portFlux(jpcap, counter, nc, networkdetectTime, Local_ip);
 
             }
             catch (Exception e) {
                 log.err(this, "NetworkIo Monitor runs FAIL.", e);
             }
+            finally {
+                if(jpcap!=null) {
+                    // å…³é—­
+                    jpcap.close();
+                }
+             }
 
         }
 
@@ -157,16 +164,16 @@ public class NetworkIoDetector extends AbstractTimerWork {
         long time = Long.parseLong(networkdetectTime);
         long startTime = System.currentTimeMillis();
         while (startTime + time >= System.currentTimeMillis()) {
-            // ×¥°ü
+            // ×¥ï¿½ï¿½
             packet = jpcap.getPacket();
             if (null == packet) {
                 continue;
             }
             TCPPacket p = (TCPPacket) packet;
-            // ¶Ë¿Ú²»ÔÚprotList ºöÂÔ
+            // ï¿½Ë¿Ú²ï¿½ï¿½ï¿½protList ï¿½ï¿½ï¿½ï¿½
             String dst_ip = p.dst_ip.toString();
             String src_ip = p.src_ip.toString();
-            // Í³¼ÆÈë¿ÚÁ÷Á¿
+            // Í³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if (dst_ip.equals(Local_ip)) {
                 String in_port = "in_" + p.dst_port;
                 if (counter.containsKey(in_port)) {
@@ -174,7 +181,7 @@ public class NetworkIoDetector extends AbstractTimerWork {
                     counter.put(in_port, in_value);
                 }
             }
-            // Í³¼Æ³ö¿ÚÁ÷Á¿
+            // Í³ï¿½Æ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if (src_ip.equals(Local_ip)) {
                 String out_port = "out_" + p.src_port;
                 if (counter.containsKey(out_port)) {
@@ -185,13 +192,13 @@ public class NetworkIoDetector extends AbstractTimerWork {
         }
 
         HashMap<String, String> counterValueIntToString = new HashMap<String, String>();
-        // ×Ö½Ú×ªkb/s
+        // ï¿½Ö½ï¿½×ªkb/s
         for (String key : counter.keySet()) {
             DecimalFormat df = new DecimalFormat("#0.00");
             Double value = Double.valueOf(df.format(counter.get(key) / int_networkdetectTime * 1.0));
             counterValueIntToString.put(key, value.toString());
         }
-        // ½«hashmap ×ªÎªjson ·µ»Ø
+        // ï¿½ï¿½hashmap ×ªÎªjson ï¿½ï¿½ï¿½ï¿½
         return JSONHelper.toString(counterValueIntToString);
     }
 
