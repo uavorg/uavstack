@@ -862,7 +862,7 @@ function APMTool(app) {
 			var errMsg = "无数据，请刷新重试";
 			var epinfo = sObj["epinfo"].split(",")[0];
 			//当前支持的类型
-			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer"];
+			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer","rocketmq.client"];
 			if($.inArray(epinfo, epinfos)==-1){
 				errMsg = "不支持的数据类型";
 			}

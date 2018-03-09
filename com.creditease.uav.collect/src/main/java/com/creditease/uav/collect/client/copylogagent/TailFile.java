@@ -87,6 +87,10 @@ public class TailFile {
         this.id = serverid + "-" + appid + "-" + logid;
         this.lnumber = lnumber;
         this.unsplit = unsplit;
+
+        if (this.unsplit) {
+            this.lastUpdated = System.currentTimeMillis();
+        }
     }
 
     @Override
