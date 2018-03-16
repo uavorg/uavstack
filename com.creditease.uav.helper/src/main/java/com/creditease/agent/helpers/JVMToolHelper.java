@@ -61,7 +61,7 @@ import com.creditease.agent.helpers.jvmtool.JVMPropertyFilter;
 public class JVMToolHelper {
 
     public static final String osname = System.getProperty("os.name").toLowerCase();
-	public static final String username = System.getProperty("user.name");
+    public static final String username = System.getProperty("user.name");
     public static final String JMX_CONNECTOR_ADDRESS = "com.sun.management.jmxremote.localConnectorAddress";
 
     private static ClassLoader JVMToolClassloader = null;
@@ -192,7 +192,7 @@ public class JVMToolHelper {
             try {
                 String id = (String) method_VMId.invoke(vmInstance, (Object[]) null);
 				
-				//if the jvm is not started by the same user as MA, do not attach it (just in case of linux)             
+                //if the jvm is not started by the same user as MA, do not attach it (just in case of linux)             
                 if(isLinux() && !username.equals(Files.getOwner(Paths.get(("/proc/"+id))).getName())) {
                     continue;
                 }
