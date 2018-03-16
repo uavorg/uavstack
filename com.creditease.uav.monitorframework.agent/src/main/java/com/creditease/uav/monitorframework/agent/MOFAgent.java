@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 
 import com.creditease.uav.monitorframework.agent.trans.MOFClsTransformer;
@@ -38,6 +40,8 @@ import com.creditease.uav.monitorframework.agent.util.JarUtil;
  *
  */
 public class MOFAgent {
+    
+    public final static Map<String, Object> mofContext = new ConcurrentHashMap<String, Object>();
 
     public static void premain(String agentArgs, Instrumentation inst) {
 

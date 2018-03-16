@@ -36,6 +36,7 @@ public class SlowOperConstants {
     public static final String SLOW_OPER_HTTP_ASY_CLIENT = "apache.http.AsyncClient";
     public static final String SLOW_OPER_MQ_RABBIT_CONSUMER = "mq.service";
     public static final String SLOW_OPER_MQ_RABBIT_PRODUCER = "rabbitmq.client";
+    public static final String SLOW_OPER_MQ_ROCKET = "rocketmq.client";
     public static final String SLOW_OPER_JDBC_CLIENT = "jdbc.client";
     public static final String SLOW_OPER_METHOD = "method";
     public static final String SLOW_OPER_DUBBO_CONSUMER = "dubbo.consumer";

@@ -40,7 +40,12 @@ import com.creditease.monitor.captureframework.spi.CaptureContext;
 import com.creditease.monitor.captureframework.spi.Monitor;
 import com.creditease.monitor.proxy.spi.JDKProxyInvokeHandler;
 import com.creditease.monitor.proxy.spi.JDKProxyInvokeProcessor;
+import com.creditease.uav.apm.invokechain.spi.InvokeChainAdapter;
+import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.common.BaseComponent;
+import com.creditease.uav.hook.rocketmq.adapter.RocketMQProducerAdapter;
+import com.creditease.uav.hook.rocketmq.adapter.RocketMQPullConsumerAdapter;
+import com.creditease.uav.hook.rocketmq.adapter.RocketMQPushConsumerAdapter;
 import com.creditease.uav.util.JDKProxyInvokeUtil;
 
 public class RocketmqIT extends BaseComponent {
@@ -63,7 +68,10 @@ public class RocketmqIT extends BaseComponent {
 
     private String applicationId;
 
+    private Map<String, Object> ivcContext;
+
     public RocketmqIT(String appid) {
+
         this.applicationId = appid;
     }
 
@@ -85,7 +93,7 @@ public class RocketmqIT extends BaseComponent {
     public static void end(int rc, String methodName) {
 
         RocketmqIT m = tl.get();
-        m.doAfter(rc);
+        m.doAfter(rc, methodName);
         tl.remove();
     }
 
@@ -140,19 +148,46 @@ public class RocketmqIT extends BaseComponent {
                         new JDKProxyInvokeHandler<PullCallback>(callback, new PullCallbackProxyProcessor()));
                 ccMap = UAVServer.instance().runMonitorAsyncCaptureOnServerCapPoint(
                         CaptureConstants.CAPPOINT_APP_CLIENT, Monitor.CapturePhase.PRECAP, params, ccMap);
+
+                // ivc
+                ivcContext = captureInvokeChain(RocketMQPullConsumerAdapter.class,
+                        InvokeChainConstants.CapturePhase.PRECAP, params, args);
+
                 return callback;
             }
         }
 
         UAVServer.instance().runMonitorCaptureOnServerCapPoint(CaptureConstants.CAPPOINT_APP_CLIENT,
                 Monitor.CapturePhase.PRECAP, params);
+
+        if (methodName.startsWith("send")) {
+            // ivc
+            ivcContext = captureInvokeChain(RocketMQProducerAdapter.class, InvokeChainConstants.CapturePhase.PRECAP,
+                    params, args);
+        }
+
         return null;
     }
 
-    private void doAfter(int rc) {
+    private void doAfter(int rc, String methodName) {
 
         if (rc != -1) {
             doCap(rc, null);
+
+            if (ivcContext != null) {
+                ivcContext.put(CaptureConstants.INFO_CLIENT_TARGETSERVER, targetServer);
+                ivcContext.put(CaptureConstants.INFO_CLIENT_RESPONSECODE, rc);
+
+                if ("pull".equals(methodName)) {
+                    captureInvokeChain(RocketMQPullConsumerAdapter.class, InvokeChainConstants.CapturePhase.DOCAP,
+                            ivcContext, null);
+                }
+                else {
+                    captureInvokeChain(RocketMQProducerAdapter.class, InvokeChainConstants.CapturePhase.DOCAP,
+                            ivcContext, null);
+                }
+
+            }
         }
     }
 
@@ -208,7 +243,10 @@ public class RocketmqIT extends BaseComponent {
 
         private String address;
 
+        private Map<String, Object> ivcInnerContext;
+
         public MessageListenerOrderlyProxyProcessor(String address) {
+
             this.address = address;
         }
 
@@ -232,6 +270,12 @@ public class RocketmqIT extends BaseComponent {
             UAVServer.instance().runMonitorCaptureOnServerCapPoint(CaptureConstants.CAPPOINT_APP_CLIENT,
                     Monitor.CapturePhase.PRECAP, params);
 
+            String ivcHeader = msgs.get(0).getProperty(InvokeChainConstants.PARAM_MQHEAD_SPANINFO);
+            if (ivcHeader != null) {
+                params.put(InvokeChainConstants.PARAM_MQHEAD_SPANINFO, ivcHeader);
+            }
+            ivcInnerContext = captureInvokeChain(RocketMQPushConsumerAdapter.class,
+                    InvokeChainConstants.CapturePhase.PRECAP, params, args);
         }
 
         @Override
@@ -239,14 +283,15 @@ public class RocketmqIT extends BaseComponent {
                 Throwable e) {
 
             doCap(0, method.getName());
-
+            docapPushConsumerInvokeChain(ivcInnerContext, t.getClass().getName(), method.getName(), 0);
         }
 
         @Override
         public Object postProcess(Object res, MessageListenerOrderly t, Object proxy, Method method, Object[] args) {
 
             doCap(1, method.getName());
-            return null;
+            docapPushConsumerInvokeChain(ivcInnerContext, t.getClass().getName(), method.getName(), 1);
+            return res;
         }
 
     }
@@ -256,7 +301,10 @@ public class RocketmqIT extends BaseComponent {
 
         private String address;
 
+        private Map<String, Object> ivcInnerContext;
+
         public MessageListenerConcurrentlyProxyProcessor(String address) {
+
             this.address = address;
         }
 
@@ -281,6 +329,12 @@ public class RocketmqIT extends BaseComponent {
             UAVServer.instance().runMonitorCaptureOnServerCapPoint(CaptureConstants.CAPPOINT_APP_CLIENT,
                     Monitor.CapturePhase.PRECAP, params);
 
+            String ivcHeader = msgs.get(0).getProperty(InvokeChainConstants.PARAM_MQHEAD_SPANINFO);
+            if (ivcHeader != null) {
+                params.put(InvokeChainConstants.PARAM_MQHEAD_SPANINFO, ivcHeader);
+            }
+            ivcInnerContext = captureInvokeChain(RocketMQPushConsumerAdapter.class,
+                    InvokeChainConstants.CapturePhase.PRECAP, params, args);
         }
 
         @Override
@@ -288,7 +342,7 @@ public class RocketmqIT extends BaseComponent {
                 Throwable e) {
 
             doCap(0, method.getName());
-
+            docapPushConsumerInvokeChain(ivcInnerContext, t.getClass().getName(), method.getName(), 0);
         }
 
         @Override
@@ -296,7 +350,8 @@ public class RocketmqIT extends BaseComponent {
                 Object[] args) {
 
             doCap(1, method.getName());
-            return null;
+            docapPushConsumerInvokeChain(ivcInnerContext, t.getClass().getName(), method.getName(), 1);
+            return res;
         }
 
     }
@@ -311,7 +366,7 @@ public class RocketmqIT extends BaseComponent {
         @Override
         public void catchInvokeException(PullCallback t, Object proxy, Method method, Object[] args, Throwable e) {
 
-            doAsyncCap(0);
+            doAsyncCap(0, t, method);
 
         }
 
@@ -319,16 +374,16 @@ public class RocketmqIT extends BaseComponent {
         public Object postProcess(Object res, PullCallback t, Object proxy, Method method, Object[] args) {
 
             if (method.getName().equals("onSuccess")) {
-                doAsyncCap(1);
+                doAsyncCap(1, t, method);
             }
             else if (method.getName().equals("onException")) {
-                doAsyncCap(0);
+                doAsyncCap(0, t, method);
             }
 
-            return null;
+            return res;
         }
 
-        public void doAsyncCap(int rc) {
+        public void doAsyncCap(int rc, PullCallback target, Method method) {
 
             Map<String, Object> params = new HashMap<String, Object>();
 
@@ -341,8 +396,52 @@ public class RocketmqIT extends BaseComponent {
 
             UAVServer.instance().runMonitorAsyncCaptureOnServerCapPoint(CaptureConstants.CAPPOINT_APP_CLIENT,
                     Monitor.CapturePhase.DOCAP, params, ccMap);
+
+            if (ivcContext != null) {
+                ivcContext.putAll(params);
+            }
+            captureInvokeChain(RocketMQPullConsumerAdapter.class, InvokeChainConstants.CapturePhase.DOCAP, ivcContext,
+                    null);
         }
 
+    }
+
+    private void docapPushConsumerInvokeChain(Map<String, Object> ivcInnerContext, String className, String methodName,
+            int rc) {
+
+        if (ivcInnerContext != null) {
+            ivcInnerContext.put(CaptureConstants.INFO_CLIENT_TARGETSERVER, targetServer);
+            ivcInnerContext.put(CaptureConstants.INFO_CLIENT_RESPONSECODE, rc);
+            ivcInnerContext.put(InvokeChainConstants.CLIENT_IT_CLASS, className);
+            ivcInnerContext.put(InvokeChainConstants.CLIENT_IT_METHOD, methodName);
+        }
+        captureInvokeChain(RocketMQPushConsumerAdapter.class, InvokeChainConstants.CapturePhase.DOCAP, ivcInnerContext,
+                null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> captureInvokeChain(Class<? extends InvokeChainAdapter> adapter,
+            InvokeChainConstants.CapturePhase phase, Map<String, Object> ivcParams, Object[] args) {
+
+        if (phase == InvokeChainConstants.CapturePhase.PRECAP) {
+
+            UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter",
+                    "registerAdapter", adapter);
+
+            return (Map<String, Object>) UAVServer.instance().runSupporter(
+                    "com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
+                    InvokeChainConstants.CHAIN_APP_CLIENT, phase, ivcParams, adapter, args);
+        }
+        else {
+
+            if (ivcParams == null) {
+                return null;
+            }
+            UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
+                    InvokeChainConstants.CHAIN_APP_CLIENT, phase, ivcParams, adapter, null);
+        }
+
+        return null;
     }
 
 }

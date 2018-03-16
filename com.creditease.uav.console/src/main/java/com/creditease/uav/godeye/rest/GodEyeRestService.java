@@ -2130,9 +2130,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
         if (isCheckNodeOperSecurity == true) {
             Long ts = (Long) session.getAttribute("apphub.godeye.node.oper." + nodeUrl + ".timeout");
 
-            if (ts != null && timeStamp - ts < 60000 && (!"loadnodepro".equalsIgnoreCase(msg.getIntent())
+            if (ts != null && timeStamp - ts < 3000 && (!"loadnodepro".equalsIgnoreCase(msg.getIntent())
                     && !"chgsyspro".equalsIgnoreCase(msg.getIntent()))) {
-                response.resume("{\"rs\":\"ERR\",\"msg\":\"该节点操作1分钟内只能操作一次\"}");
+                response.resume("{\"rs\":\"ERR\",\"msg\":\"该节点操作3秒内只能操作一次\"}");
                 return;
             }
 
