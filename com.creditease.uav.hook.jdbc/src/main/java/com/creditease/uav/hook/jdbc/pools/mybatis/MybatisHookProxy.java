@@ -47,10 +47,9 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
 
     protected DynamicProxyInstaller dpInstall;
 
-    private ClassLoader webapploaderForMybatis = null;
-
     @SuppressWarnings("rawtypes")
     public MybatisHookProxy(String id, Map config) {
+
         super(id, config);
 
         dpInstall = new DynamicProxyInstaller();
@@ -60,7 +59,6 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
     public void start(HookContext context, ClassLoader webapploader) {
 
         super.start(context, webapploader);
-        webapploaderForMybatis = webapploader;
         Event event = context.get(Event.class);
         switch (event) {
             case SPRING_BEAN_REGIST:
@@ -104,7 +102,7 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
                 continue;
             }
 
-            collectDataSourceStat(inst, cp, webapploaderForMybatis);
+            collectDataSourceStat(inst, cp);
         }
     }
 
@@ -140,7 +138,7 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
         dpInstall.releaseTargetClassLoader();
     }
 
-    private void collectDataSourceStat(MonitorElementInstance inst, DataSource pds, ClassLoader webapploader) {
+    private void collectDataSourceStat(MonitorElementInstance inst, DataSource pds) {
 
         String[] collectMtrx = new String[] { "PoolMaximumActiveConnections", "PoolMaximumIdleConnections",
                 "PoolMaximumCheckoutTime", "PoolTimeToWait", "ActiveConnections", "IdleConnections", "RequestCount",
@@ -151,15 +149,15 @@ public class MybatisHookProxy extends AbsDBPoolHookProxy {
         int i;
         for (i = 0; i < 4; i++) {
             inst.setValue(MTRX_PREFIX + collectMtrx[i],
-                    ReflectionHelper.invoke(className, pds, prefix + collectMtrx[i], null, null, webapploader));
+                    ReflectionHelper.invoke(className, pds, prefix + collectMtrx[i], null, null, this.getClass().getClassLoader()));
         }
 
-        Object poolState = ReflectionHelper.invoke(className, pds, "getPoolState", null, null, webapploader);
+        Object poolState = ReflectionHelper.invoke(className, pds, "getPoolState", null, null, this.getClass().getClassLoader());
 
         for (; i < collectMtrx.length; i++) {
 
             inst.setValue(MTRX_PREFIX + collectMtrx[i], ReflectionHelper.invoke(PoolState.class.getName(), poolState,
-                    prefix + collectMtrx[i], null, null, webapploader));
+                    prefix + collectMtrx[i], null, null, this.getClass().getClassLoader()));
         }
 
     }
