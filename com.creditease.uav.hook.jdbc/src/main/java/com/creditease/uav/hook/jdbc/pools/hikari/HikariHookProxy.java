@@ -137,7 +137,7 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
                     cp.getClass().getClassLoader());
 
             /**
-             * åŒ¹é…å®¢æˆ·ç«¯åº”ç”¨
+             * Æ¥Åä¿Í»§¶ËÓ¦ÓÃ
              */
             MonitorElementInstance inst = this.matchElemInstance(clientElem, jdbcURL);
 
@@ -151,7 +151,7 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
     }
 
     /**
-     * æ”¶é›†DataSourceæŒ‡æ ‡
+     * ÊÕ¼¯DataSourceÖ¸±ê
      * 
      * @param inst
      * @param pds
@@ -173,7 +173,7 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
 
         for (int i = 0; i < collectMtrx.length; i++) {
 
-            Object val = ReflectionHelper.invoke(className, pool, prefix + collectMtrx[i], null, null);
+            Object val = ReflectionHelper.invoke(className, pool, prefix + collectMtrx[i], null, null,this.getClass().getClassLoader());
 
             if (val == null) {
                 continue;
