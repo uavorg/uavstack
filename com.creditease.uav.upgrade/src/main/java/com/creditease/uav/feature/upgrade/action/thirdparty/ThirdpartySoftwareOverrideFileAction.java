@@ -20,11 +20,13 @@
 
 package com.creditease.uav.feature.upgrade.action.thirdparty;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.creditease.agent.helpers.IOHelper;
 import com.creditease.agent.helpers.ZIPHelper;
 import com.creditease.agent.spi.IActionEngine;
 import com.creditease.uav.feature.upgrade.action.OverrideFileAction;
@@ -71,6 +73,32 @@ public class ThirdpartySoftwareOverrideFileAction extends OverrideFileAction {
 
         if (Files.notExists(source)) {
             throw new UpgradeException("The source of override file action does not exit");
+        }
+        
+        // 解压前清除原目录文件
+        String regex = "(" + UpgradeConstants.BACKUP_FOLDER
+                        + "|" + UpgradeConstants.UPGRADE_FILE_LOCK_NAME
+                        + "|" + UpgradeConstants.UPGRADE_RECORD_FILE_NAME
+                        +")";
+
+        File rootDir = new File(this.getRootDir());
+        String[] files = rootDir.list();
+        if (files != null && files.length > 0) {
+            if (log.isTraceEnable()) {
+                log.info(this, "Delete all the old files in the root folder: " + this.getRootDir());
+            }
+
+            for (int i = 0; i < files.length; i++) {
+                File file = new File(this.getRootDir() + "/" + files[i]);
+                if (!file.getName().matches(regex)) {
+                    if (file.isDirectory()) {
+                        IOHelper.deleteFolder(file.getAbsolutePath());
+                    }
+                    else {
+                        IOHelper.deleteFile(file.getAbsolutePath());
+                    }
+                }
+            }
         }
 
         ZIPHelper.decompressZipToDir(source.toString(), this.getParentDirOfRoot());

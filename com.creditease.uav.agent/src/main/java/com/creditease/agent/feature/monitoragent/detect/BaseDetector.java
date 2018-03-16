@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.creditease.agent.feature.monitoragent.datacatch.BaseMonitorDataCatchWorker;
 import com.creditease.agent.helpers.DataConvertHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.helpers.jvmtool.JVMAgentInfo;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
@@ -160,7 +160,7 @@ public abstract class BaseDetector
             return worker;
         }
 
-        worker = (BaseMonitorDataCatchWorker) ReflectHelper.newInstance(bmdcWorkerCls,
+        worker = (BaseMonitorDataCatchWorker) ReflectionHelper.newInstance(bmdcWorkerCls,
                 new Class<?>[] { String.class, String.class, JVMAgentInfo.class, BaseDetector.class },
                 new Object[] { workerName, this.feature, appServerInfo, this },
                 this.getConfigManager().getFeatureClassLoader(this.feature));

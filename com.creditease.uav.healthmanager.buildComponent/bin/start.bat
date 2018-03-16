@@ -1,5 +1,5 @@
 :: The first param is profile name, e.g., ma_test
-:: The second param is JAppID, if not set, the default value is 'MonitorAgent'
+:: The second param is JAppID, if not set, the default value is 'HealthManager'
 @echo off
 
 set profile=agent

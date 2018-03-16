@@ -68,6 +68,8 @@ public class RuntimeHelper {
                 in = ps.getInputStream();
 
                 ein = ps.getErrorStream();
+                
+                ps.getOutputStream().close();
 
                 br = new BufferedReader(new InputStreamReader(in));
                 String line;

@@ -91,6 +91,8 @@ public class ThreadAnalysisServer extends AgentFeatureComponent {
             }
         }
 
+        // deep thread analysis
+        new ThreadAnalyser("ThreadAnalyser", feature);
     }
 
     @Override
