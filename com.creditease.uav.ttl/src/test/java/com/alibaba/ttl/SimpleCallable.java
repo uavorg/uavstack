@@ -20,13 +20,29 @@
 
 package com.alibaba.ttl;
 
-public class SimpleThread implements Runnable {
+import java.util.concurrent.Callable;
 
+public class SimpleCallable implements Callable<String> {
+
+    private int id;
+
+    public SimpleCallable(int i) {
+
+        this.id = i;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Callable#call()
+     */
     @Override
-    public void run() {
+    public String call() throws Exception {
 
-        // TODO Auto-generated method stub
-        System.out.println(TtlCase.THREAD_LOCAL.get());
+        System.out.println("before" + id + "---" + TtlCase.THREAD_LOCAL.get());
+        TtlCase.THREAD_LOCAL.set(id + "");
+        System.out.println("after" + id + "---" + TtlCase.THREAD_LOCAL.get());
+        return "success";
     }
 
 }

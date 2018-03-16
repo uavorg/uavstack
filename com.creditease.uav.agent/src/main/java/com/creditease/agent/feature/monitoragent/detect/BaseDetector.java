@@ -47,7 +47,7 @@ public abstract class BaseDetector
 
     protected final Map<String, String> workerTypeClsMap = new ConcurrentHashMap<String, String>();
 
-    protected final Map<String, BaseMonitorDataCatchWorker> workers = new ConcurrentHashMap<String, BaseMonitorDataCatchWorker>();
+    protected Map<String, BaseMonitorDataCatchWorker> workers;
 
     protected final Map<String, JVMAgentInfo> jvmAgentInfos = new ConcurrentHashMap<String, JVMAgentInfo>();
 
@@ -262,5 +262,13 @@ public abstract class BaseDetector
         }
 
         return jvmType;
+    }
+	
+     /**
+     * @param set the workers 
+     */
+    protected void setWorkers(Map<String, BaseMonitorDataCatchWorker> workers) {
+    
+        this.workers = workers;
     }
 }

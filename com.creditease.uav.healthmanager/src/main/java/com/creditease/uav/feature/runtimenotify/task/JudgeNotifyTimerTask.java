@@ -20,13 +20,15 @@
 
 package com.creditease.uav.feature.runtimenotify.task;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.NotificationEvent;
-import com.creditease.agent.spi.Abstract1NTask;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManager.CacheLock;
 import com.creditease.uav.feature.RuntimeNotifyCatcher;
@@ -35,7 +37,7 @@ import com.creditease.uav.feature.runtimenotify.Slice;
 import com.creditease.uav.feature.runtimenotify.StrategyJudgement;
 import com.creditease.uav.feature.runtimenotify.scheduler.RuntimeNotifyStrategyMgr;
 
-public class JudgeNotifyTimerTask extends Abstract1NTask {
+public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
 
     private NotifyStrategy stra;
     private long taskStart = System.currentTimeMillis();
@@ -77,7 +79,7 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
                  * Step 3: if fire the event, build notification event
                  */
                 if (result != null && !result.isEmpty()) {
-                    NotificationEvent event = this.newNotificationEvent(instance, result);
+                    NotificationEvent event = this.newNotificationEvent(instance, result, stra.getConvergences());
 
                     // get context
                     putContext(event);
@@ -128,7 +130,7 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
      * 
      * @return
      */
-    private NotificationEvent newNotificationEvent(String instance, Map<String, String> result) {
+    private NotificationEvent newNotificationEvent(String instance, Map<String, String> result, List<String> convergences) {
 
         String ip = instance;
         String host = instance;
@@ -144,16 +146,16 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
         }
 
         StringBuilder desc = new StringBuilder();
-        StringBuilder conditionIndex = new StringBuilder();
+        List<String> conditionIndex = new ArrayList<String>();
 
         for (Map.Entry<String, String> cause : result.entrySet()) {
             // description
             desc.append(instance + "触发条件[" + cause.getKey() + "]：").append(cause.getValue()).append("\r\n");
             // condition index
-            conditionIndex.append(" " + cause.getKey());
+            conditionIndex.add(cause.getKey());
         }
 
-        String title = ip + "[" + instance + "]触发" + result.size() + "个报警(条件序号：" + conditionIndex.toString() + ")";
+        String title = ip + "[" + instance + "]触发" + result.size() + "个报警(条件序号： " + conditionIndex.toString().replaceAll("\\[|]|,", "") + ")";
 
         // fix &nbsp(\u00A0) can be shown in email
         String description = desc.toString().replace('\u00A0', ' ');
@@ -164,6 +166,18 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
         // add appgroup
         ne.addArg("appgroup", appgroup);
 
+        // 兼容不存在convergences属性的旧预警策略
+        if(convergences == null || convergences.size() == 0 ) {
+            return ne;
+        }
+        
+        // 同一个Event由多个策略触发时，梯度收敛以最长的为准
+        String conv = obtainConvergenceForEvent(convergences, conditionIndex);
+        if(!StringHelper.isEmpty(conv)) {
+            ne.addArg("convergences", conv);
+            ne.addArg(NotificationEvent.EVENT_Tag_NoBlock, "true");
+        }
+        
         return ne;
     }
 
