@@ -69,7 +69,7 @@ public class DataObserver {
                 break;
         }
 		
-		/**
+        /**
          *  To Be Refined, MSCP now doesn't support HTTP mode
          */
         if(UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR) == ServerVendor.MSCP){

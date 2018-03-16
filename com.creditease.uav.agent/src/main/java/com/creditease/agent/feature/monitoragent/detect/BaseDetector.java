@@ -264,7 +264,7 @@ public abstract class BaseDetector
         return jvmType;
     }
 	
-	 /**
+     /**
      * @param set the workers 
      */
     protected void setWorkers(Map<String, BaseMonitorDataCatchWorker> workers) {
