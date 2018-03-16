@@ -25,12 +25,12 @@ import java.util.Map;
 
 import com.creditease.agent.ConfigurationManager;
 import com.creditease.agent.feature.notifycenter.NCConstant;
+import com.creditease.agent.feature.notifycenter.NCEventStatusManager;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.agent.monitor.api.NotificationEvent;
 import com.creditease.agent.spi.Abstract1NTask;
 import com.creditease.agent.spi.AgentFeatureComponent;
-import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.datastore.api.DataStoreMsg;
 import com.creditease.uav.datastore.api.DataStoreProtocol;
 
@@ -41,12 +41,11 @@ import com.creditease.uav.datastore.api.DataStoreProtocol;
  */
 public class PersistentTask extends Abstract1NTask {
 
-    CacheManager cm;
+    private NCEventStatusManager eventStatusManager;
 
     public PersistentTask(String name, String feature) {
         super(name, feature);
-
-        cm = (CacheManager) this.getConfigManager().getComponent(this.feature, "NCCacheManager");
+        eventStatusManager = (NCEventStatusManager) ConfigurationManager.getInstance().getComponent(feature, "EventStatusManager");
     }
 
     @Override
@@ -62,22 +61,7 @@ public class PersistentTask extends Abstract1NTask {
 
     public void updateCache(NotificationEvent event) {
 
-        if (log.isDebugEnable()) {
-            log.debug(this, "NC Update Cache: " + event.getArg(NCConstant.NTFVALUE));
-        }
-
-        try {
-            cm.putHash(NCConstant.STORE_REGION, NCConstant.STORE_KEY_NCINFO, event.getArg(NCConstant.NTFKEY),
-                    event.getArg(NCConstant.NTFVALUE));
-        }
-        catch (Exception e) {
-
-            log.err(this, "Error when updateCache", e);
-        }
-        finally {
-            cm.del(NCConstant.STORE_REGION, event.getArg(NCConstant.NTFKEY));
-        }
-
+        eventStatusManager.updateCache(event);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -125,6 +109,9 @@ public class PersistentTask extends Abstract1NTask {
         }
         if (ntfargs.get(NCConstant.COLUMN_LATESTRECORDTIME) != null) {
             set.put(NCConstant.COLUMN_LATESTRECORDTIME, ntfargs.get(NCConstant.COLUMN_LATESTRECORDTIME));
+        }
+        if (ntfargs.get(NCConstant.EVENT_COUNT) != null) {
+            set.put(NCConstant.EVENT_COUNT, ntfargs.get(NCConstant.EVENT_COUNT));
         }
 
         update.put("set", set);

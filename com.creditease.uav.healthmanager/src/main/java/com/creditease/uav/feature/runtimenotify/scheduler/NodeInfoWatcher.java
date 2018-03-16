@@ -352,7 +352,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
                         continue;
                     }
 
-                    List<String> portsBak = new ArrayList<String>(Arrays.asList(procKeyBakArray[2].split(":")));
+                    List<String> portsBak = new ArrayList<String>(Arrays.asList(procKeyBakArray[2].split("#")));
 
                     for (String port : ports) {
                         if (portsBak.contains(port)) {
