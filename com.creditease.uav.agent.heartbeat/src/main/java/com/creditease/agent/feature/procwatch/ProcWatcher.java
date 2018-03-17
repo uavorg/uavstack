@@ -260,7 +260,7 @@ public class ProcWatcher extends AbstractTimerWork {
 
         String desc = "发现" + proc.getName() + "进程" + proc.getPid() + "停止，已重启。\n启动参数:" + proc.getCmd() + "\n启动信息："
                 + startedMsg;
-        NotificationEvent event = new NotificationEvent(NotificationEvent.EVENT_Tag_NoBlock,
+        NotificationEvent event = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_CRASH,
                 "发现" + proc.getName() + "进程停止，已重启进程", desc);
         putNotificationEvent(event);
     }

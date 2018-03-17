@@ -60,7 +60,8 @@ public class NetworkIoDetector extends AbstractTimerWork {
 
         // windows
         if (JVMToolHelper.isWindows()) {
-
+            
+            JpcapCaptor jpcap =null;
             try {
                 String Local_ip = "/" + ip;
                 // 存端口流量
@@ -89,7 +90,7 @@ public class NetworkIoDetector extends AbstractTimerWork {
                 }
                 NetworkInterface nc = devices[i];
                 // 打开网卡设备 ，创建某个卡口上的抓取对象,最大为65535个
-                JpcapCaptor jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
+                jpcap = JpcapCaptor.openDevice(nc, 65535, false, 20);
                 jpcap.setFilter("tcp", true);// 设置过滤器
 
                 // 抓包 统计流量
@@ -99,6 +100,12 @@ public class NetworkIoDetector extends AbstractTimerWork {
             catch (Exception e) {
                 log.err(this, "NetworkIo Monitor runs FAIL.", e);
             }
+            finally {
+                if(jpcap!=null) {
+                    // 关闭
+                    jpcap.close();
+                }
+             }
 
         }
 
