@@ -20,13 +20,37 @@
 
 package com.alibaba.ttl;
 
-public class SimpleThread implements Runnable {
+public class MultipleInterfaceRunnable implements Runnable, Comparable<Runnable> {
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(Runnable o) {
+
+        return 0;
+    }
+
+    private int id;
+
+    public MultipleInterfaceRunnable(int i) {
+
+        this.id = i;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
 
-        // TODO Auto-generated method stub
-        System.out.println(TtlCase.THREAD_LOCAL.get());
+        System.out.println("before" + id + "---" + TtlCase.THREAD_LOCAL.get());
+        TtlCase.THREAD_LOCAL.set(id + "");
+        System.out.println("after" + id + "---" + TtlCase.THREAD_LOCAL.get());
     }
 
 }

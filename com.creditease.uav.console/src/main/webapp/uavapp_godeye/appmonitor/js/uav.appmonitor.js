@@ -1375,13 +1375,18 @@ var mvcObj={
 					 nodeInfoObj["id"]=key;
 					 
 					 var appgroup=nodeInfoObj["appgroup"];
+					 var appid=nodeInfoObj["appid"];
 					 
 					 if (appgroup==undefined||appgroup=="") {
 						 ungroupNodes[ungroupNodes.length]=nodeInfoObj;
 					 }
 					 else {
 						 var ip=nodeInfoObj["ip"];
-						 ipToAppGroup[ip]=appgroup;
+						 if(ipToAppGroup[ip]==undefined){
+							 ipToAppGroup[ip]=[];
+						 }
+							 						 
+						 ipToAppGroup[ip][appid]=appgroup; 
 					 }					 
 					 
 					 nodeArray[nodeArray.length]=nodeInfoObj;
@@ -1391,8 +1396,8 @@ var mvcObj={
 				 for(var i=0;i<ungroupNodes.length;i++) {
 					 var ip=ungroupNodes[i]["ip"];
 					 if (ipToAppGroup[ip]!=undefined) {
-						 ungroupNodes[i]["appgroup"]=ipToAppGroup[ip];
-						 ungroupNodes[i]["appgpid"]=ipToAppGroup[ip]+":"+ungroupNodes[i]["appid"];
+						 ungroupNodes[i]["appgroup"]=ipToAppGroup[ip][appid];
+						 ungroupNodes[i]["appgpid"]=ungroupNodes[i]["appgroup"]+":"+appid;
 					 }
 				 }
 				 
@@ -2226,7 +2231,21 @@ var mvcObj={
 					  * Application need auto group
 					  */
 					 if (type=="app") {
-						 var appgroup=monitorCfg.app.ipToAppGroup[appO["ip"]];
+						 var appid;
+						 var index=id.lastIndexOf("---");
+
+						 // for jee,mscp,springboot
+						 if(index!=-1){
+							 appid=id.substring(index+3,id.length);
+						 }
+
+						 // for jse
+						 if(appid==undefined){
+							 index=id.lastIndexOf("-");
+							 appid=id.substring(0,index).split("/").pop();
+						 }
+
+						 var appgroup=monitorCfg.app.ipToAppGroup[appO["ip"]][appid];
 						 
 						 if (appgroup!=undefined) {
 							 appO["appgroup"]=appgroup;

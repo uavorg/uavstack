@@ -124,6 +124,7 @@ function saveNotify(checkIsExist){
 		 */
 		//校验
 		var stgyExpHtmlObjs = document.getElementsByName("stgy_exp_html"),stgyExpCheck=true;
+		var stgyConvergences = document.getElementsByName("stgy_convergence_html");
 		if(stgyExpHtmlObjs.length==0 && mName != "procCrash"){
 			$("#addNotifyErrMSG").text("触发策略不能为空");
 			return false;
@@ -140,7 +141,7 @@ function saveNotify(checkIsExist){
 		}
 
 		//赋值
-		var relations=[],relationsHtmls = [];
+		var relations=[],relationsHtmls = [],convergences=[];
 		$.each(stgyExpHtmlObjs,function(index,obj){
 			var relation = obj.innerText;
 			var resultHtml = obj.innerHTML;
@@ -152,6 +153,7 @@ function saveNotify(checkIsExist){
 			
 			relations[index]= relation;//赋值表达式
 			relationsHtmls[index]= resultHtml;//赋值用户操作html
+			convergences[index] = stgyConvergences[index].innerText;
 		});
 		
 		/**
@@ -187,7 +189,8 @@ function saveNotify(checkIsExist){
 				"action":actions,
 				"owner":owner,
 				"relations":relations,
-				"relationsHtmls":relationsHtmls
+				"relationsHtmls":relationsHtmls,
+				"convergences":convergences
 		}
 		commitInfo[fName]=result;
 		saveKey = fName;
