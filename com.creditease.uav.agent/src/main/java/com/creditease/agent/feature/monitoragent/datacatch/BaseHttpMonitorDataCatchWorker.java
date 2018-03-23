@@ -77,11 +77,19 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
 
     protected HttpAsyncClient client;
 
+    private long profileHBTimeout;
+
     public BaseHttpMonitorDataCatchWorker(String cName, String feature, JVMAgentInfo appServerInfo,
             BaseDetector detector) {
+
         super(cName, feature, appServerInfo, detector);
 
-        client = HttpAsyncClientFactory.build(2, 5, 2, 2, 2);
+        client = HttpAsyncClientFactory.build(2, 5, 2000, 2000, 2000);
+
+        String profileHBTimeoutStr = this.getConfigManager().getFeatureConfiguration(feature,
+                "detector.profilehbtimeout");
+        profileHBTimeout = StringHelper.isEmpty(profileHBTimeoutStr) ? 15000 : Long.parseLong(profileHBTimeoutStr);
+
     }
 
     @Override
@@ -203,7 +211,7 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
              * this data is old, but need for profile heartbeat even the if Update = false, but we will still pass the
              * profile data as a heartbeat for profiledata the heart beat interval = 1 min
              */
-            else if (isUpdate == false && curTime - state.getProfileTimestamp() > 60000) {
+            else if (isUpdate == false && curTime - state.getProfileTimestamp() > profileHBTimeout) {
                 isRefreshTimestamp = true;
                 pmdf.setTag("P:HB");
             }
@@ -237,16 +245,7 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
              * 
              * NOTE: if there is no special appgroup, use MonitorAgent appgroup
              */
-            String uavMAAppGroup = System.getProperty("JAppGroup");
-
-            String appGroup = this.appServerInfo.getSystemProperties().getProperty("JAppGroup");
-
-            if (!StringHelper.isEmpty(appGroup)) {
-                webapp.put("appgroup", appGroup);
-            }
-            else if (!StringHelper.isEmpty(uavMAAppGroup)) {
-                webapp.put("appgroup", uavMAAppGroup);
-            }
+            webapp.put("appgroup", this.getAppGroup());
 
             /**
              * 【2】自定义指标
@@ -384,10 +383,10 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
         };
 
         if (postData == null) {
-            client.doAsyncHttpGet(serviceURL, callback);
+            getHttpAsyncClient().doAsyncHttpGet(serviceURL, callback);
         }
         else {
-            client.doAsyncHttpPost(serviceURL, postData, callback);
+            getHttpAsyncClient().doAsyncHttpPost(serviceURL, postData, callback);
         }
 
         // timeout for response
@@ -437,4 +436,29 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
         return 1;
     }
 
+    @Override
+    public void cancel() {
+
+        super.cancel();
+
+        if (client != null) {
+            client.shutdown();
+        }
+    }
+
+    /**
+     * get HttpAsyncClient unsafe
+     * 
+     * @return HttpAsyncClient
+     */
+    private HttpAsyncClient getHttpAsyncClient() {
+
+        if (client != null) {
+            return client;
+        }
+
+        client = HttpAsyncClientFactory.build(2, 5, 2000, 2000, 2000);
+
+        return client;
+    }
 }
