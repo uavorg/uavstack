@@ -55,6 +55,7 @@ public class JVMContainerOSDetector extends BaseDetector {
         private OSProcess proc;
 
         public ScanPingCallback(OSProcess proc, String url) {
+
             this.url = url;
             this.proc = proc;
         }
@@ -115,6 +116,7 @@ public class JVMContainerOSDetector extends BaseDetector {
         private String vendor;
 
         public GetSystemInfoCallback(OSProcess proc, String url, String vendor) {
+
             this.url = url;
             this.proc = proc;
             this.vendor = vendor;
@@ -187,13 +189,14 @@ public class JVMContainerOSDetector extends BaseDetector {
     protected String[] scanPorts = new String[0];
 
     public JVMContainerOSDetector(String cName, String feature, String initHandlerKey, long detectInterval) {
+
         super(cName, feature, initHandlerKey, detectInterval);
 
         String ports = this.getConfigManager().getFeatureConfiguration(this.feature, "detector.container.ports");
 
         configScanPorts(ports);
 
-        client = HttpAsyncClientFactory.build(5, 100, 1, 1, 1);
+        client = HttpAsyncClientFactory.build(5, 100, 1000, 1000, 1000);
     }
 
     @Override

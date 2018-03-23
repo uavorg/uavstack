@@ -117,6 +117,7 @@ public abstract class BaseDetector
         int res = worker.start();
 
         if (res == -1) {
+            worker.cancel();
             return;
         }
 
@@ -127,6 +128,7 @@ public abstract class BaseDetector
             worker = newWoker(appServerInfo, workerName, "unknown");
 
             if (worker.start() == -1) {
+                worker.cancel();
                 return;
             }
         }
