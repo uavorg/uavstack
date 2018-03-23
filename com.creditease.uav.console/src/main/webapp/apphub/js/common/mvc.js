@@ -113,6 +113,10 @@ function AppHubMVC(_mvcConfig) {
     	var searchObj=mvcConfig["search"];
     	
     	var searchKeyword=searchObj["keyword"];
+    	var hasSearchKey = undefined!=searchKeyword&&""!=searchKeyword&&"@ALL"!=searchKeyword;
+    	if(hasSearchKey) {
+    		var searchKeys = searchKeyword.split(" ");
+    	}
     	
     	for(var i=0;i<modelsSeq.length;i++) {
     		var modelId=modelsSeq[i];
@@ -219,7 +223,7 @@ function AppHubMVC(_mvcConfig) {
     			 */
     			if (undefined!=fkeys&&fkeys.length>0) {
     				
-    				if (undefined!=searchKeyword&&""!=searchKeyword&&"@ALL"!=searchKeyword) {
+    				if (hasSearchKey) {
     					
 	    				var ismeet=false;
 	    				
@@ -231,9 +235,11 @@ function AppHubMVC(_mvcConfig) {
 		    					continue;
 		    				}
 		    				//meet the search condition
-		    				if (value.indexOf(searchKeyword)>-1) {
-		    					ismeet=true;
-		    					break;
+		    				for(var skIdx = 0; skIdx < searchKeys.length; skIdx++) {
+		    					if (searchKeys[skIdx] != undefined && searchKeys[skIdx] != "" && value.indexOf(searchKeys[skIdx])>-1) {
+			    					ismeet=true;
+			    					break;
+			    				}
 		    				}
 		    			}
 		    			
