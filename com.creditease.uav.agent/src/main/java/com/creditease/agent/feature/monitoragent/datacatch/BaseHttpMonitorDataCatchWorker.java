@@ -84,12 +84,9 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
 
         super(cName, feature, appServerInfo, detector);
 
-        client = HttpAsyncClientFactory.build(2, 5, 2000, 2000, 2000);
-
         String profileHBTimeoutStr = this.getConfigManager().getFeatureConfiguration(feature,
                 "detector.profilehbtimeout");
         profileHBTimeout = StringHelper.isEmpty(profileHBTimeoutStr) ? 15000 : Long.parseLong(profileHBTimeoutStr);
-
     }
 
     @Override
