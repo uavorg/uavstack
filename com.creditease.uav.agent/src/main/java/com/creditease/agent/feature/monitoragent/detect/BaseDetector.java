@@ -93,7 +93,9 @@ public abstract class BaseDetector
             /**
              * If the worker exists, just update the appServerInfo this is the hyperspace dark tech, hehe, hehe, hehe :)
              */
-            this.workers.get(workerName).setAppServerInfo(appServerInfo);
+            if(this.cName.equals(this.workers.get(workerName).getDetectorName())) {
+                this.workers.get(workerName).setAppServerInfo(appServerInfo);
+            }
             return;
         }
 
