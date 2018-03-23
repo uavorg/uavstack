@@ -105,5 +105,7 @@ public class NCConstant {
      * Notification dataStorename & collection name
      **/
     public static final String MONGO_COLLECTION_NOTIFY = "uav_notify";
+    
+    public static final String EVENT_COUNT = "event_count";
 
 }

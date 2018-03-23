@@ -36,7 +36,6 @@ import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.NotificationEvent;
-import com.creditease.agent.spi.Abstract1NTask;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.feature.runtimenotify.NotifyStrategy;
 import com.creditease.uav.feature.runtimenotify.RuntimeNotifySliceMgr;
@@ -44,7 +43,7 @@ import com.creditease.uav.feature.runtimenotify.Slice;
 import com.creditease.uav.feature.runtimenotify.StrategyJudgement;
 import com.creditease.uav.feature.runtimenotify.scheduler.RuntimeNotifyStrategyMgr;
 
-public class JudgeNotifyTask extends Abstract1NTask {
+public class JudgeNotifyTask extends JudgeNotifyCommonTask {
 
     private static final String RNJUDGE_PREFIX = "RNJUDGE_";
 
@@ -134,7 +133,7 @@ public class JudgeNotifyTask extends Abstract1NTask {
              * Step 5: if fire the event, build notification event
              */
             if (result != null && !result.isEmpty()) {
-                NotificationEvent event = this.newNotificationEvent(result);
+                NotificationEvent event = this.newNotificationEvent(result, stra.getConvergences());
 
                 // get context
                 putContext(event);
@@ -189,7 +188,7 @@ public class JudgeNotifyTask extends Abstract1NTask {
      * 
      * @return
      */
-    private NotificationEvent newNotificationEvent(Map<String, String> result) {
+    private NotificationEvent newNotificationEvent(Map<String, String> result, List<String> convergences) {
 
         String ip = this.curSlice.getMdf().getIP();
         String host = this.curSlice.getMdf().getHost();
@@ -198,17 +197,17 @@ public class JudgeNotifyTask extends Abstract1NTask {
         appgroup = (appgroup == null) ? "" : appgroup;
 
         StringBuilder desc = new StringBuilder();
-        StringBuilder conditionIndex = new StringBuilder();
+        List<String> conditionIndex = new ArrayList<String>();
 
         for (Map.Entry<String, String> cause : result.entrySet()) {
             // description
             desc.append("触发条件[" + cause.getKey() + "]：").append(cause.getValue()).append("\r\n");
             // condition index
-            conditionIndex.append(" " + cause.getKey());
+            conditionIndex.add(cause.getKey());
         }
 
-        String title = ip + "[" + this.curSlice.getKey() + "]触发" + result.size() + "个报警(条件序号："
-                + conditionIndex.toString() + ")";
+        String title = ip + "[" + this.curSlice.getKey() + "]触发" + result.size() + "个报警(条件序号： "
+                + conditionIndex.toString().replaceAll("\\[|]|,", "") + ")";
 
         // fix &nbsp(\u00A0) can be shown in email
         String description = desc.toString().replace('\u00A0', ' ');
@@ -218,6 +217,18 @@ public class JudgeNotifyTask extends Abstract1NTask {
 
         // add appgroup
         ne.addArg("appgroup", appgroup);
+
+        // 兼容不存在convergences属性的旧预警策略
+        if(convergences == null || convergences.size() == 0 ) {
+            return ne;
+        }
+        
+        // 同一个Event由多个策略触发时，梯度收敛以最长的为准
+        String conv = obtainConvergenceForEvent(convergences, conditionIndex);
+        if(!StringHelper.isEmpty(conv)) {
+            ne.addArg("convergences", conv);
+            ne.addArg(NotificationEvent.EVENT_Tag_NoBlock, "true");
+        }
 
         return ne;
     }
