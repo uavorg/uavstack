@@ -191,6 +191,8 @@ public class JVMContainerOSDetector extends BaseDetector {
 
     protected String[] scanPorts = new String[0];
 
+    protected String baseurl = "http://127.0.0.1";
+	
     public JVMContainerOSDetector(String cName, String feature, String initHandlerKey, long detectInterval) {
 
         super(cName, feature, initHandlerKey, detectInterval);
