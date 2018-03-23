@@ -111,8 +111,27 @@ public class MonitorAgent extends AgentFeatureComponent {
 
         // init DetectorManager
         DetectorManager appServerMonitorDetector_TimerWorker = new DetectorManager(
-                "AppServerMonitorDetector_TimerWorker", this.feature);
+                "AppServerMonitorDetector_TimerWorker", this.feature);        
 
+        boolean isContainerDetectEnable = DataConvertHelper.toBoolean(
+                this.getConfigManager().getFeatureConfiguration(this.feature, "detector.container.scan.enable"), false);
+
+        if (isContainerDetectEnable == true) {
+            // init JVMContainerOSDetector
+            JVMContainerOSDetector cosd = new JVMContainerOSDetector("JVMContainerOSDetector", this.feature,
+                    "modatahandlers", detectInterval);
+
+            cosd.register("appserver",
+                    "com.creditease.agent.feature.monitoragent.datacatch.http.HttpAppServerMonitorDataCatchWorker");
+            cosd.register("mscp",
+                    "com.creditease.agent.feature.monitoragent.datacatch.http.HttpMSCPMonitorDataCatchWorker");
+            cosd.register("springboot",
+                    "com.creditease.agent.feature.monitoragent.datacatch.http.HttpSpringBootMonitorDataCatchWorker");
+
+            // install JVMContainerOSDetector
+            appServerMonitorDetector_TimerWorker.installDetector(cosd);
+        }
+		
         boolean isLocalOSDetectEnable = DataConvertHelper.toBoolean(
                 this.getConfigManager().getFeatureConfiguration(this.feature, "detector.local.scan.enable"), true);
 
@@ -133,26 +152,7 @@ public class MonitorAgent extends AgentFeatureComponent {
             // install JVMLocalOSDetector
             appServerMonitorDetector_TimerWorker.installDetector(asmd);
         }
-
-        boolean isContainerDetectEnable = DataConvertHelper.toBoolean(
-                this.getConfigManager().getFeatureConfiguration(this.feature, "detector.container.scan.enable"), false);
-
-        if (isContainerDetectEnable == true) {
-            // init JVMContainerOSDetector
-            JVMContainerOSDetector cosd = new JVMContainerOSDetector("JVMContainerOSDetector", this.feature,
-                    "modatahandlers", detectInterval);
-
-            cosd.register("appserver",
-                    "com.creditease.agent.feature.monitoragent.datacatch.http.HttpAppServerMonitorDataCatchWorker");
-            cosd.register("mscp",
-                    "com.creditease.agent.feature.monitoragent.datacatch.http.HttpMSCPMonitorDataCatchWorker");
-            cosd.register("springboot",
-                    "com.creditease.agent.feature.monitoragent.datacatch.http.HttpSpringBootMonitorDataCatchWorker");
-
-            // install JVMContainerOSDetector
-            appServerMonitorDetector_TimerWorker.installDetector(cosd);
-        }
-
+		
         // start ApplicationServerMonitorDetector
         this.getTimerWorkManager().scheduleWork("AppServerMonitorDetector_TimerWorker",
                 appServerMonitorDetector_TimerWorker, 0, detectInterval);
