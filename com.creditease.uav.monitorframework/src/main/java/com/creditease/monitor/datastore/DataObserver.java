@@ -25,6 +25,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.creditease.monitor.UAVServer;
+import com.creditease.monitor.UAVServer.ServerVendor;
+import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.captureframework.spi.Monitor;
 import com.creditease.monitor.datastore.http.HttpDataObserverWorker;
 import com.creditease.monitor.datastore.jmx.JMXDataObserverWorker;
@@ -65,6 +68,14 @@ public class DataObserver {
             default:
                 break;
         }
+		
+        /**
+         *  To Be Refined, MSCP now doesn't support HTTP mode
+         */
+        if(UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR) == ServerVendor.MSCP){
+            worker = new JMXDataObserverWorker(); 
+        }
+		
         if (worker != null) {
             worker.start();
         }

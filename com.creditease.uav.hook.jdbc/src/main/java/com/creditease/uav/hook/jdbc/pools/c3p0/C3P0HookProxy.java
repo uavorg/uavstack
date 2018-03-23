@@ -96,8 +96,9 @@ public class C3P0HookProxy extends AbsDBPoolHookProxy {
         String prefix = "get";
 
         for (int i = 0; i < collectMtrx.length; i++) {
-            inst.setValue(MTRX_PREFIX + collectMtrx[i], ReflectionHelper.invoke(ComboPooledDataSource.class.getName(), pds,
-                    prefix + collectMtrx[i], null, null));
+            Object obj = ReflectionHelper.invoke(ComboPooledDataSource.class.getName(), pds,
+                    prefix + collectMtrx[i], null, null, this.getClass().getClassLoader());
+            inst.setValue(MTRX_PREFIX + collectMtrx[i], obj);
         }
     }
 
