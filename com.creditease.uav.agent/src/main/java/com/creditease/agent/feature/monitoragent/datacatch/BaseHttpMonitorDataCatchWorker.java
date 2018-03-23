@@ -75,7 +75,7 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
         }
     }
 
-    protected HttpAsyncClient client;
+    private HttpAsyncClient client;
 
     private long profileHBTimeout;
 
