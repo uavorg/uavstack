@@ -20,21 +20,40 @@
 
 package com.alibaba.ttl;
 
-public class SimpleThread2 implements Runnable {
+import java.util.concurrent.Callable;
+
+public class MultipleInterfaceCallable implements Callable<String>, Comparable<Runnable> {
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(Runnable o) {
+
+        return 0;
+    }
 
     private int id;
 
-    public SimpleThread2(int i) {
+    public MultipleInterfaceCallable(int i) {
 
         this.id = i;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Callable#call()
+     */
     @Override
-    public void run() {
+    public String call() throws Exception {
 
         System.out.println("before" + id + "---" + TtlCase.THREAD_LOCAL.get());
         TtlCase.THREAD_LOCAL.set(id + "");
         System.out.println("after" + id + "---" + TtlCase.THREAD_LOCAL.get());
+        return "success";
     }
 
 }

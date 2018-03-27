@@ -170,7 +170,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
                     cp.getClass().getClassLoader());
 
             /**
-             * åŒ¹é…å®¢æˆ·ç«¯åº”ç”¨
+             * Æ¥Åä¿Í»§¶ËÓ¦ÓÃ
              */
             MonitorElementInstance inst = this.matchElemInstance(clientElem, jdbcURL);
 
@@ -183,7 +183,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
     }
 
     /**
-     * æ”¶é›†DataSourceæ€§èƒ½æŒ‡æ ‡
+     * ÊÕ¼¯DataSourceĞÔÄÜÖ¸±ê
      * 
      * @param inst
      * @param pds
@@ -208,7 +208,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
 
         for (int i = 0; i < collectMtrx.length; i++) {
 
-            Object val = ReflectionHelper.invoke(className, pds, prefix + collectMtrx[i], null, null);
+            Object val = ReflectionHelper.invoke(className, pds, prefix + collectMtrx[i], null, null,this.getClass().getClassLoader());
 
             if (val == null) {
                 continue;
