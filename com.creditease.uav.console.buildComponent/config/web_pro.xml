@@ -219,7 +219,7 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.password</param-name>
-		<param-value>Uav!630admin</param-value>
+		<param-value>123456</param-value>
 	</context-param>	
 	<context-param>
 		<param-name>uav.apphub.sso.guest.loginid</param-name>
