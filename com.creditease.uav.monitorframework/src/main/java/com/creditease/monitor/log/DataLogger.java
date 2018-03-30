@@ -39,6 +39,7 @@ public class DataLogger {
     private int fileCountLimit = 10;
     private int logBufferSize = 200;
     private String logRoot = ".";
+    private boolean isInitSus = true;
 
     /**
      * 
@@ -69,15 +70,20 @@ public class DataLogger {
         this.logRoot = rootpath;
 
         if (!IOHelper.exists(logRoot)) {
-            IOHelper.createFolder(logRoot);
+            isInitSus = false;
+            return;
         }
 
-        log.enableFileOut(this.logRoot + "/" + this.filePattern, true, this.logBufferSize, this.fileSizeLimit,
-                this.fileCountLimit, true, new SimpleLogFormatter());
+        isInitSus = log.enableFileOut(this.logRoot + "/" + this.filePattern, true, this.logBufferSize,
+                this.fileSizeLimit, this.fileCountLimit, true, new SimpleLogFormatter());
     }
 
     public void logData(String info) {
-
+		
+        if (isInitSus == false) {
+           return;
+        }
+		
         this.log.info(info);
     }
 

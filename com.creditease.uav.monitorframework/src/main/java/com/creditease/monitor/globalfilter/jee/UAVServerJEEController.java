@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -79,9 +78,9 @@ public class UAVServerJEEController extends AbsJEEGlobalFilterHandler {
 
             String retMsg = "OK";
             if (isStart == true) {
-                Set<String> existSupporters = UAVServer.instance().startSupporters(supporterClasses, true);
-                if (existSupporters.size() > 0) {
-                    retMsg = "已启动功能：" + JSONHelper.toString(existSupporters);
+                Map<String, Object> supportersStatus = UAVServer.instance().startSupporters(supporterClasses, true);
+                if (supportersStatus.size() > 0) {
+                    retMsg = JSONHelper.toString(supportersStatus);
                 }
 
                 String tag = request.getParameter("tag");
