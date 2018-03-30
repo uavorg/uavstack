@@ -215,7 +215,7 @@ public class GUIService extends AppHubBaseRestService {
             monitor.flushToSystemProperties();
 
             String ip = request.getRemoteAddr();
-            String xip = request.getHeader("X-Forward-For");
+            String xip = request.getHeader("X-Forwarded-For");
             String userip = getClientIP(ip, xip);
             Map<String, String> userInfo = new HashMap<String, String>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -258,7 +258,7 @@ public class GUIService extends AppHubBaseRestService {
             Object obj = request.getSession(false).getAttribute("apphub.gui.session.login.user.id");
             String userId = null == obj ? "" : String.valueOf(obj);
             String ip = request.getRemoteAddr();
-            String xip = request.getHeader("X-Forward-For");
+            String xip = request.getHeader("X-Forwarded-For");
             String userip = getClientIP(ip, xip);
             Map<String, String> userInfo = new HashMap<String, String>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
