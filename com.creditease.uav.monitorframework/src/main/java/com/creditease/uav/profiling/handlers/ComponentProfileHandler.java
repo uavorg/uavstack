@@ -2981,6 +2981,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         inst.setValue("webapproot", webAppRoot);
         // get the app Http URL
         inst.setValue("appurl", getServiceURI(contextpath));
+        // get the vender
+        inst.setValue("vender", UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR));
         // get app group
         getAppGroup(inst);
     }

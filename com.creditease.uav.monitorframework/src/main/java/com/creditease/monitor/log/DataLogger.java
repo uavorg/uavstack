@@ -39,6 +39,7 @@ public class DataLogger {
     private int fileCountLimit = 10;
     private int logBufferSize = 200;
     private String logRoot = ".";
+    private boolean isInitSus = true;
 
     /**
      * 
