@@ -93,7 +93,9 @@ public abstract class BaseDetector
             /**
              * If the worker exists, just update the appServerInfo this is the hyperspace dark tech, hehe, hehe, hehe :)
              */
-            this.workers.get(workerName).setAppServerInfo(appServerInfo);
+            if(this.cName.equals(this.workers.get(workerName).getDetectorName())) {
+                this.workers.get(workerName).setAppServerInfo(appServerInfo);
+            }
             return;
         }
 
@@ -117,6 +119,7 @@ public abstract class BaseDetector
         int res = worker.start();
 
         if (res == -1) {
+            worker.cancel();
             return;
         }
 
@@ -127,6 +130,7 @@ public abstract class BaseDetector
             worker = newWoker(appServerInfo, workerName, "unknown");
 
             if (worker.start() == -1) {
+                worker.cancel();
                 return;
             }
         }

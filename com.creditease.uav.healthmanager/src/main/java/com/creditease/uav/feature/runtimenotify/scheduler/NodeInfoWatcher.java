@@ -66,6 +66,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         private List<String> deadProcNames = new ArrayList<String>();
 
         public CrashEventObj(String ip, String appgroup) {
+
             this.ip = ip;
             this.appgroup = appgroup;
         }
@@ -139,6 +140,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
     private boolean isExchange;
 
     public NodeInfoWatcher(String cName, String feature) {
+
         super(cName, feature);
 
         cm = (CacheManager) getConfigManager().getComponent(this.feature, RuntimeNotifyCatcher.CACHE_MANAGER_NAME);
@@ -213,7 +215,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         }
 
         if (isSendMq) {
-            sendToMq(JSONHelper.toString(mdflist));
+            sendToMQ(mdflist);
 
         }
 
@@ -686,29 +688,6 @@ public class NodeInfoWatcher extends AbstractTimerWork {
         cm.put(UAV_CACHE_REGION, "rtnoitify.nodeinfotimer.hold", now + "");
     }
 
-    private void sendToMq(String mdfs) {
-
-        AgentResourceComponent arc = (AgentResourceComponent) ConfigurationManager.getInstance()
-                .getComponent("messageproducer", "MessageProducerResourceComponent");
-
-        MessageProducer producer = (MessageProducer) arc.getResource();
-
-        if (producer != null) {
-
-            String mesKey = MonitorDataFrame.MessageType.NodeInfo.toString();
-            Message msg = MessagingFactory.createMessage(mesKey);
-            msg.setParam(mesKey, mdfs);
-            boolean check = producer.submit(msg);
-            String sendState = mesKey + " Data Sent " + (check ? "SUCCESS" : "FAIL");
-
-            if (log.isDebugEnable()) {
-                log.debug(this, sendState + "    " + mdfs);
-            }
-
-        }
-
-    }
-
     private void exchangeToRuntimeNotify(String mdfs) {
 
         AgentFeatureComponent rn = (AgentFeatureComponent) this.getConfigManager().getComponent("runtimenotify",
@@ -721,5 +700,34 @@ public class NodeInfoWatcher extends AbstractTimerWork {
             log.info(this, "NodeInfoWatcher RUN END.");
         }
 
+    }
+
+    private void sendToMQ(List<Map<String, Object>> mdfList) {
+
+        AgentResourceComponent arc = (AgentResourceComponent) ConfigurationManager.getInstance()
+                .getComponent("messageproducer", "MessageProducerResourceComponent");
+
+        MessageProducer producer = (MessageProducer) arc.getResource();
+        if (producer == null) {
+            log.debug(this, "MessageProducer is null!");
+            return;
+        }
+
+        List<Map<String, Object>> mdfMsg = null;
+        for (Map<String, Object> mdf : mdfList) {
+            mdfMsg = new ArrayList<>(1);
+            mdfMsg.add(mdf);
+            String mesKey = MonitorDataFrame.MessageType.NodeInfo.toString();
+            Message msg = MessagingFactory.createMessage(mesKey);
+            msg.setParam(mesKey, JSONHelper.toString(mdfMsg));
+
+            boolean check = producer.submit(msg);
+            String sendState = mesKey + " Data Sent " + (check ? "SUCCESS" : "FAIL");
+
+            if (log.isDebugEnable()) {
+                String mdfDetail = check ? (mdf.get("ip") + "---" + mdf.get("time")) : JSONHelper.toString(mdfMsg);
+                log.debug(this, sendState + ". MDF:" + mdfDetail);
+            }
+        }
     }
 }
