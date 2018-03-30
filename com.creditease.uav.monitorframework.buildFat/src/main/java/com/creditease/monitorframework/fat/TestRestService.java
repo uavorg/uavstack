@@ -21,6 +21,7 @@
 package com.creditease.monitorframework.fat;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -47,6 +48,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.bson.Document;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -71,6 +76,7 @@ import com.creditease.monitorframework.fat.dbconnpool.DAOFactory;
 import com.creditease.monitorframework.fat.dbconnpool.DAOFactory.QueryHelper;
 import com.creditease.monitorframework.fat.dubbo.IMyDubboService;
 import com.creditease.monitorframework.fat.ivc.MyTestInjectObj;
+import com.creditease.monitorframework.fat.mybatis.User;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManagerFactory;
 import com.creditease.uav.httpasync.HttpAsyncClient;
@@ -837,6 +843,41 @@ public class TestRestService {
         }
 
     }
+    
+    SqlSession session;
+    
+    @GET
+    @Path("testMybatis")
+    public void testMybatis() {
+        
+        try{ 
+            if (session == null) {
+    
+                String resource = "com/creditease/monitorframework/fat/mybatis/mybatis-config.xml";  
+                InputStream inputStream = Resources.getResourceAsStream(resource);  
+                SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);  
+                session = sqlSessionFactory.openSession();
+            }
+
+            User test = new User();
+            test.setId(1);
+            test.setName("test");
+            test.setAge(23);
+            
+            session.insert("com.creditease.monitorframework.fat.mybatis.UserMapper.insertUser", test);  
+            
+            User blog = session.selectOne("com.creditease.monitorframework.fat.mybatis.UserMapper.selectUser", 1);  
+            
+            session.delete("com.creditease.monitorframework.fat.mybatis.UserMapper.selectUser", 1);  
+            
+            session.close();
+
+        }catch(Exception e) {
+
+            e.printStackTrace();
+        } 
+    }
+    
 
     @POST
     @Path("testInjectClass")
@@ -872,7 +913,7 @@ public class TestRestService {
 
         }
 
-        // 杩涜鏈嶅姟涔嬮棿浜や簰
+        // 进行服务之间交互
         CloseableHttpClient client = HttpClients.createDefault();
         HttpUriRequest http = new HttpGet(
                 "http://localhost:8080/com.creditease.uav.monitorframework.buildFat/rs/http/httpclienttest");
@@ -909,7 +950,7 @@ public class TestRestService {
 
         mongoClient.close();
 
-        // 杩涜鏈嶅姟涔嬮棿浜や簰
+        // 进行服务之间交互
         CloseableHttpClient client2 = HttpClients.createDefault();
 
         HttpUriRequest http2 = new HttpGet(
