@@ -460,7 +460,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
                     + ceo.getDeadProcNamesAsString() + "可疑死掉";
             String description = ceo.getDeadProcsInfoAsString();
 
-            NotificationEvent event = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_CRASH, title, description);
+            NotificationEvent event = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_CRASH, title, description, System.currentTimeMillis(), ceo.getIp(), "");
 
             /**
              * Notification Manager will not block the event, the frozen time has no effect to this event
