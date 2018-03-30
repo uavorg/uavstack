@@ -2981,8 +2981,6 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         inst.setValue("webapproot", webAppRoot);
         // get the app Http URL
         inst.setValue("appurl", getServiceURI(contextpath));
-        // get customized metrics
-        // getCustomizedMetrics(inst);
         // get app group
         getAppGroup(inst);
     }
@@ -2999,47 +2997,6 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         inst.setValue("appgroup", JAppGroup);
     }
 
-    // /**
-    // * getCustomizedMetrics
-    // *
-    // * @param inst
-    // */
-    // private void getCustomizedMetrics(ProfileElementInstance inst) {
-    //
-    // @SuppressWarnings("rawtypes")
-    // Map<String, Map> metrics = new HashMap<String, Map>();
-    //
-    // Enumeration<?> enumeration = System.getProperties().propertyNames();
-    //
-    // while (enumeration.hasMoreElements()) {
-    //
-    // String name = (String) enumeration.nextElement();
-    //
-    // int moIndex = name.indexOf("mo@");
-    //
-    // if (moIndex != 0) {
-    // continue;
-    // }
-    //
-    // try {
-    // String[] metricsArray = name.split("@");
-    //
-    // // add metricName to customizedMetrics
-    // if (metricsArray.length == 3) {
-    // metrics.put(metricsArray[1], JSONHelper.toObject(metricsArray[2], Map.class));
-    // }
-    // else {
-    // metrics.put(metricsArray[1], Collections.emptyMap());
-    // }
-    // }
-    // catch (Exception e) {
-    // logger.error("Parsing Custom Metrics[" + name + "] FAIL.", e);
-    // continue;
-    // }
-    // }
-    //
-    // inst.setValue("appmetrics", JSONHelper.toString(metrics));
-    // }
 
     private String getServiceURI(String contextpath) {
 
