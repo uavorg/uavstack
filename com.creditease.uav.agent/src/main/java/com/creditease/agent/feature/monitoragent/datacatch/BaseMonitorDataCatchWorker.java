@@ -206,4 +206,9 @@ public abstract class BaseMonitorDataCatchWorker extends AbstractTimerWork {
 
         return workerid;
     }
+	
+    public String getDetectorName() {
+        
+        return detector.getName();
+    }
 }
