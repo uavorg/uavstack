@@ -207,16 +207,16 @@ public class PLogger implements IPLogger {
                 this.consoleHandler.setFormatter(new DefaultLogFormatter());
             }
             log.addHandler(this.consoleHandler);
-			isEnableConsoleOutSus = true;
+            isEnableConsoleOutSus = true;
         }
         else {
             if (this.consoleHandler != null) {
                 log.removeHandler(this.consoleHandler);
             }
-			isEnableConsoleOutSus = false;
+            isEnableConsoleOutSus = false;
         }
 		
-		return isEnableConsoleOutSus;
+        return isEnableConsoleOutSus;
     }
 
     @Override
@@ -240,17 +240,17 @@ public class PLogger implements IPLogger {
             if (this.memHandler == null&& this.fileHandler != null) {
                 this.memHandler = new MemoryHandler(this.fileHandler, bufferSize, this.level);
                 this.log.addHandler(this.memHandler);
-				isEnableFileOutSus = true;
+                isEnableFileOutSus = true;
             }
         }
         else {
             if (this.memHandler != null) {
                 log.removeHandler(this.memHandler);
-				isEnableFileOutSus = false;
+                isEnableFileOutSus = false;
             }
         }
 		
-		return isEnableFileOutSus;
+        return isEnableFileOutSus;
     }
 
     /**
