@@ -126,7 +126,7 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
         }
 
         String clientip = MonitorServerUtil.getClientIP(httprequest.getRemoteAddr(),
-                httprequest.getHeader("X-Forward-For"));
+                httprequest.getHeader("X-Forwarded-For"));
 
         // put intercept context
         params.put(InvokeChainConstants.PARAM_INTECEPTCONTEXT, context);

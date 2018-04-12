@@ -337,12 +337,18 @@ function showEditNotifyDiv(jsonObjParam) {
 		
 	if(jsonObj.relationsHtmls){
 		$.each(jsonObj.relationsHtmls,function(index,html){
+			var convergenceVal = "";
+			if(jsonObj.hasOwnProperty("convergences")){
+				convergenceVal = jsonObj.convergences[index];
+			}
+			
 			var appendHtml =  
 			'<div>'+
 				'<div class="well-list well-list-display">'+
-					'<div name="stgy_exp_html" style="width:80%;">'+html+'</div>'+
-					'<div style="width: 20%;">';
-
+					'<div name="stgy_exp_html" style="width:60%;">'+html+'</div>'+
+					'<div name="stgy_convergence_html" style="width:25%;" align="right">'+convergenceVal+'</div>'+
+					'<div style="width: 15%;">';
+					
 			if(isOwner){
 				appendHtml+='<span class="glyphicon glyphicon-remove well-del" onclick="javascript:StgyClass.deleteStgyToAppend(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:StgyClass.showStgyDiv(this,\'edit\');"></span>';
 			}else{
@@ -1276,6 +1282,17 @@ var StgyClass = {
 				sb.append(thisObj.parentNode.parentNode.getElementsByTagName("div")[0].innerHTML);
 			}
 			sb.append( '</div>');
+
+            if(isOwner=="true"){
+				sb.append( '<div id="convergence_exp" class="edit-div-option input_must" contenteditable="true"   placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10">');
+			}else{
+				sb.append( '<div id="convergence_exp" class="edit-div-option "  placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10">');
+			}
+			
+			if(type=="edit"){
+				sb.append(thisObj.parentNode.parentNode.getElementsByTagName("div")[1].innerHTML);
+			}
+			sb.append( '</div>');
 			
 			if(isOwner=="true"){
 				sb.append( '<div><button style="width:95%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:StgyClass.saveStgyToAppend(\''+type+'\');">保存</button></div>');
@@ -1337,11 +1354,13 @@ var StgyClass = {
 		 * 策略编辑,保存按钮:关闭编辑,并且将策略结果追加到页面
 		 */
 		var html = document.getElementById("stgy_exp").innerHTML;
+		var htmlConvergence = document.getElementById("convergence_exp").innerHTML.replace(/<\/?[^>]*>/g,'');
 		
 		if(html.length>0 && type=="add"){
 			html =  '<div class="well-list well-list-display">'+
-						'<div name="stgy_exp_html" style="width:80%;">'+html+'</div>'+
-						'<div style="width: 20%;">'+
+						'<div name="stgy_exp_html" style="width:60%;">'+html+'</div>'+
+						'<div name="stgy_convergence_html" style="width:25%;" align="right">'+htmlConvergence+'</div>'+
+						'<div style="width: 15%;">'+
 						'<span class="glyphicon glyphicon-remove well-del" onclick="javascript:StgyClass.deleteStgyToAppend(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:StgyClass.showStgyDiv(this,\'edit\');"></span>';
 						'</div>'+
 						'</div>';
@@ -1352,6 +1371,7 @@ var StgyClass = {
 			
 		}else if(html.length>0 && type=="edit"){
 			actionConf.actionObj.parentNode.getElementsByTagName("div")[0].innerHTML = html;
+			actionConf.actionObj.parentNode.getElementsByTagName("div")[1].innerHTML = htmlConvergence;
 		}
 		
 		StgyClass.closeStgyDiv();

@@ -29,6 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.creditease.agent.feature.notifycenter.NCConstant;
+import com.creditease.agent.feature.notifycenter.NCEventStatusManager;
 import com.creditease.agent.feature.notifycenter.NCHttpServerWorker;
 import com.creditease.agent.feature.notifycenter.NCJudgementWorker;
 import com.creditease.agent.feature.notifycenter.actions.CEMailAction;
@@ -55,8 +56,10 @@ import com.creditease.uav.cache.api.CacheManagerFactory;
 public class NotificationCenter extends AgentFeatureComponent {
 
     private IActionEngine engine;
+    private IActionEngine NCJudgementEngine;
     private ExecutorService notifyCenter_ncj;
     private ExecutorService notifyCenter_inqw;
+    private CacheManager cm;
 
     private NCHttpServerWorker ncServerListenWorker;
 
@@ -95,10 +98,12 @@ public class NotificationCenter extends AgentFeatureComponent {
                 .toInt(this.getConfigManager().getFeatureConfiguration(this.feature, "nc.cache.concurrent.bqsize"), 10);
 
         // cache manager
-        CacheManager cm = CacheManagerFactory.build(cacheServerAddress, minConcurrent, maxConcurrent, queueSize,
+        cm = CacheManagerFactory.build(cacheServerAddress, minConcurrent, maxConcurrent, queueSize, 
                 password);
 
         this.getConfigManager().registerComponent(this.feature, "NCCacheManager", cm);
+        
+        new NCEventStatusManager("EventStatusManager", this.feature, cm);
 
         // start I1NQueueWorkerMgr
         int coreSize = DataConvertHelper
@@ -122,6 +127,7 @@ public class NotificationCenter extends AgentFeatureComponent {
             log.info(this, NCConstant.NC1NQueueWorkerName + " started");
         }
 
+        NCJudgementEngine = this.getActionEngineMgr().newActionEngine("NCJudgementEngine", feature);
         // start NCJudgementWorker
         NCJudgementWorker ncj = new NCJudgementWorker("NCJudgementWorker", this.feature, "notifycenterhandlers");
 
@@ -187,6 +193,13 @@ public class NotificationCenter extends AgentFeatureComponent {
 
         if (engine != null) {
             engine.clean();
+        }
+        if (NCJudgementEngine != null) {
+            NCJudgementEngine.clean();
+        }
+        
+        if (cm != null) {
+            cm.shutdown();
         }
 
         super.stop();

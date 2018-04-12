@@ -64,6 +64,8 @@ public class NotifyStrategy {
 
     private List<Condition> condtions;
 
+    private List<String> convergences;
+    
     private String msgTemplate;
 
     private Map<String, String> action = Collections.emptyMap();
@@ -80,7 +82,7 @@ public class NotifyStrategy {
     }
 
     public NotifyStrategy(String name, String scope, List<String> context, Map<String, String> action,
-            List<String> instances, String msgTemplate) {
+            List<String> instances, String msgTemplate, List<String> convergences) {
         this.name = name;
         this.scope = scope;
         if (context != null && context.size() != 0) {
@@ -92,6 +94,7 @@ public class NotifyStrategy {
         if (instances != null && instances.size() != 0) {
             this.instances = instances;
         }
+        this.convergences = convergences;
         this.msgTemplate = msgTemplate;
     }
 
@@ -182,11 +185,12 @@ public class NotifyStrategy {
         List<String> context = (List<String>) m.get("context");
         List<Object> conditions = (List<Object>) m.get("conditions");
         List<String> relations = (List<String>) m.get("relations");
+        List<String> convergences = (List<String>) m.get("convergences");
         Map<String, String> action = (Map<String, String>) m.get("action");
         String msgTemplate = (String) m.get("msgTemplate");
         List<String> instances = (List<String>) m.get("instances");
 
-        NotifyStrategy stra = new NotifyStrategy(name, scope, context, action, instances, msgTemplate);
+        NotifyStrategy stra = new NotifyStrategy(name, scope, context, action, instances, msgTemplate, convergences);
 
         stra.setConditions(conditions, relations);
 
@@ -261,6 +265,11 @@ public class NotifyStrategy {
     public List<Condition> getCondtions() {
 
         return condtions;
+    }
+    
+    public List<String> getConvergences() {
+        
+        return convergences;
     }
 
     protected static class Expression {

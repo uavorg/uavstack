@@ -299,6 +299,26 @@ body {
 	color:darkgrey;
 }
 
+.StgyDiv .edit-div-option{
+  font-size: 14px;
+  height: 50px; 
+  width: 95%;
+  min-width: 340px;
+  border-radius: 2px;
+  border-color:#000000;
+  margin: 0 auto;
+  text-align:left;
+  padding: 5px;
+  margin-top: 5px;
+  overflow-y:auto;  
+  color:#000000;
+}
+
+StgyDiv .edit-div-option:empty:before{
+	content: attr(placeholder);
+	color:darkgrey;
+}
+
 .whereStgyEdit{
     border-radius: 4px;
 }

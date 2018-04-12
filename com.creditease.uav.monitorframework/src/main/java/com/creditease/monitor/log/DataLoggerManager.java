@@ -52,8 +52,33 @@ public class DataLoggerManager extends BaseComponent {
      *            uav.properties里面该DataLoggerManager所有配置项的前缀
      */
     public DataLoggerManager(String logTypeName, String configPrefix) {
+		
         this.configPrefix = configPrefix;
-        this.logTypeName = logTypeName;
+        this.logTypeName = logTypeName;	
+		
+        String rootPath = getRootPath();
+        /**
+         * NOTE: check if DataLogger root path exists
+         * 
+         * if not, try to create, if can't create, throw RuntimeException to stop Supporter
+         * 
+         * This notify msg will be exposed to the user when he try to start this Supporter
+         */
+        if (IOHelper.exists(rootPath)) {
+            return;
+        }
+
+        try {
+            int res = IOHelper.createFolder(rootPath);
+
+            if (res != 1) {
+                throw new RuntimeException("DataLogger RootPath No Auth to Create: rootpath=" + rootPath);
+            }
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+		
     }
 
     /**
