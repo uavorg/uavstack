@@ -20,7 +20,6 @@
 
 package com.creditease.uav.threadanalysis.server;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,6 +43,7 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
     private ESClient client;
 
     public ThreadAnalysisIndexMgr(String cName, String feature) {
+
         super(cName, feature);
 
         client = (ESClient) this.getConfigManager().getComponent(this.feature, "ESClient");
@@ -116,18 +116,9 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
                 return currentIndex;
             }
 
-            client.creatIndex(currentIndex);
-
-            Map<String, Object> set = new HashMap<String, Object>();
-            set.put("index.number_of_shards", 5);
-            set.put("index.number_of_replicas", 0);
-            client.updateIndexSetting(currentIndex, set);
-            /**
-             * 变更别名到当前新的Index
-             */
-            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), -1);
-            client.addIndexAlias(currentIndex, JTA_DB);
-            client.removeIndexAlias(previousIndex, JTA_DB);
+            Map<String, String> set = new HashMap<String, String>();
+            set.put("index.number_of_shards", "5");
+            set.put("index.number_of_replicas", "0");
 
             /**
              * 就只有pname、info做分词，其他属性不做分词
@@ -135,8 +126,7 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
             Map<String, Map<String, Object>> mapping = new HashMap<String, Map<String, Object>>();
 
             Map<String, Object> stringFields = new HashMap<String, Object>();
-            stringFields.put("type", "string");
-            stringFields.put("index", "not_analyzed");
+            stringFields.put("type", "keyword");
 
             mapping.put("ipport", stringFields);
             mapping.put("pid", stringFields);
@@ -181,11 +171,18 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
             mapping.put("time", timestamp);
 
             try {
-                client.setIndexTypeMapping(currentIndex, JTA_TABLE, mapping);
+                client.creatIndex(currentIndex, JTA_TABLE, set, mapping);
             }
-            catch (IOException e) {
-                log.err(this, "Set ES Index Type Mapping FAIL: ", e);
+            catch (Exception e) {
+                log.err(this, "create ES Index FAIL: ", e);
             }
+
+            /**
+             * 变更别名到当前新的Index
+             */
+            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), -1);
+            client.addIndexAlias(currentIndex, JTA_DB);
+            client.removeIndexAlias(previousIndex, JTA_DB);
         }
 
         return currentIndex;
