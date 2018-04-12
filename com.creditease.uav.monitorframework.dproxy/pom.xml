@@ -18,6 +18,10 @@
             <artifactId>com.creditease.uav.monitorframework</artifactId>
         </dependency>
         <dependency>
+        	<groupId>com.creditease.moniter</groupId>
+        	<artifactId>com.creditease.uav.monitorframework.agent</artifactId>
+        </dependency>
+        <dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.16.1-GA</version>

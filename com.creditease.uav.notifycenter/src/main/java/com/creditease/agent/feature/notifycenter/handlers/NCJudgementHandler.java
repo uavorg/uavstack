@@ -20,6 +20,7 @@
 
 package com.creditease.agent.feature.notifycenter.handlers;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,15 +29,19 @@ import java.util.Map;
 import com.creditease.agent.ConfigurationManager;
 import com.creditease.agent.feature.notifycenter.NCConstant;
 import com.creditease.agent.feature.notifycenter.NCConstant.StateFlag;
+import com.creditease.agent.feature.notifycenter.NCEventStatusManager;
 import com.creditease.agent.feature.notifycenter.task.NotificationTask;
 import com.creditease.agent.feature.notifycenter.task.PersistentTask;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.DataStoreHelper;
 import com.creditease.agent.helpers.JSONHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.NotificationEvent;
+import com.creditease.agent.spi.AbstractBaseAction;
 import com.creditease.agent.spi.AbstractHandler;
+import com.creditease.agent.spi.ActionContext;
 import com.creditease.agent.spi.I1NQueueWorker;
-import com.creditease.uav.cache.api.CacheManager;
+import com.creditease.agent.spi.IActionEngine;
 
 /**
  * 
@@ -59,9 +64,195 @@ import com.creditease.uav.cache.api.CacheManager;
  */
 
 public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
-
-    private CacheManager cm;
-
+    
+    
+    private class NotificationConvergenceAction extends AbstractBaseAction {
+        
+        /**
+         * @param cName
+         * @param feature
+         * @param engine
+         */
+        public NotificationConvergenceAction(String cName, String feature, IActionEngine engine) {
+            
+            super(cName, feature, engine);
+        }
+        
+        @SuppressWarnings("unchecked")
+        @Override
+        public void doAction(ActionContext context) throws Exception {
+            
+            String eventKey = (String) context.getParam("eventKey");
+            NotificationEvent event = (NotificationEvent) context.getParam("event");
+            String stateDataStr = (String) context.getParam("stateDataStr");
+                        
+            Map<String, Object> stateData = null;
+            
+            /**
+             * if none, take this event as the first event record
+             */
+            if (null == stateDataStr) {
+                
+                if (log.isDebugEnable()) {
+                    log.debug(this, "NC Convergence Event happens FIRST TIME: NTFKEY=" + eventKey + ",time=" + event.getTime());
+                }
+                
+                Map<String, Object> statusSet = playAsFirstEventRecordConvergence(event, eventKey);
+                doNotificationConvergence(event, eventKey, statusSet);
+                return;
+            }
+                
+            stateData = JSONHelper.toObject(stateDataStr, Map.class);
+            
+            if (log.isDebugEnable()) {
+                log.debug(this, "NC Event happens with stateData: "+stateDataStr);
+            }
+                
+            long curTime = System.currentTimeMillis();
+            
+            long viewTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_VIEWTIME), -1);
+                
+            if (viewTime > -1) {
+                
+                if (log.isDebugEnable()) {
+                    log.debug(this, "NC Convergence Event Check Result, Over View TTL: viewTTL=" + viewTTL + ",curTime - viewTime="
+                            + (curTime - viewTime));
+                }
+                
+                /**
+                 * if there is ViewTime and ViewTime exceeds ViewTTL, take this event as a newone
+                 */
+                if (curTime - viewTime > viewTTL) {
+                    stateData = playAsFirstEventRecordConvergence(event, eventKey);
+                }
+                else {
+                    int count = increEventCount(stateData);
+                    stateData.put(NCConstant.EVENT_COUNT, count);
+                    playAsReEntryRecordConvergence(event, eventKey, stateData, false);
+                    if (log.isTraceEnable()) {
+                        log.info(this, "NCJudgementHandler END: key=" + eventKey);
+                    }
+                    return;
+                }
+                
+            } else {
+                int count = increEventCount(stateData);
+                stateData.put(NCConstant.EVENT_COUNT, count);
+            }
+            
+            doNotificationConvergence(event, eventKey, stateData);
+            
+        }
+        
+        /**
+         * the logic of gradient convergence
+         * @param event
+         * @param eventKey
+         * @param stateData
+         */
+        private void doNotificationConvergence(NotificationEvent event, String eventKey, Map<String, Object> stateData) {
+            
+            String convergence = event.getArg("convergences");
+            List<String> convs = Arrays.asList(convergence.split(","));
+            String count = stateData.get(NCConstant.EVENT_COUNT) +"";
+            if (convs.contains(count)) {
+                
+                if (log.isDebugEnable()) {
+                    log.debug(this, "NC Convergence Event Check Result, RE-Action Notify: current event=" + count);
+                }
+                playAsReEntryRecordConvergence(event, eventKey, stateData, true);
+                addNotficationTask(event, stateData);
+                
+            } else {
+                
+                playAsReEntryRecordConvergence(event, eventKey, stateData, false);
+            }
+            
+            if (log.isTraceEnable()) {
+                log.info(this, "NCJudgementHandler END: key=" + eventKey);
+            }
+        }
+        
+        @Override
+        public String getSuccessNextActionId() {
+            
+            return null;
+        }
+        
+        @Override
+        public String getFailureNextActionId() {
+            
+            return null;
+        }
+        
+        @Override
+        public String getExceptionNextActionId() {
+            
+            return null;
+        }
+        
+        private Map<String, Object> playAsFirstEventRecordConvergence(NotificationEvent event, String eventKey) {
+            
+            Map<String, Object> statusSet = new LinkedHashMap<String, Object>();
+            
+            statusSet.put(NCConstant.COLUMN_STARTTIME, event.getTime());
+            statusSet.put(NCConstant.COLUMN_STATE, NCConstant.StateFlag.NEWCOME.getStatFlag());
+            statusSet.put(NCConstant.COLUMN_RETRY_COUNT, 0);
+            statusSet.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
+            
+            // First Time NTFE take priority as the "0" Priority.
+            statusSet.put(NCConstant.COLUMN_PRIORITY, 0);
+            statusSet.put(NCConstant.EVENT_COUNT, 1);
+            
+            String statusStr = JSONHelper.toString(statusSet);
+            
+            event.addArg(NCConstant.NCFirstEvent, "true");
+            event.addArg(NCConstant.NTFKEY, eventKey);
+            event.addArg(NCConstant.NTFVALUE, statusStr);
+            
+            return statusSet;
+        }
+        
+        private void playAsReEntryRecordConvergence(NotificationEvent event, String eventKey, Map<String, Object> stateData,
+                boolean isRetry) {
+            
+            // NOTE: if the state is VIEW, the UPDATE should not be set as the latest state
+            int curState = (int) stateData.get(NCConstant.COLUMN_STATE);
+            
+            if (curState < StateFlag.UPDATE.getStatFlag() && !"true".equals(event.getArg(NCConstant.NCFirstEvent))) {
+                curState = StateFlag.UPDATE.getStatFlag();
+                stateData.put(NCConstant.COLUMN_STATE, curState);
+            }
+            
+            // NOTE: if the state is VIEW, for this part that means VIEW & UPDATE
+            if (curState == StateFlag.VIEW.getStatFlag()) {
+                curState = StateFlag.VIEWUPDATE.getStatFlag();
+                stateData.put(NCConstant.COLUMN_STATE, curState);
+            }
+            
+            if (isRetry == true) {
+                int curRetry = (Integer) stateData.get(NCConstant.COLUMN_RETRY_COUNT) + 1;
+                stateData.put(NCConstant.COLUMN_RETRY_COUNT, curRetry);
+                stateData.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
+            }
+            
+            stateData.put(NCConstant.COLUMN_LATESTRECORDTIME, event.getTime());
+            
+            String statusStr = JSONHelper.toString(stateData);
+            
+            if (null == event.getArg(NCConstant.NCFirstEvent)) {
+                event.addArg(NCConstant.NCFirstEvent, "false");
+            }
+            event.addArg(NCConstant.NTFKEY, eventKey);
+            event.addArg(NCConstant.NTFVALUE, statusStr);
+            
+            // 持久化操作
+            addPersistentTask(event);
+        }
+        
+    }
+    
+    
     private int retryTime = 3;
     /**
      * NOTE: viewTTL is the time to give human to fix the issue, see we are nice as default is 4 hours
@@ -69,13 +260,15 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
     private int viewTTL = 4 * 3600 * 1000;
     private long frozenTime = 300000;
     private I1NQueueWorker qworker;
+    private IActionEngine engine;
+    private NCEventStatusManager eventStatusManager;
 
     public NCJudgementHandler(String cName, String feature) {
 
         super(cName, feature);
 
-        cm = (CacheManager) ConfigurationManager.getInstance().getComponent(this.feature, "NCCacheManager");
-
+        eventStatusManager = (NCEventStatusManager) ConfigurationManager.getInstance().getComponent(feature, "EventStatusManager");
+        
         retryTime = DataConvertHelper
                 .toInt(this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.retry"), 3);
         viewTTL = DataConvertHelper
@@ -85,6 +278,8 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
 
         qworker = (I1NQueueWorker) ConfigurationManager.getInstance().getComponent(this.feature,
                 NCConstant.NC1NQueueWorkerName);
+        engine = this.getActionEngineMgr().getActionEngine("NCJudgementEngine");
+        new NotificationConvergenceAction(NotificationConvergenceAction.class.getSimpleName(), feature, engine);
     }
 
     /**
@@ -109,60 +304,46 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
          * 
          */
 
-        int AtomicSych = cm.incre(NCConstant.STORE_REGION, eventKey);
-
-        if (AtomicSych > 1) {
+        boolean isSYNCAtomicKey = eventStatusManager.checkSyncAtomicKey(eventKey);
+        if (isSYNCAtomicKey) {
             if (log.isTraceEnable()) {
                 log.info(this, "NCJudgementHandler event is locked:" + event.toJSONString());
             }
-            String lock = cm.get(NCConstant.STORE_REGION, eventKey);
-            if (null != lock) {
-                int atomicLock = Integer.parseInt(lock);
-
-                /**
-                 * To prevent deadLock of event
-                 */
-                if (atomicLock > 3) {
-                    cm.del(NCConstant.STORE_REGION, eventKey);
-                }
-            }
-
             return;
-        }
-        else {
-            cm.incre(NCConstant.STORE_REGION, eventKey);
         }
 
         /**
          * Step 2 Check if there is a cache for current event
          **/
-        Map<String, String> ntfvalue = null;
         try {
-            ntfvalue = cm.getHash(NCConstant.STORE_REGION, NCConstant.STORE_KEY_NCINFO, eventKey);
+            Map<String, String> ntfvalue = eventStatusManager.obtainEventCache(eventKey);
+            stateDataStr = ntfvalue.get(eventKey);
         }
         catch (RuntimeException e) {
+
             if (log.isTraceEnable()) {
                 log.info(this, "NCJudgementHandler exception got RuntimeException" + e.getMessage() + " The event is: "
                         + event.toJSONString());
             }
 
-            cm.del(NCConstant.STORE_REGION, eventKey);
-
             return;
         }
-        catch (Exception e) {
-
+        
+        /**
+         * notification convergence
+         */
+        if(!StringHelper.isEmpty(event.getArg("convergences"))) {
+            
+            ActionContext ac = new ActionContext();
+            ac.putParam("eventKey", eventKey);
+            ac.putParam("event", event);
+            ac.putParam("stateDataStr", stateDataStr);
+            engine.execute(NotificationConvergenceAction.class.getSimpleName(), ac);            
             if (log.isTraceEnable()) {
-                log.info(this, "NCJudgementHandler exception got exception" + e.getMessage() + " The event is: "
-                        + event.toJSONString());
+                log.info(this, "NCJudgementHandler END: key=" + eventKey);
             }
-
-            cm.del(NCConstant.STORE_REGION, eventKey);
-
             return;
         }
-
-        stateDataStr = ntfvalue.get(eventKey);
 
         /**
          * Step 2.1 if none, take this event as the first event record
@@ -340,6 +521,9 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         }
 
         stateData.put(NCConstant.COLUMN_LATESTRECORDTIME, event.getTime());
+        
+        int count = increEventCount(stateData);
+        stateData.put(NCConstant.EVENT_COUNT, count);
 
         /**
          * check and increase priority if needed
@@ -374,6 +558,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
 
         // First Time NTFE take priority as the "0" Priority.
         statusSet.put(NCConstant.COLUMN_PRIORITY, 0);
+        statusSet.put(NCConstant.EVENT_COUNT, 1);
 
         String statusStr = JSONHelper.toString(statusSet);
 
@@ -490,4 +675,14 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         }
 
     }
+    
+    private int increEventCount(Map<String, Object> stateData) {
+        Integer count = (Integer) stateData.get(NCConstant.EVENT_COUNT);
+        if (null == count) {
+            count = 0;
+        }
+        count = count + 1;
+        return count;
+    }
+
 }

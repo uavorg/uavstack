@@ -66,9 +66,9 @@ public class NodeOperCtrlHandler extends AbstractHttpHandler<UAVHttpMessage> {
 
             Long ts = actionLimits.get(intent);
 
-            if (ts != null && curTS - ts < 60000
+            if (ts != null && curTS - ts < 1000
                     && (!"loadnodepro".equalsIgnoreCase(intent) && !"chgsyspro".equalsIgnoreCase(intent))) {
-                data.putResponse("rs", "该节点上的操作[" + intent + "]1分钟内只能进行一次");
+                data.putResponse("rs", "该节点上的操作[" + intent + "]1秒内只能进行一次");
                 return;
             }
 

@@ -32,6 +32,7 @@ import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.proxy.spi.JDKProxyInvokeHandler;
 import com.creditease.uav.common.BaseComponent;
+import com.creditease.uav.monitorframework.agent.MOFAgent;
 import com.creditease.uav.monitorframework.dproxy.bytecode.DPClass;
 import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 
@@ -81,7 +82,7 @@ public class DynamicProxyInstaller extends BaseComponent {
         /**
          * source code: pool = ClassPool.getDefault();
          */
-        mofExtClassLoader = (URLClassLoader) System.getProperties().get("org.uavstack.mof.ext.clsloader");
+        mofExtClassLoader = (URLClassLoader) MOFAgent.mofContext.get("org.uavstack.mof.ext.clsloader");
 
         pool = ReflectionHelper.invokeStatic("javassist.ClassPool", "getDefault", null, null, mofExtClassLoader);
 

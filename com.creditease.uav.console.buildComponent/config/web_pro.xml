@@ -24,7 +24,15 @@
 		<servlet-name>jersey-serlvet</servlet-name>
 		<url-pattern>/rs/*</url-pattern>
 	</servlet-mapping>
+	<!-- jersey restful service END -->
 	
+	<!-- apphubTimer begin -->
+	<servlet> 
+		<servlet-name>apphubTimer</servlet-name>
+		<servlet-class>com.creditease.uav.timer.TimerServlet</servlet-class>
+		<load-on-startup>2</load-on-startup> 
+	</servlet>
+	<!-- apphubTimer END -->
 	
 	<servlet>
 		<servlet-name>es-serlvet</servlet-name>
@@ -33,7 +41,7 @@
 			<param-name>es.info</param-name>
 			<param-value>{"forwar.url":"http://127.0.0.1:9200,http://127.0.0.1:9200"}</param-value>
 		</init-param>
-		<load-on-startup>2</load-on-startup>
+		<load-on-startup>3</load-on-startup>
 		<async-supported>true</async-supported>
 	</servlet>
 
@@ -45,7 +53,7 @@
 	<servlet>
 		<servlet-name>opentsdb-agent-servlet</servlet-name>
 		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestAgentServlet</servlet-class>
-		<load-on-startup>3</load-on-startup>
+		<load-on-startup>4</load-on-startup>
 		<async-supported>true</async-supported>
 	</servlet>
 	
@@ -62,7 +70,6 @@
 		<url-pattern>/db2/</url-pattern>
 		<url-pattern>/db2/aggregators</url-pattern>
 	</servlet-mapping>
-	<!-- jersey restful service END -->
 
 	<!-- filter START -->
 	<filter>
@@ -204,7 +211,7 @@
     </context-param>
 	<context-param>
 		<param-name>uav.app.godeye.notify.mongodb.query.range</param-name>
-		<param-value>{"skip":0,"limit":20000}</param-value>
+		<param-value>{"skip":0,"limit":1000}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.loginid</param-name>
@@ -212,7 +219,7 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.password</param-name>
-		<param-value>Uav!630admin</param-value>
+		<param-value>123456</param-value>
 	</context-param>	
 	<context-param>
 		<param-name>uav.apphub.sso.guest.loginid</param-name>

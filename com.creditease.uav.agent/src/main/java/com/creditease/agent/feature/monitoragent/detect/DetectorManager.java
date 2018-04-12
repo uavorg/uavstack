@@ -22,7 +22,9 @@ package com.creditease.agent.feature.monitoragent.detect;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.creditease.agent.feature.monitoragent.datacatch.BaseMonitorDataCatchWorker;
 import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.jvmtool.JVMAgentInfo;
 import com.creditease.agent.spi.AbstractTimerWork;
@@ -32,6 +34,8 @@ import com.creditease.agent.spi.ResourceLimitationAuditor.ResourceType;
 public class DetectorManager extends AbstractTimerWork {
 
     protected final Map<String, BaseDetector> detectorMap = new LinkedHashMap<String, BaseDetector>();
+	
+    protected final Map<String, BaseMonitorDataCatchWorker> workers = new ConcurrentHashMap<String, BaseMonitorDataCatchWorker>();
 
     public DetectorManager(String cName, String feature) {
         super(cName, feature);
@@ -43,6 +47,8 @@ public class DetectorManager extends AbstractTimerWork {
             return;
         }
 
+        detector.setWorkers(workers);
+		
         detectorMap.put(detector.getName(), detector);
     }
 
