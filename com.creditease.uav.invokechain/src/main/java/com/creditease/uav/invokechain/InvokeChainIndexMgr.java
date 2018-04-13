@@ -20,7 +20,6 @@
 
 package com.creditease.uav.invokechain;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -53,6 +52,7 @@ public class InvokeChainIndexMgr extends AbstractComponent {
     private ESClient client;
 
     public InvokeChainIndexMgr(String cName, String feature) {
+
         super(cName, feature);
 
         client = (ESClient) this.getConfigManager().getComponent(this.feature, "ESClient");
@@ -125,18 +125,9 @@ public class InvokeChainIndexMgr extends AbstractComponent {
                 return currentIndex;
             }
 
-            client.creatIndex(currentIndex);
-
-            Map<String, Object> set = new HashMap<String, Object>();
-            set.put("index.number_of_shards", 5);
-            set.put("index.number_of_replicas", 0);
-            client.updateIndexSetting(currentIndex, set);
-            /**
-             * 变更别名到当前新的Index
-             */
-            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), -1);
-            client.addIndexAlias(currentIndex, IVC_DB);
-            client.removeIndexAlias(previousIndex, IVC_DB);
+            Map<String, String> set = new HashMap<String, String>();
+            set.put("index.number_of_shards", "5");
+            set.put("index.number_of_replicas", "0");
 
             /**
              * 设置不需要分词的索引字段spanid，parentid，traceid，epinfo(方法级排序使用), appuuid（精确查找应用实例）
@@ -145,8 +136,7 @@ public class InvokeChainIndexMgr extends AbstractComponent {
 
             Map<String, Object> fields = new HashMap<>();
 
-            fields.put("type", "string");
-            fields.put("index", "not_analyzed");
+            fields.put("type", "keyword");
 
             mapping.put("traceid", fields);
             mapping.put("spanid", fields);
@@ -169,11 +159,18 @@ public class InvokeChainIndexMgr extends AbstractComponent {
             longType.put("type", "long");
 
             try {
-                client.setIndexTypeMapping(currentIndex, IVC_Table, mapping);
+                client.creatIndex(currentIndex, IVC_Table, set, mapping);
             }
-            catch (IOException e) {
-                log.err(this, "Set ES Index Type Mapping FAIL: ", e);
+            catch (Exception e) {
+                log.err(this, "create ES Index FAIL: ", e);
             }
+
+            /**
+             * 变更别名到当前新的Index
+             */
+            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), -1);
+            client.addIndexAlias(currentIndex, IVC_DB);
+            client.removeIndexAlias(previousIndex, IVC_DB);
         }
 
         return currentIndex;

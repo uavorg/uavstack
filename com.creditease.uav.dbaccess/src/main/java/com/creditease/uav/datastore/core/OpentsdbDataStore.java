@@ -193,7 +193,7 @@ public class OpentsdbDataStore extends AbstractDataStore<HttpAsyncClient> {
 
     private static final String HTTP_HEAD = "http://";
     private static final String HTTP_QUERY = "/api/query";
-    private static final String HTTP_PUT_PREFIX = "/api/put";
+    private static final String HTTP_PUT_PREFIX = "/api/put?summary";
 
     private static final int ACTIONOK = 2;
     private static final int ACTIONFAIL = 0;
