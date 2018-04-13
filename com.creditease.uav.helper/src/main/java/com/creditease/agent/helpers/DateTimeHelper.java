@@ -996,7 +996,7 @@ public class DateTimeHelper {
 
         return now.getTime();
     }
-
+    
     public static int getWeekday(Date date) {
         
         Calendar cal = Calendar.getInstance();
