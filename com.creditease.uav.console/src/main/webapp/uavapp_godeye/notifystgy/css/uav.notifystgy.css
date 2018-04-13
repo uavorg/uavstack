@@ -373,3 +373,21 @@ StgyDiv .edit-div-option:empty:before{
 /**
 *触发策略 end
 */
+
+.itemTitle {
+	text-align:left;
+	color:#333;
+	border-left:6px solid #57A69C;
+	padding-left:5px;
+	margin-bottom:2px;
+}
+
+.itemTip {
+	color:gray;
+	font-size:14px;
+	text-align:left;
+}
+
+.dateTimeInput {
+	width:120px;
+}
