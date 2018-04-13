@@ -56,6 +56,7 @@ public class SlowOperIndexMgr extends AbstractComponent {
     }
 
     public SlowOperIndexMgr(String cName, String feature) {
+
         super(cName, feature);
 
         client = (ESClient) this.getConfigManager().getComponent(this.feature, "ESClient");
@@ -145,11 +146,16 @@ public class SlowOperIndexMgr extends AbstractComponent {
                 return currentIndex;
             }
 
-            client.creatIndex(currentIndex);
-            Map<String, Object> set = new HashMap<String, Object>();
-            set.put("index.number_of_shards", 5);
-            set.put("index.number_of_replicas", 0);
-            client.updateIndexSetting(currentIndex, set);
+            Map<String, String> set = new HashMap<String, String>();
+            set.put("index.number_of_shards", "5");
+            set.put("index.number_of_replicas", "0");
+
+            try {
+                client.creatIndex(currentIndex, null, set, null);
+            }
+            catch (Exception e) {
+                log.err(this, "create ES Index FAIL: ", e);
+            }
 
             String sappid = formatAppid(appid);
 
@@ -192,8 +198,7 @@ public class SlowOperIndexMgr extends AbstractComponent {
             // 设置
             Map<String, Object> sfields = new HashMap<>();
 
-            sfields.put("type", "string");
-            sfields.put("index", "not_analyzed");
+            sfields.put("type", "keyword");
 
             mapping.put("traceid", sfields);
             mapping.put("spanid", sfields);
