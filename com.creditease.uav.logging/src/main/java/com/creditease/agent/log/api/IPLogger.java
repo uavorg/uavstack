@@ -30,9 +30,9 @@ public interface IPLogger {
 
     public void setLogLevel(LogLevel level);
 
-    public void enableConsoleOut(boolean check);
+    public boolean enableConsoleOut(boolean check);
 
-    public void enableFileOut(String filepattern, boolean check, int bufferSize, int fileSize, int fileCount,
+    public boolean enableFileOut(String filepattern, boolean check, int bufferSize, int fileSize, int fileCount,
             boolean isAppend, Formatter format);
 
     public void log(LogLevel level, String info, Object... objects);
