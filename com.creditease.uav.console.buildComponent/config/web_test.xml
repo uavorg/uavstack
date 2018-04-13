@@ -216,7 +216,7 @@
     </context-param>
 	<context-param>
 		<param-name>uav.app.godeye.notify.mongodb.query.range</param-name>
-		<param-value>{"skip":0,"limit":20000}</param-value>
+		<param-value>{"skip":0,"limit":1000}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.loginid</param-name>
@@ -224,7 +224,7 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.password</param-name>
-		<param-value>Uav!1227admin</param-value>
+		<param-value>123456</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.guest.loginid</param-name>

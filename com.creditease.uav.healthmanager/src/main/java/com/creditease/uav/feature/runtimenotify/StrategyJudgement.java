@@ -73,6 +73,7 @@ public class StrategyJudgement extends AbstractComponent {
     private String queryServiceName;
 
     public StrategyJudgement(String cName, String feature) {
+
         super(cName, feature);
         cm = (CacheManager) this.getConfigManager().getComponent(feature, RuntimeNotifyCatcher.CACHE_MANAGER_NAME);
         invoker = this.getSystemInvokerMgr().getSystemInvoker(InvokerType.HTTP);
@@ -198,6 +199,10 @@ public class StrategyJudgement extends AbstractComponent {
              * 2.3: if there is range function, run range function
              */
             else {
+                if (samplingSlices == null || samplingSlices.isEmpty()) {
+                    log.warn(this, "SamplingSlices is null! range=" + range + ", sliceSize=" + slices.size()
+                            + ", SliceKey=" + cur.getKey() + ", expr=" + JSONHelper.toString(expr));
+                }
                 actualValue = Function.func(func, samplingSlices, exprArg, expr);
             }
 
@@ -589,10 +594,6 @@ public class StrategyJudgement extends AbstractComponent {
                 log.debug(this, "Judgement: FireSize=" + map.size() + ", conditions=" + JSONHelper.toString(crs));
             }
 
-            if (log.isDebugEnable()) {
-                log.debug(this, "Judgement: FireSize=" + map.size() + ", conditions=" + JSONHelper.toString(crs));
-            }
-
             return map;
         }
 
@@ -636,15 +637,13 @@ public class StrategyJudgement extends AbstractComponent {
             }
             else if (NotifyStrategy.Type.TIMER.toString().equals(m.get("type"))) {
 
-                description = ("true".equals(m.get("fire")))
-                        ? String.format("%s在%s至%s时间段的%s值%s比%s至%s%s超过%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"),
-                                m.get("time_from"), m.get("time_to"), readable.get(m.get("func")), m.get("tag"),
-                                m.get("last_time_from"), m.get("last_time_to"),
-                                (m.get("actualValue").contains("-")) ? "降幅" : "增幅",
-                                m.get("expectedValue"), (m.get("actualValue").contains("-"))
-                                        ? m.get("actualValue").substring(1) : m.get("actualValue"),
-                                m.get("lastValue"), m.get("currentValue"))
-                        : "false";
+                description = ("true".equals(m.get("fire"))) ? String.format(
+                        "%s在%s至%s时间段的%s值%s比%s至%s%s超过%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"), m.get("time_from"),
+                        m.get("time_to"), readable.get(m.get("func")), m.get("tag"), m.get("last_time_from"),
+                        m.get("last_time_to"), (m.get("actualValue").contains("-")) ? "降幅" : "增幅",
+                        m.get("expectedValue"),
+                        (m.get("actualValue").contains("-")) ? m.get("actualValue").substring(1) : m.get("actualValue"),
+                        m.get("lastValue"), m.get("currentValue")) : "false";
             }
 
             return description;
@@ -661,6 +660,7 @@ public class StrategyJudgement extends AbstractComponent {
 
         @SuppressWarnings("unchecked")
         private ConditionResult(NotifyStrategy.Condition cond) {
+
             this.cond = cond;
             int count = cond.getExpressions().size();
             condResult = new boolean[count];
@@ -757,8 +757,8 @@ public class StrategyJudgement extends AbstractComponent {
                 NotifyStrategy.Expression expr) {
 
             // valid
-            if (slices == null || slices.size() == 0) {
-                throw new RuntimeException("Slices is empty");
+            if (slices == null || slices.isEmpty()) {
+                return null;
             }
 
             Float value = null;
