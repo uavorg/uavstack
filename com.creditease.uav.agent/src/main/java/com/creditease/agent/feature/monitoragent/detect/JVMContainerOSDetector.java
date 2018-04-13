@@ -21,9 +21,12 @@
 package com.creditease.agent.feature.monitoragent.detect;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.creditease.agent.feature.monitoragent.datacatch.BaseMonitorDataCatchWorker;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.helpers.jvmtool.JVMAgentInfo;
@@ -55,6 +58,7 @@ public class JVMContainerOSDetector extends BaseDetector {
         private OSProcess proc;
 
         public ScanPingCallback(OSProcess proc, String url) {
+
             this.url = url;
             this.proc = proc;
         }
@@ -67,6 +71,13 @@ public class JVMContainerOSDetector extends BaseDetector {
             String vendor = result.getReplyDataAsString();
 
             if (retCode != 200 || StringHelper.isEmpty(vendor)) {
+                return;
+            }
+
+            /**
+             * vendor=="Tomcat" or "Jetty" or "JBoss" or "JSE" or "MSCP" or "SpringBoot"; so 3<=vendor.length()<=10
+             */
+            if (!(vendor.length() >= 3 && vendor.length() <= 10)) {
                 return;
             }
 
@@ -108,6 +119,7 @@ public class JVMContainerOSDetector extends BaseDetector {
         private String vendor;
 
         public GetSystemInfoCallback(OSProcess proc, String url, String vendor) {
+
             this.url = url;
             this.proc = proc;
             this.vendor = vendor;
@@ -179,14 +191,17 @@ public class JVMContainerOSDetector extends BaseDetector {
 
     protected String[] scanPorts = new String[0];
 
+    protected String baseurl = "http://127.0.0.1";
+	
     public JVMContainerOSDetector(String cName, String feature, String initHandlerKey, long detectInterval) {
+
         super(cName, feature, initHandlerKey, detectInterval);
 
         String ports = this.getConfigManager().getFeatureConfiguration(this.feature, "detector.container.ports");
 
         configScanPorts(ports);
 
-        client = HttpAsyncClientFactory.build(5, 100, 1, 1, 1);
+        client = HttpAsyncClientFactory.build(5, 100, 1000, 1000, 1000);
     }
 
     @Override
@@ -204,7 +219,7 @@ public class JVMContainerOSDetector extends BaseDetector {
 
         for (String port : scanPorts) {
 
-            String baseurl = "http://127.0.0.1:" + port;
+            String baseurl = port.indexOf(":") == -1 ? "http://127.0.0.1:" + port : "http://" + port;
 
             client.doAsyncHttpGet(baseurl + UAV_MOF_ROOT + "jvm?action=ping", new ScanPingCallback(null, baseurl));
         }
@@ -258,23 +273,22 @@ public class JVMContainerOSDetector extends BaseDetector {
                 continue;
             }
 
-            for (String port : proc.getPorts()) {
-                String baseurl;
+            Map<String, String> tags = proc.getTags();
 
-                /**
-                 * option 1：ip:port
-                 */
-                if (port.indexOf(":") > -1) {
-                    baseurl = "http://" + port;
-                }
-                /**
-                 * option 2: port only
-                 */
-                else {
-                    baseurl = "http://127.0.0.1:" + port;
-                }
+            String jargs = StringHelper.isEmpty(tags.get("jargs")) ? "" : tags.get("jargs");
 
-                client.doAsyncHttpGet(baseurl + UAV_MOF_ROOT + "jvm?action=ping", new ScanPingCallback(proc, baseurl));
+            /**
+             * NOTE: must install uavmof
+             */
+            if (!(jargs.contains("-javaagent:") && jargs.contains("monitorframework"))) {
+                continue;
+            }
+
+            List<String> needDectectUrls=getDetectUrls(proc);
+            
+            for(String url: needDectectUrls) {   
+                
+                client.doAsyncHttpGet(url + UAV_MOF_ROOT + "jvm?action=ping", new ScanPingCallback(proc, url));
             }
         }
     }
@@ -298,5 +312,66 @@ public class JVMContainerOSDetector extends BaseDetector {
             configScanPorts(ports);
         }
     }
+    
+    /**
+     * get urls which need detect
+     */
+    private List<String> getDetectUrls(OSProcess proc) {
+        
+        List<String> urlList=new LinkedList<String>();
+        
+        for (String port : proc.getPorts()) {
 
+            String url;
+
+            /**
+             * option 1：ip:port
+             */
+            if (port.indexOf(":") > -1) {
+                url = "http://" + port;
+            }
+            /**
+             * option 2: port only
+             */
+            else {
+                url = baseurl + ":" + port;
+            }          
+            
+            if(workerExist(proc.getPid(),url,urlList)) {
+                return urlList;
+            }
+        }
+        
+        return urlList;
+    }
+    
+    /**
+     * check if the worker for this appServer exist
+     */
+    public boolean workerExist(String pid,String url,List<String> urlList) {
+        
+        String JVMAccessURL = url + UAV_MOF_ROOT;
+        
+        for(BaseMonitorDataCatchWorker worker:workers.values()) {
+            
+            JVMAgentInfo appServerInfo = jvmAgentInfos.get(worker.getWorkerId());
+           
+            if(appServerInfo!=null && JVMAccessURL.equals((appServerInfo.getJVMAccessURL()))) {
+                
+                urlList.clear();
+                
+                if(!pid.equals(appServerInfo.getId())) {
+                    
+                    // remove worker whose JVMAccessURL is the same but pid changes(usually restart)
+                    removeWorker(worker.getName());               
+                    
+                    urlList.add(url);
+                }
+                return true;
+            }
+        }
+
+        urlList.add(url);
+        return false;
+    }
 }

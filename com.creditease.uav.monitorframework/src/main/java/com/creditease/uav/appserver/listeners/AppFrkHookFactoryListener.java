@@ -76,11 +76,13 @@ public class AppFrkHookFactoryListener extends InterceptEventListener {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void initHookFactory() {
 
         String config = System.getProperty("com.creditease.uav.hookfactory.config");
 
-        hookConfig = JSONHelper.toObjectArray(config, Map.class);
+        // make an ordered JSONObject cause by "adapts" must be ordered on injecting
+        hookConfig = JSONHelper.toObject(config, List.class, true);
 
         String hookFactoryClassStr = System
                 .getProperty("com.creditease.uav." + vendor.toString().toLowerCase() + ".hookfactory");

@@ -1258,6 +1258,35 @@ var mvcObj={
 			theme: 'BGLight',
 			order: 1005
 		});
+		// build Thread Analysis Multi Dump Window 
+		window.winmgr.build({
+			id: 'AppJTAMultiDumpWnd',
+			height: 'auto',
+			'overflow-y': 'auto',
+			theme: 'BGLight',
+			order: 1006
+		});
+		// build Thread Analysis Graph Window
+		window.winmgr.build({
+			id: 'AppJTAGraphWnd',
+			height: 'auto',
+			'overflow-y': 'auto',
+			theme: 'BGLight',
+			order: 1007,
+			events:{
+				onresize:function(w,h,noTopHeight) {
+					appJTA.resize(w,h,noTopHeight);
+				}
+			}
+		});
+		// build Thread Analysis Message Windows
+		window.winmgr.build({
+			id: 'AppJTAMsgWnd',
+			height: 'auto',
+			'overflow-y': 'auto',
+			theme: 'BGLight',
+			order: 1008
+		});
 		
 		//View Change
 		var view=HtmlHelper.getQParam("view");
@@ -1346,13 +1375,18 @@ var mvcObj={
 					 nodeInfoObj["id"]=key;
 					 
 					 var appgroup=nodeInfoObj["appgroup"];
+					 var appid=nodeInfoObj["appid"];
 					 
 					 if (appgroup==undefined||appgroup=="") {
 						 ungroupNodes[ungroupNodes.length]=nodeInfoObj;
 					 }
 					 else {
 						 var ip=nodeInfoObj["ip"];
-						 ipToAppGroup[ip]=appgroup;
+						 if(ipToAppGroup[ip]==undefined){
+							 ipToAppGroup[ip]=[];
+						 }
+							 						 
+						 ipToAppGroup[ip][appid]=appgroup; 
 					 }					 
 					 
 					 nodeArray[nodeArray.length]=nodeInfoObj;
@@ -1362,8 +1396,8 @@ var mvcObj={
 				 for(var i=0;i<ungroupNodes.length;i++) {
 					 var ip=ungroupNodes[i]["ip"];
 					 if (ipToAppGroup[ip]!=undefined) {
-						 ungroupNodes[i]["appgroup"]=ipToAppGroup[ip];
-						 ungroupNodes[i]["appgpid"]=ipToAppGroup[ip]+":"+ungroupNodes[i]["appid"];
+						 ungroupNodes[i]["appgroup"]=ipToAppGroup[ip][appid];
+						 ungroupNodes[i]["appgpid"]=ungroupNodes[i]["appgroup"]+":"+appid;
 					 }
 				 }
 				 
@@ -2197,7 +2231,21 @@ var mvcObj={
 					  * Application need auto group
 					  */
 					 if (type=="app") {
-						 var appgroup=monitorCfg.app.ipToAppGroup[appO["ip"]];
+						 var appid;
+						 var index=id.lastIndexOf("---");
+
+						 // for jee,mscp,springboot
+						 if(index!=-1){
+							 appid=id.substring(index+3,id.length);
+						 }
+
+						 // for jse
+						 if(appid==undefined){
+							 index=id.lastIndexOf("-");
+							 appid=id.substring(0,index).split("/").pop();
+						 }
+
+						 var appgroup=monitorCfg.app.ipToAppGroup[appO["ip"]][appid];
 						 
 						 if (appgroup!=undefined) {
 							 appO["appgroup"]=appgroup;
@@ -2503,7 +2551,7 @@ var mvcObj={
     			
     			var metric=metrics[i];
     			
-    			if(mprefix=="clientResp"&&metric=="RC"||mprefix!="clientResp"&&metric=="AC"){
+    			if(mprefix=="clientResp"&&metric=="RC"||mprefix!="clientResp"&&metric=="AC"||mprefix!="clientResp"&&metric=="EXT"){
     				continue;
     			}
     			
@@ -3973,6 +4021,11 @@ var mvcObj={
 			
 				var serviceURLs=cptservices[cptservice];
 				
+				//don't show the servicComp in appInstChart when serviceurl begin with @ (means there is no servlet-mapping for this serviceComp)
+				if (serviceURLs.length==0||serviceURLs[0].indexOf('@')==0){
+					continue;
+				}
+				
 				var sObj={name:cptservice,urls:serviceURLs,ip:jsonObj.ip,svrid:jsonObj.svrid};
 				
 				var sObjStr=StringHelper.obj2str(sObj);
@@ -4192,7 +4245,7 @@ var mvcObj={
 				 * App Service URL 性能显示
 				 */
 				sb.append("<div class='indexItem'>");
-				sb.append("<div class='indexItemHead'><span class='indexItemTag'>"+(i+1)+"</span><span class='indexItemId'>"+url+"</span></div>");
+				sb.append("<div class='indexItemHead'><span class='indexItemTag'>"+(i+1)+"</span><span class='indexItemId'>"+url.replace("#","")+"</span></div>");
 				sb.append("<div class='indexItemContent'>");
 				sb.append("QPM<span class='osRate' id='"+url+"_appservicechart_QPS'>-</span>&nbsp;&nbsp;" +
 		         		"全程平均响应(ms)<span class='osRate' id='"+url+"_appservicechart_RT'>-</span>&nbsp;&nbsp;" +
@@ -4240,6 +4293,21 @@ var mvcObj={
 			 */
 			monitorCfg.url.ip=sObj.ip;
 			monitorCfg.url.svrid=sObj.svrid;
+			
+			//url以"#"结尾意味着需要去除后缀，
+			for(var i=0;i<sObj.urls.length;i++){
+			    
+				if(!sObj.urls[i].endsWith("#")){
+				    continue;
+				}
+				
+				var lastSeparatorIndex = sObj.urls[i].lastIndexOf("/");
+				var suffixIndex = sObj.urls[i].lastIndexOf(".");
+				//最后一个分隔符'/'之后的点认为是后缀
+				if(suffixIndex > lastSeparatorIndex){
+					sObj.urls[i] = sObj.urls[i].substring(0,suffixIndex);
+				}
+			}
 			monitorCfg.url.urls=sObj.urls;
 			/**
 	         * Step 2: refresh service url
@@ -4265,6 +4333,21 @@ var mvcObj={
 			
 				var urlMO=urlMOs[key];
 				
+				//正常情况下返回结果的key应该在appURLQPSCfg.seriesMap，若不在说明做了后缀的截取，需要恢复
+				if(!(key in appURLQPSCfg.seriesMap)){
+					for(var seriesMapKey in appURLQPSCfg.seriesMap){
+						//按照去除后缀的逻辑把seriesMapKey里的后缀去掉，若与当前key相同说明是同一个url
+						var lastSeparatorIndex = seriesMapKey.lastIndexOf("/");
+						var suffixIndex = seriesMapKey.lastIndexOf(".");
+						if(suffixIndex > lastSeparatorIndex && key == seriesMapKey.substring(0,suffixIndex)){
+							//将key替换成含有后缀的形式，保证数据可以正确设置
+							key = seriesMapKey;
+							//将urlMO["id"]替换成含有后缀形式，保证数据可以正常显示
+							urlMO["id"]=key;
+							break;
+						}
+					}
+				}	
 				var tps = urlMO["tps"];
 	    		var tavg = urlMO["tavg"];
 	    		var err = urlMO["err"];
@@ -4718,7 +4801,7 @@ var mvcObj={
 				
 				for(var i=0;i<cptservice.length;i++) {
 					
-					sb.append("<div class='kvSubField'>"+cptservice[i]+"</div>");
+					sb.append("<div class='kvSubField'>"+cptservice[i].replace("#","")+"</div>");
 					
 				}
 				
@@ -5664,24 +5747,54 @@ var mvcObj={
          */
         // -------------------- thread analysis list window --------------------
         buildAppJTAListWnd: function(sObj) {
-			return appJTA.buildAppJTAListWnd(sObj);
-		},
-		runAppJTAListWnd: function(sObj) {
-			appJTA.runAppJTAListWnd(sObj);
-		},
-		destroyAppJTAListWnd: function() {
-			// ignore
-		},
+            return appJTA.buildAppJTAListWnd(sObj);
+        },
+        runAppJTAListWnd: function(sObj) {
+            appJTA.runAppJTAListWnd(sObj);
+        },
+        destroyAppJTAListWnd: function() {
+            // ignore
+        },
         // -------------------- thread analysis detail window --------------------
-		buildAppJTADetailWnd: function(sObj) {
-			return appJTA.buildAppJTADetailWnd(sObj);
-		},
-		runAppJTADetailWnd: function(sObj) {
-			appJTA.runAppJTADetailWnd(sObj);
-		},
-		destroyAppJTADetailWnd: function() {
-			// ignore
-		}
+        buildAppJTADetailWnd: function(sObj) {
+            return appJTA.buildAppJTADetailWnd(sObj);
+        },
+        runAppJTADetailWnd: function(sObj) {
+            appJTA.runAppJTADetailWnd(sObj);
+        },
+        destroyAppJTADetailWnd: function() {
+            // ignore
+        },
+        // -------------------- thread analysis multi dump window --------------------
+        buildAppJTAMultiDumpWnd: function(sObj) {
+            return appJTA.buildJTAMultiDumpWnd(sObj);
+        },
+        runAppJTAMultiDumpWnd: function(sObj) {
+            appJTA.runJTAMultiDumpWnd(sObj);
+        },
+        destroyAppJTAMultiDumpWnd: function() {
+            // ignore
+        },
+        // -------------------- thread analysis graph window --------------------
+        buildAppJTAGraphWnd: function(sObj) {
+            return appJTA.buildAppJTAGraphWnd(sObj);
+        },
+        runAppJTAGraphWnd: function(sObj) {
+            appJTA.runAppJTAGraphWnd(sObj);
+        },
+        destroyAppJTAGraphWnd: function(sObj) {
+            // ignore
+        },
+        // -------------------- thread analysis graph window --------------------
+        buildAppJTAMsgWnd: function(sObj) {
+        	return appJTA.buildJTAMsgWnd(sObj);
+        },
+        runAppJTAMsgWnd: function(sObj) {
+        	appJTA.runJTAMsgWnd(sObj);
+        },
+        destroyAppJTAMsgWnd: function() {
+        	// ignore
+        }
 	}	
 };
 

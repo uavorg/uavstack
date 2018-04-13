@@ -53,7 +53,8 @@ var selUiConf = {
 			          ["hostState","应用容器状态指标系"],
 			          ["urlResp","服务状态指标系"],
 			          ["appResp","应用状态指标系"],
-			          ["serverResp","应用服务器状态指标系"]
+			          ["serverResp","应用服务器状态指标系"],
+			          ["procCrash","进程死亡指标系"]
 				     ],
 		"client":[
 			          ["clientResp","调用状态指标系"]
@@ -336,12 +337,18 @@ function showEditNotifyDiv(jsonObjParam) {
 		
 	if(jsonObj.relationsHtmls){
 		$.each(jsonObj.relationsHtmls,function(index,html){
+			var convergenceVal = "";
+			if(jsonObj.hasOwnProperty("convergences")){
+				convergenceVal = jsonObj.convergences[index];
+			}
+			
 			var appendHtml =  
 			'<div>'+
 				'<div class="well-list well-list-display">'+
-					'<div name="stgy_exp_html" style="width:80%;">'+html+'</div>'+
-					'<div style="width: 20%;">';
-
+					'<div name="stgy_exp_html" style="width:60%;">'+html+'</div>'+
+					'<div name="stgy_convergence_html" style="width:25%;" align="right">'+convergenceVal+'</div>'+
+					'<div style="width: 15%;">';
+					
 			if(isOwner){
 				appendHtml+='<span class="glyphicon glyphicon-remove well-del" onclick="javascript:StgyClass.deleteStgyToAppend(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:StgyClass.showStgyDiv(this,\'edit\');"></span>';
 			}else{
@@ -432,6 +439,7 @@ function showEditNotifyDiv(jsonObjParam) {
 	window.winmgr.hide("notifyList");
 	window.winmgr.show("objectDiv");
 
+	hideShowConStgy(names[1]);
 }
 
 
@@ -495,6 +503,9 @@ function initActionDiv(isOwner) {
  */
 function showCon(thisObj,type){
 	actionConf.actionObj=thisObj.parentNode;
+	if(selUiConf["userInput"]["notifyNameM"]=="log"){
+		$("#condType").attr("disabled","disabled");
+	}
 	 $("#pageType").val(type);
 	if("EDIT" == type){
 		var jsonValue = JSON.parse(thisObj.parentNode.getElementsByTagName("span")[0].textContent);
@@ -768,6 +779,8 @@ function selServerChangeShow(type,value,text){
 	$("#"+selId).html(text);
 	$("#"+selId).css("padding-left","2px");
 	$("#"+type+"_notifyNameF").css("color","black");
+	
+	hideShowConStgy("show");
 
 	if(text == "自定义指标"){
 		$("#"+type+"_appName_div").hide();
@@ -825,8 +838,20 @@ function changeJTAStat(text){
 	}
 }
 
+function hideShowConStgy(value){
+	if(value == "procCrash"){
+		 $("#conFatDiv").hide();
+		 $("#stgyFatDiv").hide();
+	 }
+	 else{
+		 $("#conFatDiv").show();
+		 $("#stgyFatDiv").show();
+	 }
+}
+
 function selIndexChangeShow(type,value,text){
 	 changeJTAStat(text);
+	 hideShowConStgy(value);
 	 
 	 $("#"+type+"_notifyNameM").html(text);
 	 $("#"+type+"_notifyNameM").css("padding-left","2px");
@@ -1186,7 +1211,7 @@ function closeObjectDiv() {
 }
 
 function openHelpDiv() {
- 	window.open("file/help.htm","apphub.help");	
+ 	window.open("https://uavorg.github.io/documents/uavdoc_useroperation/28.html#%E5%88%9B%E5%BB%BA","apphub.help");	
 }
 
 
@@ -1257,6 +1282,17 @@ var StgyClass = {
 				sb.append(thisObj.parentNode.parentNode.getElementsByTagName("div")[0].innerHTML);
 			}
 			sb.append( '</div>');
+
+            if(isOwner=="true"){
+				sb.append( '<div id="convergence_exp" class="edit-div-option input_must" contenteditable="true"   placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10">');
+			}else{
+				sb.append( '<div id="convergence_exp" class="edit-div-option "  placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10">');
+			}
+			
+			if(type=="edit"){
+				sb.append(thisObj.parentNode.parentNode.getElementsByTagName("div")[1].innerHTML);
+			}
+			sb.append( '</div>');
 			
 			if(isOwner=="true"){
 				sb.append( '<div><button style="width:95%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:StgyClass.saveStgyToAppend(\''+type+'\');">保存</button></div>');
@@ -1318,11 +1354,13 @@ var StgyClass = {
 		 * 策略编辑,保存按钮:关闭编辑,并且将策略结果追加到页面
 		 */
 		var html = document.getElementById("stgy_exp").innerHTML;
+		var htmlConvergence = document.getElementById("convergence_exp").innerHTML.replace(/<\/?[^>]*>/g,'');
 		
 		if(html.length>0 && type=="add"){
 			html =  '<div class="well-list well-list-display">'+
-						'<div name="stgy_exp_html" style="width:80%;">'+html+'</div>'+
-						'<div style="width: 20%;">'+
+						'<div name="stgy_exp_html" style="width:60%;">'+html+'</div>'+
+						'<div name="stgy_convergence_html" style="width:25%;" align="right">'+htmlConvergence+'</div>'+
+						'<div style="width: 15%;">'+
 						'<span class="glyphicon glyphicon-remove well-del" onclick="javascript:StgyClass.deleteStgyToAppend(this);"></span><span class="glyphicon glyphicon-edit well-edit" onclick="javascript:StgyClass.showStgyDiv(this,\'edit\');"></span>';
 						'</div>'+
 						'</div>';
@@ -1333,6 +1371,7 @@ var StgyClass = {
 			
 		}else if(html.length>0 && type=="edit"){
 			actionConf.actionObj.parentNode.getElementsByTagName("div")[0].innerHTML = html;
+			actionConf.actionObj.parentNode.getElementsByTagName("div")[1].innerHTML = htmlConvergence;
 		}
 		
 		StgyClass.closeStgyDiv();

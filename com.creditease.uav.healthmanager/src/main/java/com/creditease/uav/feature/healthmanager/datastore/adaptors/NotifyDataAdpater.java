@@ -79,6 +79,7 @@ public class NotifyDataAdpater extends AbstractMongoDataAdpater {
             document.put("ip", ne.getIP());
             document.put("appgroup", args.get("appgroup"));
             document.put("createtime", System.currentTimeMillis());
+            document.put("notifyType", getNotifyType(ne.getTitle()));
 
             documents.add(document);
         }
@@ -119,4 +120,13 @@ public class NotifyDataAdpater extends AbstractMongoDataAdpater {
         return key;
     }
 
+    public static String getNotifyType(String title) {
+        String[] titleArray = title.split("@");
+        if (titleArray.length > 2) {
+            return titleArray[1];
+        }
+        else {
+            return "UNKNOWN";
+        }
+    }
 }

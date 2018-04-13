@@ -248,7 +248,7 @@ public class SessionAsyncFilter implements Filter {
          */
 
         String ip = request.getRemoteAddr();
-        String xip = request.getHeader("X-Forward-For");
+        String xip = request.getHeader("X-Forwarded-For");
 
         String time = sdf.format(new Date());
         String userid = getUserIdBySession(request);

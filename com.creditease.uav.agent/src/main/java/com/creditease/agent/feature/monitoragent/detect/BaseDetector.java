@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.creditease.agent.feature.monitoragent.datacatch.BaseMonitorDataCatchWorker;
 import com.creditease.agent.helpers.DataConvertHelper;
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.helpers.jvmtool.JVMAgentInfo;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
@@ -47,7 +47,7 @@ public abstract class BaseDetector
 
     protected final Map<String, String> workerTypeClsMap = new ConcurrentHashMap<String, String>();
 
-    protected final Map<String, BaseMonitorDataCatchWorker> workers = new ConcurrentHashMap<String, BaseMonitorDataCatchWorker>();
+    protected Map<String, BaseMonitorDataCatchWorker> workers;
 
     protected final Map<String, JVMAgentInfo> jvmAgentInfos = new ConcurrentHashMap<String, JVMAgentInfo>();
 
@@ -93,7 +93,9 @@ public abstract class BaseDetector
             /**
              * If the worker exists, just update the appServerInfo this is the hyperspace dark tech, hehe, hehe, hehe :)
              */
-            this.workers.get(workerName).setAppServerInfo(appServerInfo);
+            if(this.cName.equals(this.workers.get(workerName).getDetectorName())) {
+                this.workers.get(workerName).setAppServerInfo(appServerInfo);
+            }
             return;
         }
 
@@ -117,6 +119,7 @@ public abstract class BaseDetector
         int res = worker.start();
 
         if (res == -1) {
+            worker.cancel();
             return;
         }
 
@@ -127,6 +130,7 @@ public abstract class BaseDetector
             worker = newWoker(appServerInfo, workerName, "unknown");
 
             if (worker.start() == -1) {
+                worker.cancel();
                 return;
             }
         }
@@ -160,7 +164,7 @@ public abstract class BaseDetector
             return worker;
         }
 
-        worker = (BaseMonitorDataCatchWorker) ReflectHelper.newInstance(bmdcWorkerCls,
+        worker = (BaseMonitorDataCatchWorker) ReflectionHelper.newInstance(bmdcWorkerCls,
                 new Class<?>[] { String.class, String.class, JVMAgentInfo.class, BaseDetector.class },
                 new Object[] { workerName, this.feature, appServerInfo, this },
                 this.getConfigManager().getFeatureClassLoader(this.feature));
@@ -262,5 +266,13 @@ public abstract class BaseDetector
         }
 
         return jvmType;
+    }
+	
+     /**
+     * @param set the workers 
+     */
+    protected void setWorkers(Map<String, BaseMonitorDataCatchWorker> workers) {
+    
+        this.workers = workers;
     }
 }

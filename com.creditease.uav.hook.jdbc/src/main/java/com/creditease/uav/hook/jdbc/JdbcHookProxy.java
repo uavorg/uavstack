@@ -36,9 +36,8 @@ import com.creditease.monitor.interceptframework.spi.InterceptContext.Event;
 import com.creditease.uav.hook.jdbc.interceptors.JdbcDriverIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 public class JdbcHookProxy extends HookProxy {
 
@@ -195,7 +194,7 @@ public class JdbcHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("createConnection".equals(m.getName())) {
 
@@ -247,7 +246,7 @@ public class JdbcHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("createConnection".equals(m.getName())) {
 
@@ -302,7 +301,7 @@ public class JdbcHookProxy extends HookProxy {
                         new DynamicProxyProcessor() {
 
                             @Override
-                            public void process(CtMethod m) throws Exception {
+                            public void process(DPMethod m) throws Exception {
 
                                 if ("getConnection".equals(m.getName())
                                         && (m.getParameterTypes() == null || m.getParameterTypes().length == 0)) {
@@ -358,7 +357,7 @@ public class JdbcHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("connect".equals(m.getName())) {
 
@@ -377,7 +376,7 @@ public class JdbcHookProxy extends HookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("createDriver".equals(m.getName()) && m.getParameterTypes().length == 2) {
 
@@ -388,6 +387,17 @@ public class JdbcHookProxy extends HookProxy {
                         }
                     }
                 }, false);
+
+        /**
+         * adapts:<br>
+         * 1) FIX simulate the behaviour of Druid before injected: <br>
+         * validateConnection use given Connection to ping DB, <br>
+         * and throw exception if our $Proxy is given.<br>
+         * <br>
+         * 2) FIX simulate the behaviour of Druid before injected: <br>
+         * these 'init' methods will new a Object to specified DB type
+         */
+        dpInstall.doAdapts(getAdapts());
 
         // release loader
         dpInstall.releaseTargetClassLoader();

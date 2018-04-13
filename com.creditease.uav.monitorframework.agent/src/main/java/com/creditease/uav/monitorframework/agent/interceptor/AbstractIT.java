@@ -30,7 +30,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.creditease.uav.monitorframework.agent.MOFAgent;
-import com.creditease.uav.monitorframework.agent.util.IOUtil;
 import com.creditease.uav.monitorframework.agent.util.JarUtil;
 
 public class AbstractIT {
@@ -72,7 +71,10 @@ public class AbstractIT {
                             }
                         }
 
-                        System.setProperty(key, value);
+                        if (System.getProperty(key) == null) {
+                            System.setProperty(key, value);
+                        }
+
                     }
                 }
 
@@ -81,10 +83,6 @@ public class AbstractIT {
                 // ignore
             }
         }
-
-        // when update mof, NetCardIndex will be replaced with default value, so we read it from agent's metadata.
-        String systemProFilePath = this.uavMofRoot + "/../uavagent/metadata/systempro.cache";
-        loadNetCardIndex(systemProFilePath);
 
     }
 
@@ -105,13 +103,14 @@ public class AbstractIT {
 
             m.setAccessible(true);
 
+            /**
+             * Install MOF jars
+             */
             String moflib = this.uavMofRoot + "/com.creditease.uav";
-
-            String extlib = MOFAgent.getExtLib(this.uavMofRoot);
 
             String appserverCommonLib = this.uavMofRoot + "/com.creditease.uav." + appSeverVendorName + "/common";
 
-            URL[] mofJars = JarUtil.loadJars(moflib, extlib, appserverCommonLib);
+            URL[] mofJars = JarUtil.loadJars(moflib, appserverCommonLib);
 
             for (URL url : mofJars) {
 
@@ -120,6 +119,30 @@ public class AbstractIT {
                 System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install to class loader with jar ["
                         + url.toString() + "]");
             }
+            
+
+            /**
+             * Install MOF ext jars
+             * NOTE: using another classloader, in order to no conflict with user application's jars such as javassit
+             */
+            System.out.println("--------------------------------");
+            
+            String extlib = MOFAgent.getExtLib(this.uavMofRoot);
+
+            URL[] extJars = JarUtil.loadJars(extlib);
+            
+            URLClassLoader mofExtClassloader=new URLClassLoader(new URL[]{});
+            
+            for (URL url : extJars) {
+
+                m.invoke(mofExtClassloader, new Object[] { url });
+
+                System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install to mof ext class loader with jar ["
+                        + url.toString() + "]");
+            }
+            
+            MOFAgent.mofContext.put("org.uavstack.mof.ext.clsloader", mofExtClassloader);
+            
             System.out.println("MOF.Interceptor[" + appSeverVendorName + "] Install MonitorFramework Jars End.");
 
         }
@@ -129,28 +152,4 @@ public class AbstractIT {
         }
     }
 
-    private void loadNetCardIndex(String systemProFilePath) {
-
-        File systemProFile = new File(systemProFilePath);
-        if (!systemProFile.exists()) {
-            return;
-        }
-
-        String s = IOUtil.readTxtFile(systemProFilePath, "utf-8").trim().replace("\n", "").replace("\"", "");
-        if (s == null) {
-            return;
-        }
-
-        s = s.substring(1, s.length() - 1);
-        String[] strs = s.split(",");
-
-        for (String str : strs) {
-            String[] pair = str.split(":");
-            if (pair[0].indexOf("NetCardIndex") > -1) {
-                System.setProperty("NetCardIndex", pair[1]);
-                break;
-            }
-        }
-
-    }
 }

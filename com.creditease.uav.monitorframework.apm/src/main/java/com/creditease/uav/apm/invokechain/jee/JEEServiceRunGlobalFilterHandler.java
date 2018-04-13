@@ -26,7 +26,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
@@ -126,7 +126,7 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
         }
 
         String clientip = MonitorServerUtil.getClientIP(httprequest.getRemoteAddr(),
-                httprequest.getHeader("X-Forward-For"));
+                httprequest.getHeader("X-Forwarded-For"));
 
         // put intercept context
         params.put(InvokeChainConstants.PARAM_INTECEPTCONTEXT, context);
@@ -175,10 +175,10 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
             return response.getStatus();
         }
         catch (Error e) {
-            Object resp = ReflectHelper.getField(response.getClass(), response, "response");
+            Object resp = ReflectionHelper.getField(response.getClass(), response, "response");
 
             if (resp != null) {
-                Object result = ReflectHelper.invoke("org.apache.catalina.connector.Response", resp, "getStatus", null,
+                Object result = ReflectionHelper.invoke("org.apache.catalina.connector.Response", resp, "getStatus", null,
                         null, response.getClass().getClassLoader());
 
                 return (Integer) result;

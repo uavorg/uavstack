@@ -65,6 +65,7 @@ public class SlowOperDataCollectHandler extends AbstractCollectDataHandler {
         new SlowOperRpcAction("apache.http.AsyncClient", feature, engine);
         new SlowOperMQConsumerAction("mq.service", feature, engine);
         new SlowOperMQProducerAction("rabbitmq.client", feature, engine);
+        new SlowOperMQProducerAction("rocketmq.client", feature, engine);
         new SlowOperMethodAction("method", feature, engine);
         new SlowOperJdbcAction("jdbc.client", feature, engine);
         new SlowOperMethodAction("dubbo.provider", feature, engine, "dubbo");

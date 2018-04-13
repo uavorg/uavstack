@@ -73,6 +73,7 @@ public class HealthManager extends AgentFeatureComponent {
     private boolean isStartLifeKeeper = false;
 
     public HealthManager(String cName, String feature) {
+
         super(cName, feature);
     }
 
@@ -378,15 +379,15 @@ public class HealthManager extends AgentFeatureComponent {
         buildDataStore(icm, notifyKey, DataStoreType.MONGODB, new NotifyDataAdpater(), null);
 
         Map<String, Object> nctx = new HashMap<String, Object>();
-        mctx.put(DataStoreProtocol.OPENTSDB_CLIENT_MAXPERROUTE, DataConvertHelper
+        nctx.put(DataStoreProtocol.OPENTSDB_CLIENT_MAXPERROUTE, DataConvertHelper
                 .toInt(icm.getFeatureConfiguration(this.feature, nodeinfoKey + ".ds.maxPerRoute"), 10));
-        mctx.put(DataStoreProtocol.OPENTSDB_CLIENT_MAXROUTE,
+        nctx.put(DataStoreProtocol.OPENTSDB_CLIENT_MAXROUTE,
                 DataConvertHelper.toInt(icm.getFeatureConfiguration(this.feature, nodeinfoKey + ".ds.maxRoute"), 50));
-        mctx.put(DataStoreProtocol.OPENTSDB_CLIENT_SOTIMEOUT, DataConvertHelper
+        nctx.put(DataStoreProtocol.OPENTSDB_CLIENT_SOTIMEOUT, DataConvertHelper
                 .toInt(icm.getFeatureConfiguration(this.feature, nodeinfoKey + ".ds.soTimeout"), 5000));
-        mctx.put(DataStoreProtocol.OPENTSDB_CLIENT_CONNTIMEOUT, DataConvertHelper
+        nctx.put(DataStoreProtocol.OPENTSDB_CLIENT_CONNTIMEOUT, DataConvertHelper
                 .toInt(icm.getFeatureConfiguration(this.feature, nodeinfoKey + ".ds.connTimeout"), 5000));
-        mctx.put(DataStoreProtocol.OPENTSDB_CLIENT_REQTIMEOUT, DataConvertHelper
+        nctx.put(DataStoreProtocol.OPENTSDB_CLIENT_REQTIMEOUT, DataConvertHelper
                 .toInt(icm.getFeatureConfiguration(this.feature, nodeinfoKey + ".ds.reqTimeout"), 5000));
 
         // build nodeinfo ds

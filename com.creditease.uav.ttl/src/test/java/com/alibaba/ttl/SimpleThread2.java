@@ -25,15 +25,16 @@ public class SimpleThread2 implements Runnable {
     private int id;
 
     public SimpleThread2(int i) {
+
         this.id = i;
     }
 
     @Override
     public void run() {
 
-        System.out.println("before" + id + "---" + Test.THREAD_LOCAL.get());
-        Test.THREAD_LOCAL.set(id + "");
-        System.out.println("after" + id + "---" + Test.THREAD_LOCAL.get());
+        System.out.println("before" + id + "---" + TtlCase.THREAD_LOCAL.get());
+        TtlCase.THREAD_LOCAL.set(id + "");
+        System.out.println("after" + id + "---" + TtlCase.THREAD_LOCAL.get());
     }
 
 }

@@ -24,7 +24,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.captureframework.spi.MonitorElement;
@@ -133,11 +133,11 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
 
         for (DataSource cp : this.datasources) {
 
-            String jdbcURL = (String) ReflectHelper.invoke(cp.getClass().getName(), cp, "getJdbcUrl", null, null,
+            String jdbcURL = (String) ReflectionHelper.invoke(cp.getClass().getName(), cp, "getJdbcUrl", null, null,
                     cp.getClass().getClassLoader());
 
             /**
-             * ÂåπÈÖçÂÆ¢Êà∑Á´ØÂ∫îÁî®
+             * ∆•≈‰øÕªß∂À”¶”√
              */
             MonitorElementInstance inst = this.matchElemInstance(clientElem, jdbcURL);
 
@@ -151,7 +151,7 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
     }
 
     /**
-     * Êî∂ÈõÜDataSourceÊåáÊ†á
+     *  ’ºØDataSource÷∏±Í
      * 
      * @param inst
      * @param pds
@@ -163,7 +163,7 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
 
         String prefix = "get";
 
-        Object pool = ReflectHelper.getField(pds.getClass(), pds, "pool");
+        Object pool = ReflectionHelper.getField(pds.getClass(), pds, "pool");
 
         if (pool == null) {
             return;
@@ -173,7 +173,7 @@ public class HikariHookProxy extends AbsDBPoolHookProxy {
 
         for (int i = 0; i < collectMtrx.length; i++) {
 
-            Object val = ReflectHelper.invoke(className, pool, prefix + collectMtrx[i], null, null);
+            Object val = ReflectionHelper.invoke(className, pool, prefix + collectMtrx[i], null, null,this.getClass().getClassLoader());
 
             if (val == null) {
                 continue;

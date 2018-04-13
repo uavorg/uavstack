@@ -24,7 +24,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.appfra.hook.spi.HookConstants;
 import com.creditease.monitor.appfra.hook.spi.HookContext;
 import com.creditease.monitor.captureframework.spi.MonitorElement;
@@ -36,9 +36,8 @@ import com.creditease.uav.hook.jdbc.pools.AbsDBPoolHookProxy;
 import com.creditease.uav.hook.jdbc.pools.dbcp.interceptors.DBCPIT;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyInstaller;
 import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
+import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.util.MonitorServerUtil;
-
-import javassist.CtMethod;
 
 public class DBCPHookProxy extends AbsDBPoolHookProxy {
 
@@ -113,7 +112,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.pools.dbcp.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("setUrl".equals(m.getName())) {
                             dpInstall.defineLocalVal(m, "mObj", DBCPIT.class);
@@ -129,7 +128,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.pools.dbcp.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("setUrl".equals(m.getName())) {
                             dpInstall.defineLocalVal(m, "mObj", DBCPIT.class);
@@ -145,7 +144,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
                 new String[] { "com.creditease.uav.hook.jdbc.pools.dbcp.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
-                    public void process(CtMethod m) throws Exception {
+                    public void process(DPMethod m) throws Exception {
 
                         if ("setUrl".equals(m.getName())) {
                             dpInstall.defineLocalVal(m, "mObj", DBCPIT.class);
@@ -167,11 +166,11 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
 
         for (DataSource cp : this.datasources) {
 
-            String jdbcURL = (String) ReflectHelper.invoke(cp.getClass().getName(), cp, "getUrl", null, null,
+            String jdbcURL = (String) ReflectionHelper.invoke(cp.getClass().getName(), cp, "getUrl", null, null,
                     cp.getClass().getClassLoader());
 
             /**
-             * ÂåπÈÖçÂÆ¢Êà∑Á´ØÂ∫îÁî®
+             * ∆•≈‰øÕªß∂À”¶”√
              */
             MonitorElementInstance inst = this.matchElemInstance(clientElem, jdbcURL);
 
@@ -184,7 +183,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
     }
 
     /**
-     * Êî∂ÈõÜDataSourceÊÄßËÉΩÊåáÊ†á
+     *  ’ºØDataSource–‘ƒ‹÷∏±Í
      * 
      * @param inst
      * @param pds
@@ -209,7 +208,7 @@ public class DBCPHookProxy extends AbsDBPoolHookProxy {
 
         for (int i = 0; i < collectMtrx.length; i++) {
 
-            Object val = ReflectHelper.invoke(className, pds, prefix + collectMtrx[i], null, null);
+            Object val = ReflectionHelper.invoke(className, pds, prefix + collectMtrx[i], null, null,this.getClass().getClassLoader());
 
             if (val == null) {
                 continue;

@@ -301,6 +301,57 @@ function APMTool(app) {
 		params.ipport = pNode.getElementsByTagName("td")[7].id;
 		params.appid = pNode.getElementsByTagName("td")[8].id;
 		var appurl = "http://"+params.ipport+"/"+params.appid+"/";
+		if(params.appid=="ROOT"){
+			appurl = "http://"+params.ipport+"/";
+		}
+		
+		var results = _this.getProfileByAppurl(appurl);
+		//连接失败
+		if(results == undefined){
+			alert("获取日志文件失败");
+			return;
+		}
+		//第一次没有获取到日志，把appurl中的appname去掉后再尝试获取一次
+        if(results.rs == undefined){
+        	appurl = "http://"+params.ipport+"/";
+        	results = _this.getProfileByAppurl(appurl);
+            
+            //仍然没有获取到日志文件信息，此时profile中没有该appurl对应的信息，应该是由于应用停掉了
+            if(results == undefined || results.rs == undefined){
+            	alert("获取日志文件失败，请检查应用是否处于运行状态");
+            	return;
+            }
+        }
+        
+        var res = results["rs"];
+        var datas = StringHelper.str2obj(res);
+
+        var data;
+        for(var key in datas){
+        	data = datas[key];
+        }
+        var logdata = StringHelper.str2obj(data)["logs.log4j"];
+        var logObj = StringHelper.str2obj(logdata);
+        for(var key in logObj){
+        	if(key.lastIndexOf("/") > 0){
+        		key = key.substring(key.lastIndexOf("/") + 1);
+        	}
+        	$("#logSelector").append("<option value='"+ key +"' width='%97'> "+ key +"</option>");
+        }
+        if($("#logSelector option").size()>0){
+        	$("#selectLogWinfooter").append( '<button class="btn btn-primary " onclick=\'javascript:appAPM.jumpLogRollWnd('+ JSON.stringify(params) +')\';">确定</button>');
+        }else{
+        	$("#logSelector").append("<option value='无日志文件' width='%97'>无日志文件</option>");
+        }
+        $("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
+
+		
+		$("#selectLogWin").modal({backdrop:false});
+	}
+	
+	
+	this.getProfileByAppurl = function(appurl){
+		var results = undefined;
 		AjaxHelper.call({
             url: '../../rs/godeye/profile/q/cache',
             data: {"fkey":"appurl","fvalue":appurl},
@@ -308,36 +359,13 @@ function APMTool(app) {
             type: 'GET',
             dataType: 'html',
             timeout: 30000,
+            async: false,
             success: function(result){
-                var obj = StringHelper.str2obj(result);
-                var res = obj["rs"];
-                var datas = StringHelper.str2obj(res);
-                var data;
-                for(var key in datas){
-                	data = datas[key];
-                }
-                var logdata = StringHelper.str2obj(data)["logs.log4j"];
-                var logObj = StringHelper.str2obj(logdata);
-                for(var key in logObj){
-                	if(key.lastIndexOf("/") > 0){
-                		key = key.substring(key.lastIndexOf("/") + 1);
-                	}
-                	$("#logSelector").append("<option value='"+ key +"' width='%97'> "+ key +"</option>");
-                }
-                if($("#logSelector option").size()>0){
-                	$("#selectLogWinfooter").append( '<button class="btn btn-primary " onclick=\'javascript:appAPM.jumpLogRollWnd('+ JSON.stringify(params) +')\';">确定</button>');
-                }else{
-                	$("#logSelector").append("<option value='无日志文件' width='%97'>无日志文件</option>");
-                }
-                $("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
-            },
-            error: function(result){
-            	$("#logSelector").append("<value='获取日志文件失败' width='%97'>");
-            	$("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
+            	results =  StringHelper.str2obj(result);
             }
-         });
+		});
 		
-		$("#selectLogWin").modal({backdrop:false});
+		return results;
 	}
 	
 	/**
@@ -859,7 +887,7 @@ function APMTool(app) {
 			var errMsg = "无数据，请刷新重试";
 			var epinfo = sObj["epinfo"].split(",")[0];
 			//当前支持的类型
-			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer"];
+			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer","rocketmq.client"];
 			if($.inArray(epinfo, epinfos)==-1){
 				errMsg = "不支持的数据类型";
 			}

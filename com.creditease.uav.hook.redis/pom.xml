@@ -14,7 +14,7 @@
 	<dependencies>
 	<dependency>
 			<groupId>com.creditease.moniter</groupId>
-			<artifactId>com.creditease.uav.base</artifactId>
+			<artifactId>com.creditease.uav.monitorframework</artifactId>
 
 		</dependency>
 		<dependency>

@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.creditease.agent.helpers.ReflectHelper;
+import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.monitor.captureframework.spi.CaptureConstants;
 import com.creditease.monitor.captureframework.spi.Monitor;
@@ -59,14 +59,14 @@ public class MongoClientIT extends BaseComponent {
 
                 String dbName = t.getName();
 
-                OperationExecutor oe = (OperationExecutor) ReflectHelper.getField(t.getClass(), t, "executor");
+                OperationExecutor oe = (OperationExecutor) ReflectionHelper.getField(t.getClass(), t, "executor");
 
                 OperationExecutor oeProxy = JDKProxyInvokeUtil.newProxyInstance(
                         OperationExecutor.class.getClassLoader(), new Class<?>[] { OperationExecutor.class },
                         new JDKProxyInvokeHandler<OperationExecutor>(oe,
                                 new MDBOperationExecutorProxyProcessor(dbName)));
 
-                ReflectHelper.setField(t.getClass(), t, "executor", oeProxy);
+                ReflectionHelper.setField(t.getClass(), t, "executor", oeProxy);
             }
         }
 
