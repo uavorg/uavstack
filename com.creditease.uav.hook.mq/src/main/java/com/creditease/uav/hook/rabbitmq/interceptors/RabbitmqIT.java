@@ -169,7 +169,7 @@ public class RabbitmqIT extends BaseComponent {
                             new Object[] { (BasicProperties) args[args.length - 2], args[args.length - 1] });
                     if (ivcContextParams != null
                             && ivcContextParams.containsKey(InvokeChainConstants.PARAM_MQHEAD_INFO)) {
-                        args[2] = ivcContextParams.get(InvokeChainConstants.PARAM_MQHEAD_INFO);
+                        args[args.length - 2] = ivcContextParams.get(InvokeChainConstants.PARAM_MQHEAD_INFO);
                     }
                 }
             }
