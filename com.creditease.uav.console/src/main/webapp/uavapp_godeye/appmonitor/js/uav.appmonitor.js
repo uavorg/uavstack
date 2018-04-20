@@ -2551,7 +2551,7 @@ var mvcObj={
     			
     			var metric=metrics[i];
     			
-    			if(mprefix=="clientResp"&&metric=="RC"||mprefix!="clientResp"&&metric=="AC"){
+    			if(mprefix=="clientResp"&&metric=="RC"||mprefix!="clientResp"&&metric=="AC"||mprefix!="clientResp"&&metric=="EXT"){
     				continue;
     			}
     			

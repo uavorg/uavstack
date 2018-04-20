@@ -2146,7 +2146,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
 
         String ip = request.getRemoteAddr();
-        String xip = request.getHeader("X-Forward-For");
+        String xip = request.getHeader("X-Forwarded-For");
         ip = getClientIP(ip, xip);
 
         msg.getRequest().put("uid", uid);
