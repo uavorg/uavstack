@@ -1115,8 +1115,8 @@ function AppServiceStream(app) {
 					targetNode=this.createNoneAppNode(target, "未知http服务\n"+target, "unknown", 1, 1, 1, 3);
 				}
 			}
-			//jdbc client/redis/mongo
-			else if (target.indexOf("jdbc:")==0||target.indexOf("redis:")==0||target.indexOf("mongo:")==0) {
+			//jdbc client/redis/mongo/elasticsearch
+			else if (target.indexOf("jdbc:")==0||target.indexOf("redis:")==0||target.indexOf("mongo:")==0||target.indexOf("elasticsearch:")==0) {
 				
 				//filter those we don't want show client targets
 				if (targetFilters!=undefined&&this.checkClientFilter(target,targetFilters)==false) {
@@ -1197,6 +1197,11 @@ function AppServiceStream(app) {
 		else if (target.indexOf("mongo:")==0) {
 			
 			title="Mongo数据源:";
+		}
+		//elasticsearch
+		else if (target.indexOf("elasticsearch:")==0) {
+			
+			title="elasticsearch数据源:";
 		}
 		//mq
 		else if (target.indexOf("mq:")==0) {
