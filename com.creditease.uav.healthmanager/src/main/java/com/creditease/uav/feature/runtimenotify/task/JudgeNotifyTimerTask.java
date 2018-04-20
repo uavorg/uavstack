@@ -21,6 +21,7 @@
 package com.creditease.uav.feature.runtimenotify.task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -73,7 +74,14 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
 
                 StrategyJudgement judgement = (StrategyJudgement) getConfigManager().getComponent(feature,
                         "StrategyJudgement");
-                Map<String, String> result = judgement.judge(new Slice(instance, judge_time), stra, null);
+                
+                Slice slice = new Slice(instance, judge_time);
+                Map<String, Object> args = new HashMap<String, Object>();
+                // 标识该slice由TimerTask创建，为同环比创建，非流式计算创建
+                args.put("creater", "timer");
+                slice.setArgs(args);
+                
+                Map<String, String> result = judgement.judge(slice, stra, null);
 
                 /**
                  * Step 3: if fire the event, build notification event
@@ -82,7 +90,7 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
                     NotificationEvent event = this.newNotificationEvent(instance, result, stra.getConvergences());
 
                     // get context
-                    putContext(event);
+                    putContext(slice,event);
 
                     // get action
                     putNotifyAction(event, stra);
@@ -120,8 +128,18 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
      * 
      * TODO: we need support context param in strategy
      */
-    private void putContext(NotificationEvent event) {
+    private void putContext(Slice slice, NotificationEvent event) {
+        
+        Map<String, Object> args = slice.getArgs();
 
+        for (String key : args.keySet()) {
+
+            Object argVal = args.get(key);
+
+            String jsonstr = JSONHelper.toString(argVal);
+
+            event.addArg(key, jsonstr);
+        }
     }
 
     /**

@@ -79,8 +79,16 @@ public abstract class AbstractMessageHandler implements MessageHandler {
             // pre insert to process DataStoreMsg
             preInsert(dsMsg);
 
-            // do insert
-            boolean insertR = store.doInsert(dsMsg);
+            boolean insertR = false;
+
+            try {
+                // do insert
+                insertR = store.doInsert(dsMsg);
+
+            }
+            catch (Exception e) {
+                log.err(this, "DataStore[" + msgKey + "] INSERT DATA FAIL!", e);
+            }
 
             if (log.isDebugEnable()) {
 

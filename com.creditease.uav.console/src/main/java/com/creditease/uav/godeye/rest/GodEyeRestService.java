@@ -1441,14 +1441,11 @@ public class GodEyeRestService extends AppHubBaseRestService {
             sortMap.put("sort", sort);
             list.add(sortMap);
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
-
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
-            // 过滤数据,只查询最近的指定数据 end
+            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
+            firstRecord.put("firstrecord", "true");
+            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
+            firstRecordMatch.put("match", firstRecord);
+            list.add(firstRecordMatch);
 
             // 封装组合查询条件
             if (jsonParam.containsKey("search")) {
@@ -1469,11 +1466,14 @@ public class GodEyeRestService extends AppHubBaseRestService {
                 list.addAll(groupList);
             }
 
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecordMatch.put("match", firstRecord);
-            list.add(firstRecordMatch);
+            HashMap<String, Object> skipMap = new HashMap<String, Object>();
+            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
+            list.add(skipMap);
+            
+            HashMap<String, Object> limitMap = new HashMap<String, Object>();
+            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
+            list.add(limitMap);
+            // 过滤数据,只查询最近的指定数据 end
 
             HashMap<String, Object> pageIndex = new HashMap<String, Object>();
             HashMap<String, Object> pageSize = new HashMap<String, Object>();
@@ -1553,13 +1553,13 @@ public class GodEyeRestService extends AppHubBaseRestService {
             sortMap.put("sort", sort);
             list.add(sortMap);
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
+            HashMap<String, Object> requestParam = new HashMap<String, Object>();
+            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
+            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
+            firstRecord.put("firstrecord", "true");
+            firstRecordMatch.put("match", firstRecord);
+            list.add(firstRecordMatch);
 
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
             // 过滤数据,只查询最近的指定数据 end
 
             // 封装组合查询条件
@@ -1581,13 +1581,15 @@ public class GodEyeRestService extends AppHubBaseRestService {
                 list.addAll(groupList);
             }
 
-            HashMap<String, Object> requestParam = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            firstRecordMatch.put("match", firstRecord);
+            HashMap<String, Object> skipMap = new HashMap<String, Object>();
+            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
+            list.add(skipMap);
+
+            HashMap<String, Object> limitMap = new HashMap<String, Object>();
+            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
+            list.add(limitMap);
+            
             requestParam.put("count", "true");
-            list.add(firstRecordMatch);
             list.add(requestParam);
 
             // 封装http请求数据
@@ -1667,6 +1669,14 @@ public class GodEyeRestService extends AppHubBaseRestService {
         sort.put("sortorder", "-1");
         sortMap.put("sort", sort);
         list.add(sortMap);
+        
+        // modify start : 只返回firstrecord为true的事件id
+        HashMap<String, Object> firstRecord = new HashMap<String, Object>();
+        HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
+        firstRecord.put("firstrecord", "true");
+        firstRecordMatch.put("match", firstRecord);
+        list.add(firstRecordMatch);
+        // modify end
 
         HashMap<String, Object> skipMap = new HashMap<String, Object>();
         skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
@@ -1676,14 +1686,6 @@ public class GodEyeRestService extends AppHubBaseRestService {
         limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
         list.add(limitMap);
         // 过滤数据,只查询最近的指定数据 end
-
-        // modify start : 只返回firstrecord为true的事件id
-        HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-        HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-        firstRecord.put("firstrecord", "true");
-        firstRecordMatch.put("match", firstRecord);
-        list.add(firstRecordMatch);
-        // modify end
 
         list.add(requestParam);
 
@@ -1753,13 +1755,12 @@ public class GodEyeRestService extends AppHubBaseRestService {
             sortMap.put("sort", sort);
             list.add(sortMap);
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
+            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
+            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
+            firstRecord.put("firstrecord", "true");
+            firstRecordMatch.put("match", firstRecord);
+            list.add(firstRecordMatch);
 
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
             // 过滤数据,只查询最近的指定数据 end
 
             // 封装组合查询条件 list.add = and
@@ -1829,18 +1830,19 @@ public class GodEyeRestService extends AppHubBaseRestService {
                 list.addAll(groupList);
             }
 
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
+            HashMap<String, Object> skipMap = new HashMap<String, Object>();
+            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
+            list.add(skipMap);
+
+            HashMap<String, Object> limitMap = new HashMap<String, Object>();
+            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
+            list.add(limitMap);
+
             HashMap<String, Object> pageIndex = new HashMap<String, Object>();
             HashMap<String, Object> pageSize = new HashMap<String, Object>();
             HashMap<String, Object> pageSortOrder = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            firstRecordMatch.put("match", firstRecord);
             pageIndex.put("pageindex", String.valueOf(jsonParam.get("pageindex")));
             pageSize.put("pagesize", String.valueOf(jsonParam.get("pagesize")));
-
-            list.add(firstRecordMatch);
-            list.add(sortMap);
             list.add(pageIndex);
             list.add(pageSize);
             list.add(pageSortOrder);
@@ -1912,13 +1914,13 @@ public class GodEyeRestService extends AppHubBaseRestService {
             sortMap.put("sort", sort);
             list.add(sortMap);
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
+            HashMap<String, Object> requestParam = new HashMap<String, Object>();
+            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
+            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
+            firstRecord.put("firstrecord", "true");
+            firstRecordMatch.put("match", firstRecord);
+            list.add(firstRecordMatch);
 
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
             // 过滤数据,只查询最近的指定数据 end
 
             // 封装组合查询条件 list.add = and
@@ -1988,13 +1990,15 @@ public class GodEyeRestService extends AppHubBaseRestService {
                 list.addAll(groupList);
             }
 
-            HashMap<String, Object> requestParam = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            firstRecordMatch.put("match", firstRecord);
+            HashMap<String, Object> skipMap = new HashMap<String, Object>();
+            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
+            list.add(skipMap);
+
+            HashMap<String, Object> limitMap = new HashMap<String, Object>();
+            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
+            list.add(limitMap);
+            
             requestParam.put("count", "true");
-            list.add(firstRecordMatch);
             list.add(requestParam);
 
             // 封装http请求数据
@@ -2142,7 +2146,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
 
         String ip = request.getRemoteAddr();
-        String xip = request.getHeader("X-Forward-For");
+        String xip = request.getHeader("X-Forwarded-For");
         ip = getClientIP(ip, xip);
 
         msg.getRequest().put("uid", uid);

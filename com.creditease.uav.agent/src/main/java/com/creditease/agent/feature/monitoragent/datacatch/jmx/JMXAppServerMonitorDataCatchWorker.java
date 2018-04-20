@@ -45,9 +45,16 @@ import com.creditease.agent.monitor.api.MonitorDataFrame;
 
 public class JMXAppServerMonitorDataCatchWorker extends BaseJMXMonitorDataCatchWorker {
 
+    private long profileHBTimeout;
+
     public JMXAppServerMonitorDataCatchWorker(String cName, String feature, JVMAgentInfo appServerInfo,
             BaseDetector detector) {
+
         super(cName, feature, appServerInfo, detector);
+
+        String profileHBTimeoutStr = this.getConfigManager().getFeatureConfiguration(feature,
+                "detector.profilehbtimeout");
+        profileHBTimeout = StringHelper.isEmpty(profileHBTimeoutStr) ? 15000 : Long.parseLong(profileHBTimeoutStr);
     }
 
     @Override
@@ -184,7 +191,7 @@ public class JMXAppServerMonitorDataCatchWorker extends BaseJMXMonitorDataCatchW
                  * this data is old, but need for profile heartbeat even the if Update = false, but we will still pass
                  * the profile data as a heartbeat for profiledata the heart beat interval = 1 min
                  */
-                else if (isUpdate == false && curTime - state.getProfileTimestamp() > 60000) {
+                else if (isUpdate == false && curTime - state.getProfileTimestamp() > profileHBTimeout) {
                     isRefreshTimestamp = true;
                     pmdf.setTag("P:HB");
                 }
