@@ -31,6 +31,7 @@
     	<module>../com.creditease.uav.ttl</module>
     	<module>../com.creditease.uav.hook.dubbo</module>
     	<module>../com.creditease.uav.jetty.plus.core</module>
+    	<module>../com.creditease.uav.hook.esclient</module>
     </modules>
     
     <build>
@@ -100,7 +101,8 @@
 									<fileset file="../com.creditease.uav.hook.mongoclients/target/com.creditease.uav.hook.mongoclients-1.0.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.mq/target/com.creditease.uav.hook.mq-1.0-rabbitmq.jar" ></fileset>		
 									<fileset file="../com.creditease.uav.hook.mq/target/com.creditease.uav.hook.mq-1.0-rocketmq.jar" ></fileset>		
-								    <fileset file="../com.creditease.uav.hook.dubbo/target/com.creditease.uav.hook.dubbo-1.0.jar" ></fileset>		
+								    <fileset file="../com.creditease.uav.hook.dubbo/target/com.creditease.uav.hook.dubbo-1.0.jar" ></fileset>
+								    <fileset file="../com.creditease.uav.hook.esclient/target/com.creditease.uav.hook.esclient-1.0.jar"></fileset>		
 										
 								</copy>	
 								
