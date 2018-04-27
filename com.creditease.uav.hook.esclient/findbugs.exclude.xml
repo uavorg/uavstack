@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<FindBugsFilter> 
+   <Match>
+   	
+   	<Bug pattern="DM_DEFAULT_ENCODING" />
+   </Match>
+</FindBugsFilter>

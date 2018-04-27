@@ -38,6 +38,12 @@
 			<groupId>com.alibaba.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
 			<version>3.2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>0.10.0.0</version>
+			<scope>provided</scope>
 		</dependency>       	    
     </dependencies>    
     
@@ -68,7 +74,17 @@
                             </includes>
                         </configuration>
                     </execution>
-
+					<execution>
+                        <id>kafka</id>
+                        <goals><goal>jar</goal></goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <classifier>kafka</classifier>
+                            <includes>
+                                <include>**/com/creditease/uav/hook/kafka/**</include>
+                            </includes>
+                        </configuration>
+					</execution>
                 </executions>
             </plugin>
         </plugins>       
