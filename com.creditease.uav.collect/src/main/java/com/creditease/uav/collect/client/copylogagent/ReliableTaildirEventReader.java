@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.creditease.agent.ConfigurationManager;
+import com.creditease.agent.feature.logagent.TailFile;
 import com.creditease.agent.helpers.JVMToolHelper;
 import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.agent.helpers.StringHelper;
@@ -182,6 +183,7 @@ public class ReliableTaildirEventReader {
             }
             for (File f : files) {
                 long inode = getInode(f);
+                removeInvalidTFInode(f, inode);
                 TailFile tf = tailFiles.get(inode);
                 if (tf == null || !tf.getPath().equals(f.getAbsolutePath())) {
                     long startPos = skipToEnd ? f.length() : 0;// 第一次读取从头开始读
@@ -213,6 +215,19 @@ public class ReliableTaildirEventReader {
             }
         }
         return updatedInodes;
+    }
+
+    /**
+     * @param f
+     * @param inodeCurrent
+     */
+    private void removeInvalidTFInode(File f, long inodeCurrent) {
+        for (Long inodeKey : tailFiles.keySet()) {
+            TailFile tf = tailFiles.get(inodeKey);
+            if (tf.getPath().equals(f.getAbsolutePath()) && inodeKey != inodeCurrent) {
+                tailFiles.remove(inodeKey);
+            }
+        }
     }
 
     private List<File> getMatchFiles(File parentDir, final Pattern fileNamePattern) {
@@ -427,28 +442,40 @@ public class ReliableTaildirEventReader {
             inode = positionObject.getLong("inode");
             pos = positionObject.getLong("pos");
             file = positionObject.getString("file");
-            // add line number
-            number = positionObject.getLongValue("num");
-            for (Object v : Arrays.asList(inode, pos, file)) {
-                Preconditions.checkNotNull(v, "Detected missing value in position file. " + "inode: " + inode
-                        + ", pos: " + pos + ", path: " + file);
-            }
-            TailFile tf = tailFiles.get(inode);
+            Long currentInode = 0L;
             try {
-                if (tf != null && tf.updatePos(file, inode, pos, number)) {
-                    tailFiles.put(inode, tf);
-                }
-                else {
-                    // add old tail file into memory
-                    maybeReloadMap.put(inode, new Long[] { pos, number });
-                    if (log.isDebugEnable()) {
-                        log.debug(this, "add old&inInterrupt file: " + file + ", inode: " + inode + ", pos: " + pos);
-                    }
-
-                }
+                currentInode = getInode(new File(file));
             }
-            catch (IOException e) {
-                log.err(this, "TailFile updatePos FAILED.", e);
+            catch (IOException e1) {
+                log.err(this, "TailFile updatePos FAILED,getInode Fail.", e1);
+            }
+            if (!currentInode.equals(inode)) {
+                maybeReloadMap.remove(inode);
+            }
+            else {
+                // add line number
+                number = positionObject.getLongValue("num");
+                for (Object v : Arrays.asList(inode, pos, file)) {
+                    Preconditions.checkNotNull(v, "Detected missing value in position file. " + "inode: " + inode
+                            + ", pos: " + pos + ", path: " + file);
+                }
+                TailFile tf = tailFiles.get(inode);
+                try {
+                    if (tf != null && tf.updatePos(file, inode, pos, number)) {
+                        tailFiles.put(inode, tf);
+                    }
+                    else {
+                        // add old tail file into memory
+                        maybeReloadMap.put(inode, new Long[] { pos, number });
+                        if (log.isDebugEnable()) {
+                            log.debug(this, "add old&inInterrupt file: " + file + ", inode: " + inode + ", pos: " + pos);
+                        }
+
+                    }
+                }
+                catch (IOException e) {
+                    log.err(this, "TailFile updatePos FAILED.", e);
+                }
             }
         }
     }
