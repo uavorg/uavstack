@@ -81,8 +81,9 @@ public class TailFileTaskJob extends AbstractPartitionJob {
             log.err(this, "Unable to tail files.", t);
         }
         finally {
-            log.err(this, "finally invoked...");
-
+            if (log.isDebugEnable()) {
+                log.debug(this, "finally invoked...");
+            }
             if (null != serverlogs) {
                 serverlogs.clear();
             }
