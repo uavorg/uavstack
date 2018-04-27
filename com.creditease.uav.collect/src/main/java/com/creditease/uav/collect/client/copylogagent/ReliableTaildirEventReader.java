@@ -41,7 +41,6 @@ import java.util.regex.Pattern;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.creditease.agent.ConfigurationManager;
-import com.creditease.agent.feature.logagent.TailFile;
 import com.creditease.agent.helpers.JVMToolHelper;
 import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.agent.helpers.StringHelper;
