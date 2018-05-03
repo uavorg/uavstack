@@ -1,6 +1,6 @@
 # UAVStack
 UAVStack是智能化服务技术栈，是研发运维一体化的解决方案。UAV是无人机的缩写，寓意无人机翱翔蓝天，智能的，透明的完成任务。
-它包括任务机器人（代号HIT），全维监控（代号UAV.Monitor）,应用性能管理（代号UAV.APM）,服务治理（代号UAV.ServiceGovern）,微服务计算（代号UAV.MSCP），用户体验管理（代号UAV.UEM）等..。
+它包括任务机器人（代号HIT），全维监控（代号UAV.Monitor）,应用性能管理（代号UAV.APM）,服务治理（代号UAV.ServiceGovern）,微服务计算（代号UAV.MSCP），用户体验管理（代号UAV.UEM）等。
 
 UAVStack is an intelligent service technology stack. It is a solution for integration of R & D, operation and maintenance. UAV is the abbreviation of unmanned aerial vehicle (UAV), which means that unmanned aerial vehicle flies into the sky, and completes tasks intelligently and transparently.
 
