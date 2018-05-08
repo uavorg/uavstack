@@ -57,12 +57,30 @@ public class StrategyJudgement extends AbstractComponent {
         readable.put("all-max", "最大");
         readable.put("all-min", "最小");
         readable.put("all-sum", "总和");
+        readable.put("all-count", "计数");
+        readable.put("all-dev", "标准差");
+        readable.put("all-first", "开始");
+        readable.put("all-last", "末尾");
+        readable.put("all-p50", "50th百分位数");
+        readable.put("all-p75", "75th百分位数");
+        readable.put("all-p90", "90th百分位数");
+        readable.put("all-p95", "95th百分位数");
+        readable.put("all-p99", "99th百分位数");
+        readable.put("all-p999", "999th百分位数");
+        
         readable.put("avg", "平均");
         readable.put("max", "最大");
         readable.put("min", "最小");
         readable.put("sum", "总和");
         readable.put("diff", "差");
         readable.put("count", "计数");
+        readable.put("dev", "标准差");
+        readable.put("p50", "50th百分位数");
+        readable.put("p75", "75th百分位数");
+        readable.put("p90", "90th百分位数");
+        readable.put("p95", "95th百分位数");
+        readable.put("p99", "99th百分位数");
+        readable.put("p999", "999th百分位数");
     }
 
     private CacheManager cm;
@@ -248,10 +266,14 @@ public class StrategyJudgement extends AbstractComponent {
         if (judgeResult == null) {
             judgeResult = new HashMap<String, Object>();
             judgeResult.put("fire", false);
+        }else {
+            log.debug(this, "judgeTimerExpression judgeResult:" + JSONHelper.toString(judgeResult));
         }
 
+        Map<String, Object> args = slice.getArgs();
+
         // if the judge is called by slice stream, just return the last result
-        if (slice.getKey().indexOf('@') > -1) {
+        if (args == null || !"timer".equals(args.get("creater"))) {
             if (judgeResult.get("time_to") != null) {
                 Date date = DateTimeHelper.dateFormat(String.valueOf(judgeResult.get("time_to")), "yyyy-MM-dd HH:mm");
                 // if the time is not the time expr's judge time,return false
@@ -275,11 +297,65 @@ public class StrategyJudgement extends AbstractComponent {
             }
             else if (timeMap != null) {
                 caculateJudgeResult(timeMap, judgeResult, slice.getKey(), expr, cr);
+                
+                if((Boolean) judgeResult.get("fire")) {
+                    //add detail info
+                    addDetail(timeMap,slice,expr);
+                }
             }
 
-        }
+        }      
 
         cr.addTimerExprResult((Boolean) judgeResult.get("fire"), expr, judgeResult);
+    }
+    
+    private void addDetail(Map<String, Long> timeMap, Slice slice, Expression expr) {        
+
+        
+        Map<String, Object> args=slice.getArgs();
+
+        String metric=expr.getArg();
+        
+        if(args.containsKey("currentDetailValue_"+metric)) {
+            return;
+        }
+        
+        Map<String,String>  currentDetailValue = queryDetailValue(slice.getKey(),expr,timeMap.get("time_from"),timeMap.get("time_to"));
+        
+        Map<String,String>  lastDetailValue = queryDetailValue(slice.getKey(),expr,timeMap.get("last_time_from"),timeMap.get("last_time_to"));
+       
+        args.put("currentDetailValue_"+metric, currentDetailValue);
+        
+        args.put("lastDetailValue_"+metric, lastDetailValue);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Map<String, String> queryDetailValue(String instance, Expression expr, Long startTime, Long endTime) {
+        
+        Map<String,String> detail = new LinkedHashMap<String,String>();
+        
+        String data = buildQueryJSON(instance,expr,startTime,endTime,true);                
+        
+        List<Map> resultList = queryOpentsdb(data);
+        
+        if(resultList==null) {
+            return detail;
+        }
+        
+        for(Map result:resultList) {
+            
+            String instid=String.valueOf(((Map)result.get("tags")).get("instid"));
+            
+            for(Object value:((Map)result.get("dps")).values()) {
+                
+                detail.put(instid, String.valueOf(value));
+                
+                break;
+            }            
+        }
+        
+        return detail;
+        
     }
 
     private void caculateJudgeResult(Map<String, Long> timeMap, Map<String, Object> judgeResult, String instance,
@@ -291,19 +367,23 @@ public class StrategyJudgement extends AbstractComponent {
             return;
         }
 
-        Double currentValue = queryOpentsdb(instance, expr.getArg(), expr.getFunc(), timeMap.get("time_from"),
+        Double currentValue = queryValue(instance, expr, timeMap.get("time_from"),
                 timeMap.get("time_to"));
         Double lastValue = 0.0;
 
+        if ((expr.getLowerLimit().contains("#") || expr.getLowerLimit().contains("*"))
+                && (expr.getUpperLimit().contains("#") || expr.getUpperLimit().contains("*"))) {
+            // do nothing
+        }
         // if the last judgeResult is really the last judgeTime's result, use it's currentValue as lastValue.
-        if (judgeResult.get("time_to") != null
+        else if (judgeResult.get("time_to") != null
                 && judgeResult.get("time_to")
                         .equals(DateTimeHelper.toFormat("yyyy-MM-dd HH:mm", timeMap.get("last_time_to")))
                 && judgeResult.get("currentValue") != null) {
             lastValue = Double.parseDouble(String.valueOf(judgeResult.get("currentValue")));
         }
         else {
-            lastValue = queryOpentsdb(instance, expr.getArg(), expr.getFunc(), timeMap.get("last_time_from"),
+            lastValue = queryValue(instance, expr, timeMap.get("last_time_from"),
                     timeMap.get("last_time_to"));
         }
 
@@ -346,68 +426,83 @@ public class StrategyJudgement extends AbstractComponent {
 
         boolean result = false;
 
-        String limitString = null;
-
         double diff = currentValue - lastValue;
 
-        String prefix = (diff > 0) ? "" : "-";
+        String limitString = null;
 
-        diff = (diff > 0) ? diff : 0 - diff;
-
-        limitString = (diff >= 0) ? expr.getUpperLimit() : expr.getLowerLimit();
-
-        double limit;
-        String suffix = "";
-        if (limitString.endsWith("%")) {
-            limit = Double.parseDouble(limitString.substring(0, limitString.length() - 1));
+        String upperLimitString = expr.getUpperLimit();
+        String lowerLimitString = expr.getLowerLimit();
+        // 增幅or降幅
+        String upperORlower = "";
+        double upperLimit = 0;
+        double lowerLimit = 0;
+        // get upperLimit
+        if (upperLimitString.contains("#")) {
+            upperLimit = Double.parseDouble(upperLimitString.substring(upperLimitString.indexOf('#') + 1));
+        }
+        else if (upperLimitString.contains("%")) {
+            upperLimit = Double.parseDouble(upperLimitString.substring(0, upperLimitString.indexOf('%')));
             diff = diff * 100 / lastValue;
-            suffix = "%";
         }
-        else {
-            limit = Double.parseDouble(limitString);
+        else if (!upperLimitString.contains("*")) {
+            upperLimit = Double.parseDouble(upperLimitString);
         }
 
-        if (!"-1".equals(limitString) && diff > limit) {
+        // get lowerLimit
+        if (lowerLimitString.contains("#")) {
+            lowerLimit = 0 - Double.parseDouble(lowerLimitString.substring(lowerLimitString.indexOf('#') + 1));
+        }
+        else if (lowerLimitString.contains("%")) {
+            lowerLimit = Double.parseDouble(lowerLimitString.substring(0, lowerLimitString.indexOf('%')));
+            diff = diff * 100 / lastValue;
+        }
+        else if (!lowerLimitString.contains("*")) {
+            lowerLimit = Double.parseDouble(lowerLimitString);
+        }
+
+        if (!upperLimitString.contains("*") && diff > upperLimit) {
             result = true;
+            upperORlower = "upper";
+            limitString = upperLimitString;
+        }
+        else if (!lowerLimitString.contains("*") && diff < 0 - lowerLimit) {
+            result = true;
+            upperORlower = "lower";
+            limitString = lowerLimitString;
         }
 
-        judgeResult.put("actualValue", prefix + String.format("%.2f", diff) + suffix);
+        judgeResult.put("actualValue", String.format("%.2f", diff) + (limitString.contains("%") ? "%" : ""));
         judgeResult.put("expectedValue", limitString);
-
+        judgeResult.put("upperORlower", upperORlower);
         return result;
 
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private Double queryOpentsdb(String instance, String metric, String func, Long startTime, Long endTime) {
+    @SuppressWarnings({"rawtypes" })
+    private Double queryValue(String instance, Expression expr, Long startTime, Long endTime) {
 
         Double result = null;
-        for (int i = 0; i < 3 && result == null; i++) {
+        for (int i = 0; i < 3; i++) {
 
-            try {
-                UAVHttpMessage message = new UAVHttpMessage();
+            try {              
 
-                String data = String.format(
-                        "{\"start\":%d,\"end\":%d,\"queries\":[{\"aggregator\":\"avg\",\"downsample\":\"%s\",\"metric\":\"%s\",\"filters\":[{\"filter\":\"%s\",\"tagk\":\"instid\",\"type\":\"regexp\",\"groupBy\":false}]}]}",
-                        startTime, endTime, func, metric,
-                        instance.replace(":", "/u003a").replace("%", "/u0025").replace("#", "/u0023"));
-                message.putRequest("opentsdb.query.json", data);
-                message.putRequest("datastore.name", MonitorDataFrame.MessageType.Monitor.toString());
+                String data = buildQueryJSON(instance,expr,startTime,endTime,false);                
 
-                String queryResponse = String.valueOf(invoker.invoke(queryServiceName, message, String.class));
-
-                if (queryResponse.equals("null") || queryResponse.equals("{}")
-                        || queryResponse.equals("{\"rs\":\"[]\"}")) {
+                List<Map> resultList = queryOpentsdb(data);                
+                
+                if(resultList==null) {
                     continue;
                 }
-
-                Map<Object, Object> responseMap = JSONHelper.toObject(queryResponse, Map.class);
-
-                List<Map> rsList = JSONHelper.toObjectArray((String) responseMap.get(UAVHttpMessage.RESULT), Map.class);
-
-                for (Object value : ((Map) rsList.get(0).get("dps")).values()) {
+                
+                for (Object value : ((Map) resultList.get(0).get("dps")).values()) {
+                    
                     result = ((BigDecimal) value).doubleValue();
-                }
+                    
+                    if(result!=null) {
+                        return result;
+                    }
+                }                
+                
             }
             catch (Exception e) {
                 log.err(this, "TimerExpression judgement query opentsdb failed ", e);
@@ -416,6 +511,38 @@ public class StrategyJudgement extends AbstractComponent {
         return result;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private List<Map> queryOpentsdb(String data) {
+
+        UAVHttpMessage message = new UAVHttpMessage();               
+        
+        message.putRequest("opentsdb.query.json", data);
+        message.putRequest("datastore.name", MonitorDataFrame.MessageType.Monitor.toString());
+
+        String queryResponse = String.valueOf(invoker.invoke(queryServiceName, message, String.class));
+        
+        if (queryResponse.equals("null") || queryResponse.equals("{}")
+                || queryResponse.equals("{\"rs\":\"[]\"}")) {
+            return null;
+        }
+
+        Map<Object, Object> responseMap = JSONHelper.toObject(queryResponse, Map.class);
+
+        List<Map> rsList = JSONHelper.toObjectArray((String) responseMap.get(UAVHttpMessage.RESULT), Map.class);
+        
+        return rsList;
+    }
+
+    private String buildQueryJSON(String instance, Expression expr, Long startTime, Long endTime, boolean groupBy) {
+        
+        String data=String.format(
+                    "{\"start\":%d,\"end\":%d,\"queries\":[{\"aggregator\":\"%s\",\"downsample\":\"%s\",\"metric\":\"%s\",\"filters\":[{\"filter\":\"%s\",\"tagk\":\"instid\",\"type\":\"regexp\",\"groupBy\":%b}]}]}",
+                    startTime, endTime, expr.getFunc(), expr.getDownsample(), expr.getArg(),
+                    instance.replace(":", "/u003a").replace("%", "/u0025").replace("#", "/u0023"),groupBy);
+            
+        return data;
+    }
+    
     /**
      * get judgeResult from redis
      */
@@ -441,6 +568,11 @@ public class StrategyJudgement extends AbstractComponent {
      * else return null;
      */
     private Map<String, Long> getJudgeTime(Expression expr, long time) {
+        
+
+        if (!inTimeScope(expr, time)) {
+            return null;
+        }
 
         Map<String, Long> timeMap = new HashMap<String, Long>();
         long time_to = time;
@@ -494,6 +626,48 @@ public class StrategyJudgement extends AbstractComponent {
 
         return timeMap;
     }
+    
+    /**
+     * return true if the time is in judge time scope
+     */
+    private boolean inTimeScope(Expression expr, long time) {
+
+        String time_start = expr.getTime_start();
+        String time_end = expr.getTime_end();
+        String day_start = expr.getDay_start();
+        String day_end = expr.getDay_end();
+
+        if (!StringHelper.isEmpty(day_start) && !StringHelper.isEmpty(day_end)) {
+
+            long startTime = DateTimeHelper.dateFormat(day_start, "yyyy-MM-dd").getTime();
+            long endTime = DateTimeHelper.dateFormat(day_end, "yyyy-MM-dd").getTime();
+
+            if (time < startTime || time >= endTime + 24 * 3600 * 1000) {
+                return false;
+            }
+        }
+
+        if (!StringHelper.isEmpty(time_start) && !StringHelper.isEmpty(time_end)) {
+
+            long startTime = DateTimeHelper
+                    .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + time_start, "yyyy-MM-dd HH:mm").getTime();
+            long endTime = DateTimeHelper
+                    .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + time_end, "yyyy-MM-dd HH:mm").getTime();
+
+            if (time < startTime || time >= endTime) {
+                return false;
+            }
+        }
+
+        int weekday = DateTimeHelper.getWeekday(new Date(time));
+        
+        if(expr.getWeekdayLimit()!=null&&!expr.getWeekdayLimit()[weekday]) {
+            return false;
+        }
+        
+        return true;
+    }
+
 
     private List<Slice> rangeSlices(List<Slice> slices, Slice cur, long range) {
 
@@ -637,13 +811,33 @@ public class StrategyJudgement extends AbstractComponent {
             }
             else if (NotifyStrategy.Type.TIMER.toString().equals(m.get("type"))) {
 
-                description = ("true".equals(m.get("fire"))) ? String.format(
-                        "%s在%s至%s时间段的%s值%s比%s至%s%s超过%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"), m.get("time_from"),
-                        m.get("time_to"), readable.get(m.get("func")), m.get("tag"), m.get("last_time_from"),
-                        m.get("last_time_to"), (m.get("actualValue").contains("-")) ? "降幅" : "增幅",
-                        m.get("expectedValue"),
-                        (m.get("actualValue").contains("-")) ? m.get("actualValue").substring(1) : m.get("actualValue"),
-                        m.get("lastValue"), m.get("currentValue")) : "false";
+                if (m.get("expectedValue").contains("#")) {
+                    double expectedValue = Double
+                            .parseDouble(m.get("expectedValue").substring(m.get("expectedValue").indexOf('#') + 1));
+                    double actualValue = Double.parseDouble(m.get("actualValue"));
+                    description = ("true".equals(m.get("fire"))) ? String.format("%s在%s至%s时间段的%s值%s%s，当前值：%s。",
+                            m.get("metric"), m.get("time_from"), m.get("time_to"), readable.get(m.get("downsample")),
+                            (actualValue > expectedValue) ? ">" : "<", String.valueOf(expectedValue),
+                            String.valueOf(actualValue)) : "false";
+                }
+                else {
+                    description = ("true".equals(m.get("fire"))) ? String.format(
+                            "%s在%s至%s时间段的%s值%s比%s至%s%s%s%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"), m.get("time_from"),
+                            m.get("time_to"), readable.get(m.get("downsample")), m.get("tag"), m.get("last_time_from"),
+                            m.get("last_time_to"),
+                            (m.get("upperORlower").equals("upper") && !m.get("expectedValue").contains("-"))
+                                    || (m.get("upperORlower").equals("lower") && m.get("expectedValue").contains("-"))
+                                            ? "增幅"
+                                            : "降幅",
+                            m.get("expectedValue").contains("-") ? "低于" : "超过",
+                            (m.get("expectedValue").contains("-")) ? m.get("expectedValue").substring(1)
+                                    : m.get("expectedValue"),
+                            (m.get("upperORlower").equals("upper") && m.get("expectedValue").contains("-"))
+                                    || (m.get("upperORlower").equals("lower") && !m.get("expectedValue").contains("-"))
+                                            ? String.valueOf(0 - Double.parseDouble(m.get("actualValue")))
+                                            : m.get("actualValue"),
+                            m.get("lastValue"), m.get("currentValue")) : "false";
+                }
             }
 
             return description;
@@ -683,6 +877,7 @@ public class StrategyJudgement extends AbstractComponent {
             m.put("tag", expr.getInterval() == 0 ? "同" : "环");
             m.put("metric", expr.getArg().substring(expr.getArg().indexOf('.') + 1));
             m.put("func", expr.getFunc());
+            m.put("downsample", expr.getDownsample());
             m.put("type", NotifyStrategy.Type.TIMER.toString());
             addExprResult(idx++, result, m);
         }
