@@ -232,7 +232,7 @@
 	</context-param>		
 	<context-param>
 		<param-name>uav.apphub.sso.ldap.connection.info</param-name>
-		<param-value>{"url":"ldap://127.0.0.1:389/","contimeout":"1000","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
+		<param-value>{"url":"ldap://127.0.0.1:389/","timeout":"1000","retry":"5","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.grafana.connection.info</param-name>
