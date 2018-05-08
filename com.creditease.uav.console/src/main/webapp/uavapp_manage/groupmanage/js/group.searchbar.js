@@ -11,7 +11,7 @@ function generateSearchBar(id){
 		buf.push('</button>');
 		
 		buf.push('<input id="'+id+'SearchHidden" type="Hidden" >');	
-		buf.push('<input id="'+id+'Search" class="form-control AppHubMVCSearchBarInputText" type="text" placeholder="可输入组ID检索" value="">');
+		buf.push('<input id="'+id+'Search" class="form-control AppHubMVCSearchBarInputText" type="text" placeholder="可输入组授权组检索" value="">');
 		buf.push('</input>');
 		
 		buf.push('<div class="btn-group">');

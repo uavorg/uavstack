@@ -395,7 +395,7 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
         Document sorts = new Document();
         Document filterBson = new Document();
 
-        filterBson.append("_id", 0);
+     // filterBson.append("_id", 0); //代码含义：查询返回结果中，不包含mongodb的_id字段
 
         if (!StringHelper.isEmpty(fileds)) {
             String[] filters = fileds.split(";");
@@ -459,6 +459,13 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
             Document doc = cursor.next();
             Map<String, Object> docInfo = new LinkedHashMap<String, Object>();
             for (String key : doc.keySet()) {
+                if ("_id".equals(key)) {
+                    /**
+                     * _id 是mongodb的对象，只获取_id的ObjectId String值（返回数据）
+                     */
+                    docInfo.put("_id", doc.getObjectId("_id").toString());
+                    continue;
+                }
                 docInfo.put(key, doc.get(key));
             }
             results.add(docInfo);

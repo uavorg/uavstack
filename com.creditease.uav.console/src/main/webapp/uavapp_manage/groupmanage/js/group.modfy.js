@@ -69,10 +69,10 @@ function vmButtonSwitch(){
 
     function saveModfy(){
 
-        var groupid = $("#viewGroupid").html();
+    	var id = $("#viewid").html();
         var appids = $("#viewAppids").val();
         if(thisCheck()){
-            updateGroup_RESTClient(groupid,getformatAppids(appids));
+        	updateGroup_RESTClient(id,groupId,ldapKey,getformatAppids(appids));
         }
 
         function thisCheck(){

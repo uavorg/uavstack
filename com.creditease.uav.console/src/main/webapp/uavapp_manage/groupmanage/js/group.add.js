@@ -26,9 +26,14 @@ function addGroupSubmit(){
     $("#addGroupid").val(groupid);
     groupid = HtmlHelper.inputXSSFilter(groupid);
     var appids = HtmlHelper.inputXSSFilter($("#addAppids").val());
+    
+    var ldapkey = $("#addLdapKey").val().trim();
+ 	$("#addKey").val(ldapkey);
+ 	 ldapkey = HtmlHelper.inputXSSFilter(ldapkey);
+ 	 
     if(thisCheck()){
         appids = getformatAppids(appids);
-        addGroup_RESTClient(groupid,appids);
+        addGroup_RESTClient(groupid,ldapkey,appids);
     }else{
         commitEnd();
     }
@@ -36,7 +41,7 @@ function addGroupSubmit(){
     function thisCheck(){
         var c = false;
         if(!groupid){
-            setErrorMsg("addErrorMsg","未输入组ID");
+            setErrorMsg("addErrorMsg","未输入授权组");
         }else if(!appids){
             setErrorMsg("addErrorMsg","未授权APP");
         }else{
