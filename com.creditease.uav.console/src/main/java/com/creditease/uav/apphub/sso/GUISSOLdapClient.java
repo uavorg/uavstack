@@ -92,6 +92,7 @@ public class GUISSOLdapClient extends GUISSOClient {
             param.put(Context.SECURITY_AUTHENTICATION, "simple");
             param.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
             param.put("com.sun.jndi.ldap.connect.timeout", ldapConTimeout);
+            param.put("com.sun.jndi.ldap.read.timeout", ldapConTimeout);
 
             /**
              * ldap以下字段转码需要特殊处理：不显示乱码，但也不会显示为可识别的string,以binary string显示
@@ -203,8 +204,6 @@ public class GUISSOLdapClient extends GUISSOClient {
             SearchControls constraints = new SearchControls();
             constraints.setSearchScope(SearchControls.SUBTREE_SCOPE);
             
-            String ldapConTimeout = ldapConfig.get("contimeout");
-            constraints.setTimeLimit(Integer.valueOf(ldapConTimeout));
             NamingEnumeration<SearchResult> en = ldapCtx.search(name, filter, constraints);
 
             // means all nodes
