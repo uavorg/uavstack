@@ -719,10 +719,11 @@ public class GUIService extends AppHubBaseRestService {
             Map<String, Object> respMap = JSONHelper.toObject(respStr, Map.class);
             List<Map<String, String>> respList = (List<Map<String, String>>) respMap.get("data");
             for (Map<String, String> map : respList) {
-                String key = map.get("groupid");
+                String groupid = map.get("groupid");
                 String value = map.get("appids");
-                
-                key = "groupId:" + key + ",ldappKey:";
+                String ldapkey = map.get("ldapkey") == null ? "" : map.get("ldapkey");
+
+                String key = "groupId:" + groupid + ",ldappKey:" + ldapkey;
                 groupCache.put(key, value);
             }
             cm.putHash("apphub.gui.cache", "manage.group", groupCache);

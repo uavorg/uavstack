@@ -459,7 +459,7 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
             Document doc = cursor.next();
             Map<String, Object> docInfo = new LinkedHashMap<String, Object>();
             for (String key : doc.keySet()) {
-                if ("_id".equals(key)) {
+                if ("_id".equals(key) && doc.getObjectId("_id") != null) {
                     /**
                      * _id 是mongodb的对象，只获取_id的ObjectId String值（返回数据）
                      */
