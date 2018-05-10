@@ -41,7 +41,7 @@ public class HeartBeatServerLifeKeeper extends AbstractTimerWork {
 
     private long lockTimeout = 60000;
 
-    private long nodeDyingTimeout = 40000;
+    private long nodeDyingTimeout = 15000;
 
     private CacheManager cacheManager;
 
@@ -129,19 +129,19 @@ public class HeartBeatServerLifeKeeper extends AbstractTimerWork {
             }
 
             // node is in dying state
-            if (timeout >= this.nodeDyingTimeout && timeout < this.nodeDyingTimeout * 5) {
+            if (timeout >= this.nodeDyingTimeout && timeout < this.nodeDyingTimeout * 2) {
                 nodeInfo.putInfo(InfoType.Node, "state", "0");
                 nodeInfoMap.put(nodeId, nodeInfo.toJSONString());
                 cm.putHash(HeartBeatProtocol.STORE_REGION_UAV, HeartBeatProtocol.STORE_KEY_NODEINFO, nodeInfoMap);
             }
             // node is in dead state
-            else if (timeout >= this.nodeDyingTimeout * 5 && timeout < this.nodeDyingTimeout * 10) {
+            else if (timeout >= this.nodeDyingTimeout * 2 && timeout < this.nodeDyingTimeout * 3) {
                 nodeInfo.putInfo(InfoType.Node, "state", "-1");
                 nodeInfoMap.put(nodeId, nodeInfo.toJSONString());
                 cm.putHash(HeartBeatProtocol.STORE_REGION_UAV, HeartBeatProtocol.STORE_KEY_NODEINFO, nodeInfoMap);
             }
             // clean this node info
-            else if (timeout >= this.nodeDyingTimeout * 10) {
+            else if (timeout >= this.nodeDyingTimeout * 3) {
                 cm.delHash(HeartBeatProtocol.STORE_REGION_UAV, HeartBeatProtocol.STORE_KEY_NODEINFO, nodeId);
             }
         }

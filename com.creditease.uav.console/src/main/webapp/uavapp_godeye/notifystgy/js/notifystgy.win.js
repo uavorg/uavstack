@@ -172,6 +172,7 @@ function showAddDiv() {
 
 	sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(true);">保存</button></div>');
 	sb.append( '<div><span id="addNotifyErrMSG" style="color:#ff0000;"></span></div>');
+	sb.append( '<div style="">&nbsp;</div>');
 	
 	sb.append( '</div>');
 
@@ -408,6 +409,7 @@ function showEditNotifyDiv(jsonObjParam) {
 		//按钮
 		sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(false);">修改</button></div>');
 		sb.append( '<div><span id="addNotifyErrMSG" style="color:#ff0000;"></span></div>');
+		sb.append( '<div style="">&nbsp;</div>');
 	}
 	
 	sb.append( '</div>');
@@ -547,24 +549,50 @@ function showCon(thisObj,type){
 				
 			var hour=jsonValue.time_from.split(':')[0];
 			var min=jsonValue.time_from.split(':')[1];
-			$('#time_start').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			$('#time_from_div').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
 			hour=jsonValue.time_to.split(':')[0];
 			min=jsonValue.time_to.split(':')[1];
-			$('#time_end').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			$('#time_to_div').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			
+			if(jsonValue.time_start!=undefined&&jsonValue.time_end!=undefined){
+				hour=jsonValue.time_start.split(':')[0];
+				min=jsonValue.time_start.split(':')[1];
+				$('#time_start_div').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+				hour=jsonValue.time_end.split(':')[0];
+				min=jsonValue.time_end.split(':')[1];
+				$('#time_end_div').data('datetimepicker').setLocalDate(new Date(2000, 1, 1, hour, min));
+			}
+			
+			if(jsonValue.day_start!=undefined&&jsonValue.day_end!=undefined){
+				var year=jsonValue.day_start.split('-')[0];
+				var month=jsonValue.day_start.split('-')[1];
+				var day=jsonValue.day_start.split('-')[2];
+				$('#day_start_div').data('datetimepicker').setLocalDate(new Date(year, month-1, day, 0, 0));
+				year=jsonValue.day_end.split('-')[0];
+				month=jsonValue.day_end.split('-')[1];
+				day=jsonValue.day_end.split('-')[2];
+				$('#day_end_div').data('datetimepicker').setLocalDate(new Date(year, month-1, day, 0, 0));
+			}
+
+			showWeekDay(jsonValue.weekdayLimit);
 			
 			$("#conMetric").val(jsonValue.metric);
 			$("#conUpperLimit").val(jsonValue.upperLimit);
 			$("#conLowerLimit").val(jsonValue.lowerLimit);
 			$("#conAggr").val(jsonValue.aggr);
+			$("#conDownSample").val(jsonValue.downsample);
 			if(type=="link-relative"){
-				$("#conInterval").val(jsonValue.interval);
-				showUnit(jsonValue.unit);
-			}else{
-				showUnit(jsonValue.unit);
+				$("#conInterval").val(jsonValue.interval);				
 			}
+			showUnit(jsonValue.unit);
+			
 			if(isOwner!="true"){
 				$("#time_from").attr("readonly","readonly");
 				$("#time_to").attr("readonly","readonly");
+				$("#time_start").attr("readonly","readonly");
+				$("#time_end").attr("readonly","readonly");
+				$("#day_start").attr("readonly","readonly");
+				$("#day_end").attr("readonly","readonly");
 				$("#conMetric").attr("readonly","readonly");
 				$("#conUpperLimit").attr("readonly","readonly");
 				$("#conLowerLimit").attr("readonly","readonly");
@@ -572,6 +600,7 @@ function showCon(thisObj,type){
 				$("#conUpperLimit").attr("class","form-control");
 				$("#conLowerLimit").attr("class","form-control");
 				$("#conAggr").attr("disabled","disabled");
+				$("#conDownSample").attr("disabled","disabled");
 				if(type=="link-relative"){
 					$("#conInterval").attr("readonly","readonly");	
 					$("#conInterval").attr("class","form-control");	
@@ -587,6 +616,16 @@ function showCon(thisObj,type){
 function showUnit(unit){
 	$("#unit").val(unit);
 	$("#opt"+unit).attr("class","btn btn-default active");
+}
+
+function showWeekDay(weekdayLimit){
+
+    for(var i=0;i<weekdayLimit.length;i++){
+    	if(!weekdayLimit[i]){
+    		$("#weekday"+i).attr("class","btn btn-default");
+    	}   	
+    }
+	
 }
 /**
  * 条件定义页面 
@@ -616,9 +655,9 @@ function showCondDiv(thisObj,type) {
 		 */
 		sb.append( '<div style="max-height:4000px;padding:5px;" id="stream">');
 		
-		sb.append( '<input id="contExpr" class=\"form-control input_must\" type=\"text\" placeholder=\"触发表达式\"></input><br/>');
-		sb.append( '<input id="conRange" class=\"form-control \" type=\"text\" placeholder=\"持续时间(秒)\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input><br/>');
-		sb.append( "<select class=\"form-control\"  id=\"conFunc\" onchange=\"javascript:funcChangeShow(this,'conFuncParam');\">");
+		sb.append( '<div class=\"itemTitle\">触发表达式</div><input id="contExpr" class=\"form-control input_must\" type=\"text\" placeholder=\"触发表达式\"></input><br/>');
+		sb.append( '<div class=\"itemTitle\">持续时间(秒)</div><input id="conRange" class=\"form-control \" type=\"text\" placeholder=\"持续时间(秒)\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input><br/>');
+		sb.append( "<div class=\"itemTitle\">聚集操作</div><select class=\"form-control\"  id=\"conFunc\" onchange=\"javascript:funcChangeShow(this,'conFuncParam');\">");
 		sb.append( '<option value="0">--选择聚集操作--</option>');
 		sb.append( '<option value="max">最大值</option>');
 		sb.append( '<option value="min">最小值</option>');
@@ -633,36 +672,109 @@ function showCondDiv(thisObj,type) {
 		/**
 		 * 同环比预警条件编辑
 		 */
-		sb.append( '<div id="timer" style="max-height:4000px;padding:5px;display:none;" >');		
-		sb.append('<div class="control-group">');
-		sb.append('<div id="time_start" class="controls input-append">');
-		sb.append('<span style="color:#333333;">开始时间：');
-		sb.append('<input size="16" data-format="hh:mm"  type="text" placeholder="开始时间" id="time_from"> ');
+		sb.append( '<div id="timer" style="max-height:4000px;padding:5px;display:none;" >');	
+		
+		sb.append('<div class="control-group" align="left">');
+		sb.append('<div class=\"itemTitle\">计算区间时间范围</div><span id="time_from_div" class="controls input-append">');
+		sb.append('<input class="dateTimeInput" size="14" data-format="hh:mm"  type="text" placeholder="计算区间开始时间" id="time_from">');
 		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</span>');
+		
+		sb.append('<span id="time_to_div" class="controls input-append">');
+		sb.append('<input class="dateTimeInput" size="14" data-format="hh:mm"  type="text" placeholder="计算区间结束时间" id="time_to">');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</span>');
 		sb.append('</div>');
+			
+		sb.append('<div class="control-group" align="left">');
+		sb.append('<div class=\"itemTitle\">条件生效时间范围（可选）</div>');
+		sb.append('<span id="day_start_div" class="controls input-append">');
+		sb.append('<input class="dateTimeInput" size="14" data-format="yyyy-MM-dd"  type="text" placeholder="开始生效日期" id="day_start">');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</span>');
+		sb.append('<span id="time_start_div" class="controls input-append">');		
+		sb.append('<input class="dateTimeInput" size="14" data-format="hh:mm"  type="text" placeholder="开始生效时间" id="time_start">');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</span>');
 		sb.append('</div>');
 		
-		sb.append('<div class="control-group">');
-		sb.append('<div id="time_end" class="controls input-append">');
-		sb.append('<span style="color:#333333;">结束时间：');
-		sb.append('<input size="16" data-format="hh:mm"  type="text" placeholder="结束时间" id="time_to"> ');
+		sb.append('<div class="control-group" align="left">');
+		sb.append('<span id="day_end_div" class="controls input-append">');		
+		sb.append('<input class="dateTimeInput"  size="14" data-format="yyyy-MM-dd"  type="text" placeholder="结束生效日期" id="day_end">');
 		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</span>');
+		sb.append('<span id="time_end_div" class="controls input-append">');		
+		sb.append('<input class="dateTimeInput"  size="14" data-format="hh:mm"  type="text" placeholder="结束生效时间" id="time_end">');
+		sb.append('<span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>');
+		sb.append('</span>');
 		sb.append('</div>');
+
+		sb.append('<div class="control-group" align="left">');
+		sb.append('<div  class="btn-group checkbox" data-toggle="buttons">');
+		sb.append('<label  class="btn btn-default active"  id="weekday0">');
+		sb.append('<input type="checkbox" name="Sun"/> 周日');
+		sb.append('</label>');
+		sb.append('<label  class="btn btn-default active"  id="weekday1">');
+		sb.append('<input type="checkbox" name="Mon"/> 周一');
+		sb.append('</label>');
+		sb.append('<label  class="btn btn-default active"  id="weekday2">');
+		sb.append('<input type="checkbox" name="Tues" /> 周二');
+		sb.append('</label>');
+		sb.append('<label  class="btn btn-default active" id="weekday3">');
+		sb.append('<input type="checkbox" name="Wed" /> 周三');
+		sb.append('</label>');
+		sb.append('<label  class="btn btn-default active"  id="weekday4">');
+		sb.append('<input type="checkbox" name="Thurs" /> 周四');
+		sb.append('</label>');
+		sb.append('<label  class="btn btn-default active" id="weekday5">');
+		sb.append('<input type="checkbox" name="Fri" /> 周五');
+		sb.append('</label>');
+		sb.append('<label  class="btn btn-default active" id="weekday6">');
+		sb.append('<input type="checkbox" name="Sat" /> 周六');
+		sb.append('</label>');
+		sb.append( '</div>'); 
 		sb.append('</div>');
-		
-		sb.append( '<input id="conMetric" class=\"form-control input_must\" type=\"text\" placeholder=\"预警指标项\"></input><br/>');
-		sb.append( '<input id="conUpperLimit" class=\"form-control input_must\" type=\"text\" placeholder=\"增幅上限阈值(以%结尾表示百分比，否则为绝对值，填-1表示无上限)\" onkeyup="this.value=this.value.replace((\/\\D|%)/g,\'\')" onafterpaste="this.value=this.value.replace((\/\\D|%),\'\')"></input><br/>');
-		sb.append( '<input id="conLowerLimit" class=\"form-control input_must\" type=\"text\" placeholder=\"降幅上限阈值(以%结尾表示百分比，否则为绝对值，填-1表示无下限)\" onkeyup="this.value=this.value.replace((\/\\D|%)/g,\'\')" onafterpaste="this.value=this.value.replace((\/\\D|%),\'\')"></input><br/>');
-		sb.append( "<select  class=\"form-control\" id=\"conAggr\" >");
-		sb.append( '<option value="0">--选择指标聚集操作--</option>');
+
+		sb.append( '<div class=\"itemTitle\">预警指标项</div><input id="conMetric" class=\"form-control input_must\" type=\"text\" placeholder=\"预警指标项\"></input><br/>');
+		sb.append( '<div class=\"itemTitle\">增幅上限阈值</div><div class="itemTip">以%结尾表示百分比，否则为绝对值，填*表示无上限。以#开始表示与#后数值比较，如#5表示计算区间内的聚集值大于5</div><input id="conUpperLimit" class=\"form-control input_must\" type=\"text\" placeholder=\"增幅上限阈值\" onkeyup="this.value=this.value.replace((\/\\D|%)/g,\'\')" onafterpaste="this.value=this.value.replace((\/\\D|%),\'\')"></input><br/>');
+		sb.append( '<div class=\"itemTitle\">降幅上限阈值</div><div class="itemTip">以%结尾表示百分比，否则为绝对值，填*表示无下限。以#开始表示与#后数值比较，如#5表示计算区间内的聚集值小于5</div><input id="conLowerLimit" class=\"form-control input_must\" type=\"text\" placeholder=\"降幅上限阈值\" onkeyup="this.value=this.value.replace((\/\\D|%)/g,\'\')" onafterpaste="this.value=this.value.replace((\/\\D|%),\'\')"></input><br/>');
+		sb.append( "<div class=\"itemTitle\">指标聚集操作(默认为平均值)</div><div class=\"itemTip\">计算区间内对该指标项的所有值的聚集操作</div><select  class=\"form-control\" id=\"conDownSample\" >");
+		sb.append( '<option value="0">--选择指标聚集操作(默认为平均值)--</option>');
 		sb.append( '<option value="all-avg">平均值</option>');
 		sb.append( '<option value="all-sum">求和</option>');
 		sb.append( '<option value="all-max">最大值</option>');
 		sb.append( '<option value="all-min">最小值</option>');
+		sb.append( '<option value="all-count">计数值</option>');
+		sb.append( '<option value="all-dev">标准差</option>');
+		sb.append( '<option value="all-first">开始值</option>');
+		sb.append( '<option value="all-last">末尾值</option>');
+		sb.append( '<option value="all-p50">50th百分位数</option>');
+		sb.append( '<option value="all-p75">75th百分位数</option>');
+		sb.append( '<option value="all-p90">90th百分位数</option>');
+		sb.append( '<option value="all-p95">95th百分位数</option>');
+		sb.append( '<option value="all-p99">99th百分位数</option>');
+		sb.append( '<option value="all-p999">999th百分位数</option>');
+		
+		sb.append( '</select><br/>');
+	    
+	    sb.append( "<div class=\"itemTitle\">范围聚集操作(默认为平均值)</div><div class=\"itemTip\">计算区间内对多个监控目标的该指标项的聚集操作结果的聚集操作</div><select  class=\"form-control\" id=\"conAggr\" >");
+		sb.append( '<option value="0">--选择范围聚集操作(默认为平均值)--</option>');
+		sb.append( '<option value="avg">平均值</option>');
+		sb.append( '<option value="sum">求和</option>');
+		sb.append( '<option value="max">最大值</option>');
+		sb.append( '<option value="min">最小值</option>');
+		sb.append( '<option value="count">计数值</option>');
+		sb.append( '<option value="dev">标准差</option>');
+		sb.append( '<option value="p50">50th百分位数</option>');
+		sb.append( '<option value="p75">75th百分位数</option>');
+		sb.append( '<option value="p90">90th百分位数</option>');
+		sb.append( '<option value="p95">95th百分位数</option>');
+		sb.append( '<option value="p99">99th百分位数</option>');
+		sb.append( '<option value="p999">999th百分位数</option>');
 		sb.append( '</select><br/>');
 		
-		sb.append('<div id="base-relative">')
-		sb.append('<span style="color:#333333;">选择同比周期  ');
+		sb.append('<div id="base-relative" align="left">')
+		sb.append('<div class=\"itemTitle\">同比周期</div>');
 		sb.append('<div  class="btn-group radio" data-toggle="buttons">');
 		sb.append('<label  class="btn btn-default"  id="opt4"  onclick="javascript:changeTimeUnit(4);">');
 		sb.append('<input type="radio" name="options" id="options4" value="year" /> 年');
@@ -680,7 +792,7 @@ function showCondDiv(thisObj,type) {
 		sb.append( '</div>'); 
 		
 		sb.append( '<div id="link-relative"> ' );		
-		sb.append( '<input id="conInterval" class=\"form-control input_must\"  type=\"text\" placeholder=\"环比间隔，填写间隔时间，下行选择单位\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input>');
+		sb.append( '<div class=\"itemTitle\">环比间隔</div><input id="conInterval" class=\"form-control input_must\"  type=\"text\" placeholder=\"环比间隔，填写间隔时间，下行选择单位\" onkeyup="this.value=this.value.replace(\/\\D/g,\'\')" onafterpaste="this.value=this.value.replace(\/\\D/g,\'\')"></input>');
 
 		sb.append('<div style="float:left;"  class="btn-group radio" data-toggle="buttons" id="unit">');
 		sb.append('<label class="btn btn-default" id="opt2" onclick="javascript:changeTimeUnit(2);">');
@@ -703,7 +815,7 @@ function showCondDiv(thisObj,type) {
 		/**
 		 * 保存按钮
 		 */
-		sb.append( '<div >');
+		sb.append( '<div style=\"margin-bottom:20px;\">');
 		sb.append( '<button style="width:100%" class="btn btn-primary " id=\"whereSaveButton\" onclick="javascript:conditionsAppend();">保存</button>');
 		sb.append( '<span style="margin-right:5px;color:#ff0000;display:none;" id="conditionsErrMsg">必输项不能为空</span>');
 		sb.append( '</div>');
@@ -739,14 +851,38 @@ function typeChangeShow(type){
  * 初始化时间控件
  */
 function initTimeControl(){
-	  $('#time_start').datetimepicker({
+	  $('#time_from_div').datetimepicker({
 	      pickDate: false,
 	      pickSeconds: false
 	  });
 
 
-	  $('#time_end').datetimepicker({
+	  $('#time_to_div').datetimepicker({
 	      pickDate: false,
+	      pickSeconds: false
+	  });
+
+	  $('#time_start_div').datetimepicker({
+	      pickDate: false,
+	      pickSeconds: false
+	  });
+
+
+	  $('#time_end_div').datetimepicker({
+	      pickDate: false,
+	      pickSeconds: false
+	  });
+
+	  $('#day_start_div').datetimepicker({
+	      pickHour: false,
+	      pickMin: false,
+	      pickSeconds: false
+	  });
+
+
+	  $('#day_end_div').datetimepicker({
+	      pickHour: false,
+	      pickMin: false,
 	      pickSeconds: false
 	  });
 
@@ -895,15 +1031,45 @@ function conditionsAppend(){
 	if(checkFunc()){		
 		var jsonObject;
 		if("stream"==$("#condType").val()){		
-			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
+			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()).replace(/\s+/g,''),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
 		}else{			
-			jsonObject = {"type":"timer","time_from":HtmlHelper.inputXSSFilter($("#time_from").val()),"time_to":HtmlHelper.inputXSSFilter($("#time_to").val()),"metric":HtmlHelper.inputXSSFilter($("#conMetric").val()),"upperLimit":HtmlHelper.inputXSSFilter($("#conUpperLimit").val()),"lowerLimit":HtmlHelper.inputXSSFilter($("#conLowerLimit").val()),"aggr":HtmlHelper.inputXSSFilter($("#conAggr").val())};		
+			jsonObject = {"type":"timer","time_from":HtmlHelper.inputXSSFilter($("#time_from").val()),"time_to":HtmlHelper.inputXSSFilter($("#time_to").val()),"metric":HtmlHelper.inputXSSFilter($("#conMetric").val()),"upperLimit":HtmlHelper.inputXSSFilter($("#conUpperLimit").val()),"lowerLimit":HtmlHelper.inputXSSFilter($("#conLowerLimit").val())};		
+
+			if(HtmlHelper.inputXSSFilter($("#conAggr").val())!="0"){
+				jsonObject["aggr"]=HtmlHelper.inputXSSFilter($("#conAggr").val());				
+			}else{
+				jsonObject["aggr"]="avg";	
+			}
+
+			if(HtmlHelper.inputXSSFilter($("#conDownSample").val())!="0"){
+				jsonObject["downsample"]=HtmlHelper.inputXSSFilter($("#conDownSample").val());				
+			}else{
+				jsonObject["downsample"]="all-avg";
+			}
+
 			if("link-relative"==$("#condType").val()){
 				jsonObject["interval"]=HtmlHelper.inputXSSFilter($("#conInterval").val());
 				jsonObject["unit"]=HtmlHelper.inputXSSFilter($("#unit").val());
 			}else{
 				jsonObject["unit"]=HtmlHelper.inputXSSFilter($("#unit").val());
 			}
+			
+			if($("#time_start").val()&&$("#time_end").val()){
+				jsonObject["time_start"]=HtmlHelper.inputXSSFilter($("#time_start").val());
+				jsonObject["time_end"]=HtmlHelper.inputXSSFilter($("#time_end").val());
+			}
+			
+			if($("#day_start").val()&&$("#day_end").val()){
+				jsonObject["day_start"]=HtmlHelper.inputXSSFilter($("#day_start").val());
+				jsonObject["day_end"]=HtmlHelper.inputXSSFilter($("#day_end").val());
+			}
+			
+			var weekdayLimit=[];
+			for(var i=0;i<7;i++){
+				weekdayLimit[i]=($("#weekday"+i).attr("class")=="btn btn-default active")
+			}			
+			jsonObject["weekdayLimit"]=weekdayLimit;
+			
 		}
 		appendConditions(jsonObject);
 		window.winmgr.hide("condDiv");
@@ -921,7 +1087,7 @@ function checkFunc(){
 			result = false;
 		}
 	}else{
-		if(!$("#time_from").val()||!$("#time_to").val()||!$("#conMetric").val()||!$("#conUpperLimit").val()||!$("#conLowerLimit").val()||!$("#conAggr").val()){
+		if(!$("#time_from").val()||!$("#time_to").val()||!$("#conMetric").val()||!$("#conUpperLimit").val()||!$("#conLowerLimit").val()){
 			result = false;
 		}
 		if("link-relative"==$("#condType").val()){
@@ -1353,7 +1519,7 @@ var StgyClass = {
 		/**
 		 * 策略编辑,保存按钮:关闭编辑,并且将策略结果追加到页面
 		 */
-		var html = document.getElementById("stgy_exp").innerHTML;
+		var html = document.getElementById("stgy_exp").innerHTML.replace('<br>', '');
 		var htmlConvergence = document.getElementById("convergence_exp").innerHTML.replace(/<\/?[^>]*>/g,'');
 		
 		if(html.length>0 && type=="add"){
@@ -1432,7 +1598,7 @@ var StgyClass = {
 				result += ","+json.func;
 			}
 		}else{
-			result = json.metric+","+json.time_from+"-"+json.time_to+","+json.aggr+",";
+			result = json.metric+","+json.time_from+"-"+json.time_to+","+json.downsample+","+json.aggr+",";
 			if(json.interval){
 				result+=json.interval+" ";
 				
@@ -1456,7 +1622,13 @@ var StgyClass = {
 				case "4":
 					result+="year";	
 					break;
-			}								
+			}
+			if(json.time_start!=undefined&&json.time_end!=undefined){
+				result+=","+json.time_start+"-"+json.time_end;	
+			}
+			if(json.day_start!=undefined&&json.day_end!=undefined){
+				result+=","+json.day_start+"-"+json.day_end;	
+			}
 		}			
 		
 		return result;

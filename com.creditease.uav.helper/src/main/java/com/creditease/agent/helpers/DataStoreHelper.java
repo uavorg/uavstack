@@ -57,13 +57,13 @@ public class DataStoreHelper {
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
             if (chars[i] == '.' || chars[i] == '$') {
-                sb.append("\\u" + Integer.toHexString(c));
+                sb.append("/u" + Integer.toHexString(c));
             }
             else {
                 sb.append(chars[i]);
             }
         }
-        return sb.toString().replace("\\", "/");
+        return sb.toString();
     }
 
     public static String encodeForOpenTSDB(String s) {

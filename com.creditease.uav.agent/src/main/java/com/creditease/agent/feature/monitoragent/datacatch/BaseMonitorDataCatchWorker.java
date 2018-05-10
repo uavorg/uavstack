@@ -77,6 +77,7 @@ public abstract class BaseMonitorDataCatchWorker extends AbstractTimerWork {
     protected Map<String, Map> customizedMetrics = new HashMap<>();
 
     public BaseMonitorDataCatchWorker(String cName, String feature, JVMAgentInfo appServerInfo, BaseDetector detector) {
+
         super(cName, feature);
         this.detector = detector;
         this.appServerInfo = appServerInfo;
@@ -155,7 +156,8 @@ public abstract class BaseMonitorDataCatchWorker extends AbstractTimerWork {
         /**
          * NOTE: if there is no special appgroup, use MonitorAgent appgroup
          */
-        if (!StringHelper.isEmpty(uavMAAppGroup) && StringHelper.isEmpty(appGroup)) {
+        if (!StringHelper.isEmpty(uavMAAppGroup) && (StringHelper.isEmpty(appGroup)
+                || "UNKNOWN".equalsIgnoreCase(appGroup))) {
             appGroup = uavMAAppGroup;
         }
         return appGroup;
@@ -203,5 +205,10 @@ public abstract class BaseMonitorDataCatchWorker extends AbstractTimerWork {
         workerid = workerid.replace("\\", "/");
 
         return workerid;
+    }
+	
+    public String getDetectorName() {
+        
+        return detector.getName();
     }
 }
