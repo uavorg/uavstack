@@ -111,6 +111,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
             long curTime = System.currentTimeMillis();
             
             long viewTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_VIEWTIME), -1);
+            long firstrecordTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_FIRSTRECORDTIME), curTime);
                 
             if (viewTime > -1) {
                 
@@ -135,6 +136,8 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
                     return;
                 }
                 
+            } else if (curTime - firstrecordTime > viewTTL){
+                stateData = playAsFirstEventRecordConvergence(event, eventKey);
             } else {
                 int count = increEventCount(stateData);
                 stateData.put(NCConstant.EVENT_COUNT, count);
@@ -199,6 +202,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
             statusSet.put(NCConstant.COLUMN_STATE, NCConstant.StateFlag.NEWCOME.getStatFlag());
             statusSet.put(NCConstant.COLUMN_RETRY_COUNT, 0);
             statusSet.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
+            statusSet.put(NCConstant.COLUMN_FIRSTRECORDTIME, System.currentTimeMillis());
             
             // First Time NTFE take priority as the "0" Priority.
             statusSet.put(NCConstant.COLUMN_PRIORITY, 0);
@@ -553,6 +557,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         statusSet.put(NCConstant.COLUMN_STATE, NCConstant.StateFlag.NEWCOME.getStatFlag());
         statusSet.put(NCConstant.COLUMN_RETRY_COUNT, 1);
         statusSet.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
+        statusSet.put(NCConstant.COLUMN_FIRSTRECORDTIME, System.currentTimeMillis());
         // NOTE: the latest record event time, then we can find out all records from first record startTime to this time
         statusSet.put(NCConstant.COLUMN_LATESTRECORDTIME, event.getTime());
 

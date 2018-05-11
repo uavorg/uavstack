@@ -63,11 +63,7 @@ public class ProfileServiceMapMgr {
 
                 String[] pathParams = url.split("/");
 
-                for (String pathParam : pathParams) {
-                    if (pathParam.indexOf("{") > -1 && pathParam.indexOf("}") > -1) {
-                        pathParamCount++;
-                    }
-                }
+                pathParamCount=pathParams.length;
 
                 this.pathPattern = url.substring(0, pathParamStartIndex);
             }
