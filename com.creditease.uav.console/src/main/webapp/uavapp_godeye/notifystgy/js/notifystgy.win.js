@@ -1031,7 +1031,7 @@ function conditionsAppend(){
 	if(checkFunc()){		
 		var jsonObject;
 		if("stream"==$("#condType").val()){		
-			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
+			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()).replace(/\s+/g,''),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
 		}else{			
 			jsonObject = {"type":"timer","time_from":HtmlHelper.inputXSSFilter($("#time_from").val()),"time_to":HtmlHelper.inputXSSFilter($("#time_to").val()),"metric":HtmlHelper.inputXSSFilter($("#conMetric").val()),"upperLimit":HtmlHelper.inputXSSFilter($("#conUpperLimit").val()),"lowerLimit":HtmlHelper.inputXSSFilter($("#conLowerLimit").val())};		
 
@@ -1519,7 +1519,7 @@ var StgyClass = {
 		/**
 		 * 策略编辑,保存按钮:关闭编辑,并且将策略结果追加到页面
 		 */
-		var html = document.getElementById("stgy_exp").innerHTML;
+		var html = document.getElementById("stgy_exp").innerHTML.replace('<br>', '');
 		var htmlConvergence = document.getElementById("convergence_exp").innerHTML.replace(/<\/?[^>]*>/g,'');
 		
 		if(html.length>0 && type=="add"){
