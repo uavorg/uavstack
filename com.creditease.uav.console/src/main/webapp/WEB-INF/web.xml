@@ -122,10 +122,6 @@
 		<param-value>localhost:6379</param-value>
 	</context-param>
 	<context-param>
-		<param-name>uav.app.ldap.redis.store.addr</param-name>
-		<param-value>localhost:6379</param-value>
-	</context-param>
-	<context-param>
 		<param-name>uav.app.godeye.redis.store.addr</param-name>
 		<param-value>localhost:6379</param-value>
 	</context-param>
@@ -140,10 +136,6 @@
 	<context-param>
 		<param-name>uav.app.manage.redis.store.params</param-name>
 		<param-value>{"min":50,"max":200,"queue":5,"pwd":""}</param-value>
-	</context-param>
-	<context-param>
-		<param-name>uav.app.ldap.redis.store.params</param-name>
-		<param-value>{"min":30,"max":100,"queue":5,"pwd":""}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.app.godeye.redis.store.params</param-name>
@@ -249,7 +241,7 @@
 	
 	<context-param>
 		<param-name>uav.apphub.sso.ldap.connection.info</param-name>
-		<param-value>{"url":"ldap://127.0.0.1:389/","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
+		<param-value>{"url":"ldap://127.0.0.1:389/","timeout":"1000","retry":"5","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
 	</context-param>
 	
 	<context-param>

@@ -168,7 +168,7 @@ $("document").ready(
 		 * userlogger记录,通过用ping提交到filter  begin
 		 * 同时会进行会话check（ping逻辑）
 		 */
-		guiPing_RSClient(mainTempInit(),"jumpmain","","")
+		guiPing_RSClient(mainTempInit(),"jumpmain","","主页")
 		/**
 		 * userlogger记录,通过用ping提交到filter  end
 		 * 
