@@ -670,7 +670,7 @@ public class ManageRestService extends AppHubBaseRestService {
         void after(HttpClientCallbackResult result) {
 
             String region = input.get("region");
-            String regionAppKey = input.get("region.appKey");
+            String regionAppKey = input.get("region.groupKey");
             String bType = input.get("bType");
 
             String groupId = input.get("groupId");
