@@ -257,17 +257,27 @@ public class GUISSOLdapClient extends GUISSOClient {
 
         String filter = primaryKey + "=" + loginId;
 
-        List<SearchResult> sResultList = ldapApiQuery("", filter);
-        // filter userPrincipalName= 只能查询到一个结果
-        SearchResult sResult = sResultList.get(0);
-
-        String groupIdStr = formatGroupId(sResult);
-        String emailListStr = formatEmailList(sResult);
-
+        int retry = Integer.parseInt(ldapConfig.get("retry"));
+        List<SearchResult> sResultList = new ArrayList<SearchResult>();
+        do {
+            sResultList = ldapApiQuery("", filter);
+            retry--;
+        }
+        while ((sResultList.isEmpty() && retry > 0));
+        
         Map<String, String> result = new HashMap<String, String>();
-        result.put("loginId", loginId);
-        result.put("groupId", groupIdStr);
-        result.put("emailList", emailListStr);
+        if (!sResultList.isEmpty()) {
+
+            // filter userPrincipalName= 只能查询到一个结果
+            SearchResult sResult = sResultList.get(0);
+
+            String groupIdStr = formatGroupId(sResult);
+            String emailListStr = formatEmailList(sResult);
+
+            result.put("loginId", loginId);
+            result.put("groupId", groupIdStr);
+            result.put("emailList", emailListStr);
+        }
 
         return result;
     }
