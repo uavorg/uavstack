@@ -3,5 +3,5 @@ function showEditDiv(id,obj){
 }
 
 function showEditDivIsReadOnly(jsonObj){
-	showEditNotifyDiv(jsonObj);
+	showEditNotifyDiv(jsonObj,false);
 }

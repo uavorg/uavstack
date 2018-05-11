@@ -103,7 +103,7 @@ body {
 	border-radius: 3px;
 	box-shadow: 0 0 1px 1px #000000;
 }
-.icon-myout,.icon-myhelp {
+.icon-myout,.icon-myhelp,.icon-mycopy {
 	float: right;
 	margin-top: 5px;
 	margin-right: 15px;
@@ -124,6 +124,16 @@ body {
 .icon-myhelp:hover{    
  	border-radius: 50px;
  	box-shadow: 0 0 4px 4px #ffffff;	
+}
+
+.icon-mycopy{
+ 	height: 31.4px;
+ 	width: 31.4px;
+ 	
+ } 
+.icon-mycopy:hover{    
+ 	border-radius: 3px;
+	box-shadow: 0 0 4px 4px #ffffff;	
 }
 
 .titleDiv {
