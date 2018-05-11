@@ -1231,7 +1231,7 @@ function APMTool(app) {
             	
                 var obj = StringHelper.str2obj(result);
                 var res = obj["rs"];
-                if (obj=="ERR"||res=="ERR") {
+                if (obj=="ERR"||res=="ERR"||res==undefined) {
                     alert("调用链查询操作["+intent+"]失败:"+result);
                 }
                 else {
