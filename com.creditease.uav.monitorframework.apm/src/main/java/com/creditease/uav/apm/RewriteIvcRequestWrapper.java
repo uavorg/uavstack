@@ -23,6 +23,9 @@ package com.creditease.uav.apm;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -30,38 +33,49 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 public class RewriteIvcRequestWrapper extends HttpServletRequestWrapper {
 
-    private String tag;
+    private HttpServletRequest request;
+    private Map<String, String[]> parameterMap;
 
-    private ServletInputStream inputStream;
+    private String tag;
 
     private RewriteIvcInputStream rewriteInputStream;
 
     private StringBuilder builder;
 
     public RewriteIvcRequestWrapper(HttpServletRequest request, String tag) {
+
         super(request);
 
+        this.request = request;
         this.tag = tag;
+    }
 
-        try {
-            this.inputStream = request.getInputStream();
-        }
-        catch (IOException e) {
-            this.builder = new StringBuilder(e.toString());
-        }
-        rewriteInputStream = new RewriteIvcInputStream(this.inputStream, request.getCharacterEncoding());
+    @Override
+    public String getParameter(String name) {
+
+        initAllParameters();
+
+        return request.getParameter(name);
+    }
+
+    @Override
+    public Map<String, String[]> getParameterMap() {
+
+        initAllParameters();
+
+        return request.getParameterMap();
     }
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
 
-        return this.rewriteInputStream;
+        return wrapServletInputStream();
     }
 
     @Override
     public BufferedReader getReader() throws IOException {
 
-        return new BufferedReader(new InputStreamReader(rewriteInputStream));
+        return new BufferedReader(new InputStreamReader(wrapServletInputStream()));
     }
 
     public String getTag() {
@@ -69,28 +83,61 @@ public class RewriteIvcRequestWrapper extends HttpServletRequestWrapper {
         return tag;
     }
 
-    public StringBuilder getContent() {
+    public Map<String, String[]> getAllParameters() {
 
-        if (this.builder == null) {
-            return this.rewriteInputStream.getContent();
+        if (parameterMap == null) {
+            return Collections.emptyMap();
         }
-        else {
-            return this.builder;
+        return parameterMap;
+    }
+
+    private void initAllParameters() {
+
+        if (parameterMap == null) {
+            Map<String, String[]> map = request.getParameterMap();
+            parameterMap = new HashMap<String, String[]>(map);
         }
     }
 
+    private ServletInputStream wrapServletInputStream() throws IOException {
+
+        if (rewriteInputStream == null) {
+            try {
+                ServletInputStream inputStream = request.getInputStream();
+                rewriteInputStream = new RewriteIvcInputStream(inputStream, request.getCharacterEncoding());
+            }
+            catch (IOException e) {
+                builder = new StringBuilder(e.toString());
+                throw e;
+            }
+        }
+
+        return rewriteInputStream;
+    }
+
+    public StringBuilder getContent() {
+
+        if (builder != null) {
+            return builder;
+        }
+
+        if (rewriteInputStream == null) {
+            return new StringBuilder();
+        }
+
+        return rewriteInputStream.getContent();
+    }
+
     /**
-     * 清空池，方便回收
+     * 清空池，方便回收， 虽然可能并没有什么卵用
      */
     public void clearBodyContent() {
 
-        StringBuilder bodyContent;
-        if (this.builder == null) {
-            bodyContent = this.rewriteInputStream.getContent();
+        if (builder != null || rewriteInputStream == null) {
+            return;
         }
-        else {
-            bodyContent = this.builder;
-        }
+
+        StringBuilder bodyContent = rewriteInputStream.getContent();
         bodyContent.delete(0, bodyContent.length());
     }
 

@@ -4,7 +4,9 @@ function showViewGroup(result){
     $("#viewGroupDiv").modal({backdrop: 'static', keyboard: false});
 
     initMody();
+    $("#viewid").html(viewData._id);
     $("#viewGroupid").html(viewData.groupid);
+    $("#viewLdapKey").html(viewData.ldapkey);
     loadAllApps_RESTClient(function(result){showViewAppids(result);});
 
 }
@@ -69,10 +71,13 @@ function vmButtonSwitch(){
 
     function saveModfy(){
 
-        var groupid = $("#viewGroupid").html();
+        var id = $("#viewid").html();
         var appids = $("#viewAppids").val();
+        var groupId = $("#viewGroupid").html();
+        var ldapKey = $("#viewLdapKey").html();
+        
         if(thisCheck()){
-            updateGroup_RESTClient(groupid,getformatAppids(appids));
+        	updateGroup_RESTClient(id,groupId,ldapKey,getformatAppids(appids));
         }
 
         function thisCheck(){

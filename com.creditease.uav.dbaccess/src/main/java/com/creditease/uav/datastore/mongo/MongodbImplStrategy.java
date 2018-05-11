@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.bson.types.ObjectId;
+
 import com.creditease.agent.log.SystemLogger;
 import com.creditease.agent.log.api.ISystemLogger;
 import com.mongodb.BasicDBObject;
@@ -59,7 +61,14 @@ public interface MongodbImplStrategy {
             while (iter.hasNext()) {
                 String key = (String) iter.next();
                 Object value = expressions.get(key);
-
+                
+                if ("_id".equals(key)) {
+                    /**
+                     * 使用api 按id查询格式必须是： _id:string
+                     */
+                    value = new ObjectId(value.toString());
+                }
+                
                 if (value instanceof Map) {
                     RGLStrategy rgl = new RGLStrategy();
                     rgl.concretProcessor(key, expressions, set);
