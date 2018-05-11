@@ -72,6 +72,7 @@ public class NCConstant {
     public static final String COLUMN_LATESTIME = "latest_ts";
     public static final String COLUMN_VIEWTIME = "view_ts";
     public static final String COLUMN_LATESTRECORDTIME = "latestrecord_ts";
+    public static final String COLUMN_FIRSTRECORDTIME = "firstrecord_ts";
     public static final String COLUMN_RETRY_COUNT = "retry";
     public static final String COLUMN_PRIORITY = "priority";// default is 0
 

@@ -20,6 +20,7 @@
 
 package com.creditease.uav.apm.slowoper.adapter;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,27 +55,10 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
 
             String url = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL);
             Span span = this.spanFactory.getSpanFromContext(url);
-
             SlowOperContext slowOperContext = new SlowOperContext();
-
-            HttpServletRequest request = (HttpServletRequest) args[0];
-            // 由于会存在没有拦截住的情况，但当前无论拦截与未拦截的情况均可以使用HttpServletRequest获取header，故此处预留出来
-            // if (RewriteIvcRequestWrapper.class.isAssignableFrom(args[0].getClass())) {
-            // }
-            // else {
-            //
-            // }
-            // 当前将所有header信息打印出来，后续可能只打印用户自定义的将UAV的header过滤
-            // 提取参数并放入header里
-            String parameters = JSONHelper.toString(request.getParameterMap());
-            if (parameters == null) {
-                parameters = "{}";
-            }
-            slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_REQ_HEADER, getRequestHeaders(request) + parameters);
             Object params[] = { span, slowOperContext };
             UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.SlowOperSupporter", "runCap",
                     span.getEndpointInfo().split(",")[0], InvokeChainConstants.CapturePhase.PRECAP, context, params);
-
         }
     }
 
@@ -101,6 +85,10 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
             if (RewriteIvcRequestWrapper.class.isAssignableFrom(args[0].getClass())
                     && RewriteIvcResponseWrapper.class.isAssignableFrom(args[1].getClass())) {
                 RewriteIvcRequestWrapper request = (RewriteIvcRequestWrapper) args[0];
+                // 在最后取parameter，放入Header末尾
+                slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_REQ_HEADER,
+                        getRequestHeaders(request) + generateParameterString(request.getAllParameters()));
+
                 slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_REQ_BODY, request.getContent().toString());
                 request.clearBodyContent();
 
@@ -110,6 +98,8 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
                 response.clearBodyContent();
             }
             else {
+                HttpServletRequest request = (HttpServletRequest) args[0];
+                slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_REQ_HEADER, getRequestHeaders(request));
                 slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_REQ_BODY, "unsupported request");
                 HttpServletResponse response = (HttpServletResponse) args[1];
                 slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_RSP_HEADER, getResponHeaders(response));
@@ -154,4 +144,30 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
         return JSONHelper.toString(result);
     }
 
+    /**
+     * 将request的parameterMap<String, String[]>，转成非数组的Map<String, String>，有数据的情况将数组转String
+     * 因为，大部分业务场景都需要重复的value传值，request.getParameter也只取了value[0]。这样做方便后面的数据处理
+     * 
+     * @param parameterMap
+     * @return
+     */
+    private String generateParameterString(Map<String, String[]> parameterMap) {
+
+        if (parameterMap.isEmpty()) {
+            return "{}";
+        }
+
+        Map<String, String> map = new HashMap<String, String>();
+        for (Map.Entry<String, String[]> en : parameterMap.entrySet()) {
+            String[] v = en.getValue();
+            if (v.length == 1) {
+                map.put(en.getKey(), v[0]);
+            }
+            else if (v.length > 1) {
+                map.put(en.getKey(), Arrays.toString(v));
+            }
+        }
+
+        return JSONHelper.toString(map);
+    }
 }

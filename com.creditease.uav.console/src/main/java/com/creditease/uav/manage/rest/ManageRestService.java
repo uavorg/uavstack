@@ -121,7 +121,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("where", where);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeQuery, data);
-        Map<String, String> callBackInput = createInput(null, null, "query");
+        Map<String, String> callBackInput = createAppInput(null, null, "query");
         manageHttpAsyncClientPost(manageTypeApp, jsonRequest, new AppHttpCallBack(response, callBackInput));
     }
 
@@ -152,7 +152,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("sort", sort);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeQuery, data);
-        Map<String, String> callBackInput = createInput(null, null, "query");
+        Map<String, String> callBackInput = createAppInput(null, null, "query");
         manageHttpAsyncClientPost(manageTypeApp, jsonRequest, new AppHttpCallBack(response, callBackInput));
     }
 
@@ -170,8 +170,25 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("sort", sort);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeQuery, data);
-        Map<String, String> callBackInput = createInput(null, null, "query");
+        Map<String, String> callBackInput = createAppInput(null, null, "query");
         manageHttpAsyncClientPost(manageTypeApp, jsonRequest, new AppHttpCallBack(response, callBackInput));
+    }
+
+    @POST
+    @Path("loadGroupByInfo")
+    public void loadGroupByInfo(GroupEntity groupEntity, @Suspended AsyncResponse response) {
+
+        Map<String, Object> where = new HashMap<String, Object>();
+        where.put("groupid", groupEntity.getGroupid());
+        where.put("ldapkey", groupEntity.getLdapkey());
+        where.put("state", 1);
+
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("where", where);
+
+        Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeQuery, data);
+        Map<String, String> callBackInput = createGroupInput(null, null, null, "query");
+        manageHttpAsyncClientPost(manageTypeGroup, jsonRequest, new GroupHttpCallBack(response, callBackInput));
     }
 
     @POST
@@ -179,14 +196,14 @@ public class ManageRestService extends AppHubBaseRestService {
     public void loadGroupByid(GroupEntity groupEntity, @Suspended AsyncResponse response) {
 
         Map<String, Object> where = new HashMap<String, Object>();
-        where.put("groupid", groupEntity.getGroupid());
+        where.put("_id", groupEntity.getId());
         where.put("state", 1);
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("where", where);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeQuery, data);
-        Map<String, String> callBackInput = createInput(null, null, "query");
+        Map<String, String> callBackInput = createGroupInput(null, null, null, "query");
         manageHttpAsyncClientPost(manageTypeGroup, jsonRequest, new GroupHttpCallBack(response, callBackInput));
     }
 
@@ -216,7 +233,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("sort", sort);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeQuery, data);
-        Map<String, String> callBackInput = createInput(null, null, "query");
+        Map<String, String> callBackInput = createGroupInput(null, null, null, "query");
         manageHttpAsyncClientPost(manageTypeGroup, jsonRequest, new GroupHttpCallBack(response, callBackInput));
     }
 
@@ -228,17 +245,17 @@ public class ManageRestService extends AppHubBaseRestService {
         String coulum = null;
         String mType = null;
         ManageHttpClientCallback messageCallBack = null;
-        Map<String, String> callBackInput = createInput(null, null, "query");
         Map obj = JSONHelper.toObject(paramVlue, Map.class);
         String type = (String) obj.get("type");
         if ("APP".equals(type)) {
             coulum = "appurl";
             mType = manageTypeApp;
-            messageCallBack = new AppHttpCallBack(response, callBackInput);
+            messageCallBack = new AppHttpCallBack(response, createAppInput(null, null, "query"));
         }
         else if ("GROUP".equals(type)) {
             coulum = "groupid";
             mType = manageTypeGroup;
+            Map<String, String> callBackInput = createGroupInput(null, null, null, "query");
             messageCallBack = new GroupHttpCallBack(response, callBackInput);
         }
         Map<String, Object> regex = new HashMap<String, Object>();
@@ -276,7 +293,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("operationuser", request.getSession(false).getAttribute("apphub.gui.session.login.user.id"));
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeCreate, data);
-        Map<String, String> callBackInput = createInput(id, appurl, "create");
+        Map<String, String> callBackInput = createAppInput(id, appurl, "create");
         callBackInput.put("configpath", configpath);
         manageHttpAsyncClientPost(manageTypeApp, jsonRequest, new AppHttpCallBack(response, callBackInput));
 
@@ -287,10 +304,12 @@ public class ManageRestService extends AppHubBaseRestService {
     public void addGroup(GroupEntity groupEntity, @Suspended AsyncResponse response) throws Exception {
 
         String groupId = XSSFilter(groupEntity.getGroupid());
+        String ldapkey = XSSFilter(groupEntity.getLdapkey());
         String appIds = XSSFilter(groupEntity.getAppids());
         String time = df.format(new Date());
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("groupid", groupId);
+        data.put("ldapkey", ldapkey);
         data.put("appids", appIds);
         data.put("state", 1);
         data.put("createtime", time);
@@ -298,7 +317,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("operationuser", request.getSession(false).getAttribute("apphub.gui.session.login.user.id"));
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeCreate, data);
-        Map<String, String> callBackInput = createInput(groupId, appIds, "create");
+        Map<String, String> callBackInput = createGroupInput(groupId, ldapkey, appIds, "create");
         manageHttpAsyncClientPost(manageTypeGroup, jsonRequest, new GroupHttpCallBack(response, callBackInput));
     }
 
@@ -325,7 +344,7 @@ public class ManageRestService extends AppHubBaseRestService {
         modify.put("update", update);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeModify, modify);
-        Map<String, String> callBackInput = createInput(id, newurl, "modify");
+        Map<String, String> callBackInput = createAppInput(id, newurl, "modify");
         callBackInput.put("configpath", configpath);
         manageHttpAsyncClientPost(manageTypeApp, jsonRequest, new AppHttpCallBack(response, callBackInput));
     }
@@ -334,11 +353,13 @@ public class ManageRestService extends AppHubBaseRestService {
     @Path("updateGroup")
     public void updateGroup(GroupEntity groupEntity, @Suspended AsyncResponse response) throws Exception {
 
+        String id = XSSFilter(groupEntity.getId());
         String groupId = XSSFilter(groupEntity.getGroupid());
+        String ldapKey = XSSFilter(groupEntity.getLdapkey());
         String appIds = XSSFilter(groupEntity.getAppids());
         String time = df.format(new Date());
         Map<String, Object> where = new HashMap<String, Object>();
-        where.put("groupid", groupId);
+        where.put("_id", id);
 
         Map<String, Object> cloumns = new HashMap<String, Object>();
         cloumns.put("operationtime", time);
@@ -352,7 +373,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("where", where);
         data.put("update", set);
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeModify, data);
-        Map<String, String> callBackInput = createInput(groupEntity.getGroupid(), appIds, "modify");
+        Map<String, String> callBackInput = createGroupInput(groupId, ldapKey, appIds, "modify");
         manageHttpAsyncClientPost(manageTypeGroup, jsonRequest, new GroupHttpCallBack(response, callBackInput));
     }
 
@@ -376,7 +397,7 @@ public class ManageRestService extends AppHubBaseRestService {
         modify.put("update", update);
 
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeModify, modify);
-        Map<String, String> callBackInput = createInput(appEntity.getAppid(), null, "delete");
+        Map<String, String> callBackInput = createAppInput(id, null, "delete");
         manageHttpAsyncClientPost(manageTypeApp, jsonRequest, new AppHttpCallBack(response, callBackInput));
     }
 
@@ -384,9 +405,12 @@ public class ManageRestService extends AppHubBaseRestService {
     @Path("delGroup")
     public void delGroup(GroupEntity groupEntity, @Suspended AsyncResponse response) throws Exception {
 
+        String id = XSSFilter(groupEntity.getId());
+        String groupId = XSSFilter(groupEntity.getGroupid());
+        String ldapKey = XSSFilter(groupEntity.getLdapkey());
         String time = df.format(new Date());
         Map<String, Object> where = new HashMap<String, Object>();
-        where.put("groupid", groupEntity.getGroupid());
+        where.put("_id", id);
 
         Map<String, Object> cloumns = new HashMap<String, Object>();
         cloumns.put("state", 0);
@@ -400,7 +424,7 @@ public class ManageRestService extends AppHubBaseRestService {
         data.put("where", where);
         data.put("update", set);
         Map<String, Object> jsonRequest = createHttpMapRequest(bussinessTypeModify, data);
-        Map<String, String> callBackInput = createInput(groupEntity.getGroupid(), null, "delete");
+        Map<String, String> callBackInput = createGroupInput(groupId,ldapKey, null, "delete");
         manageHttpAsyncClientPost(manageTypeGroup, jsonRequest, new GroupHttpCallBack(response, callBackInput));
     }
 
@@ -510,13 +534,26 @@ public class ManageRestService extends AppHubBaseRestService {
         return requestUrl.substring(0, index);
     }
 
-    private Map<String, String> createInput(String id, String value, String bType) {
+    private Map<String, String> createAppInput(String id, String value, String bType) {
 
         Map<String, String> input = new HashMap<String, String>();
         input.put("region", "apphub.gui.cache");
-        input.put("appKey", "manage.app");
-        input.put("groupKey", "manage.group");
+        input.put("region.appKey", "manage.app");
+        input.put("region.groupKey", "manage.group");
         input.put("id", id);
+        input.put("value", value);
+        input.put("bType", bType);
+        return input;
+    }
+
+    private Map<String, String> createGroupInput(String groupId, String ldappKey, String value, String bType) {
+
+        Map<String, String> input = new HashMap<String, String>();
+        input.put("region", "apphub.gui.cache");
+        input.put("region.appKey", "manage.app");
+        input.put("region.groupKey", "manage.group");
+        input.put("groupId", groupId);
+        input.put("ldappKey", ldappKey);
         input.put("value", value);
         input.put("bType", bType);
         return input;
@@ -571,16 +608,13 @@ public class ManageRestService extends AppHubBaseRestService {
         void after(HttpClientCallbackResult result) {
 
             String id = input.get("id");
-            String appKey = input.get("appKey");
             String region = input.get("region");
+            String regionAppKey = input.get("region.appKey");
             String bType = input.get("bType");
             String appUrl = input.get("value");
 
-            logger.info(this, "ManageRestService  AppHttpCallBack ： region=" + region + ",key=" + appKey + ",id=" + id
-                    + ",value=" + appUrl + ",type=" + bType);
-
             if ("delete".equals(bType)) {
-                cm.delHash(region, appKey, id);
+                cm.delHash(region, regionAppKey, id);
             }
             else if ("modify".equals(bType) || "create".equals(bType)) {
 
@@ -600,7 +634,6 @@ public class ManageRestService extends AppHubBaseRestService {
                 Properties properties;
                 try {
 
-                    logger.info(this, "UAV管理 APP管理(添加or修改) app 配置加载  :" + configUrl);
                     properties = PropertiesHelper.downloadProperties(configUrl);
                 }
                 catch (Exception e) {
@@ -619,7 +652,7 @@ public class ManageRestService extends AppHubBaseRestService {
                 resultJson.put("menu", jsonArray);
                 String dataStr = JSONHelper.toString(resultJson);
 
-                cm.putHash(region, appKey, id, dataStr);
+                cm.putHash(region, regionAppKey, id, dataStr);
 
             }
 
@@ -636,19 +669,20 @@ public class ManageRestService extends AppHubBaseRestService {
         @Override
         void after(HttpClientCallbackResult result) {
 
-            String id = input.get("id");
-            String groupKey = input.get("groupKey");
             String region = input.get("region");
+            String regionAppKey = input.get("region.appKey");
             String bType = input.get("bType");
+
+            String groupId = input.get("groupId");
+            String ldappKey = input.get("ldappKey");
             String value = input.get("value");
 
-            logger.info(this, "ManageRestService  GroupHttpCallBack ： region=" + region + ",key=" + groupKey + ",id="
-                    + id + ",value=" + value + ",type=" + bType);
+            String cacheId = "groupId:" + groupId + ",ldappKey:" + ldappKey;
             if ("delete".equals(bType)) {
-                cm.delHash(region, groupKey, id);
+                cm.delHash(region, regionAppKey, cacheId);
             }
             else if ("modify".equals(bType) || "create".equals(bType)) {
-                cm.putHash(region, groupKey, id, value);
+                cm.putHash(region, regionAppKey, cacheId, value);
             }
 
         }

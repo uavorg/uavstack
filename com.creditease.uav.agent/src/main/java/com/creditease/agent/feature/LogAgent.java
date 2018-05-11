@@ -223,7 +223,11 @@ public class LogAgent extends AgentFeatureComponent {
     @Override
     protected ISystemLogger getLogger(String cName, String feature) {
 
-        return SystemLogger.getLogger("LogDataLog", feature + ".logd.%g.%u.log", "DEBUG", true, 5 * 1024 * 1024);
+        return SystemLogger.getLogger("LogDataLog", feature + ".logd.%g.%u.log",
+                               StringHelper.isEmpty(this.getConfigManager().getFeatureConfiguration(this.feature, "log.level"))
+                                        ? "DEBUG"
+                                        : this.getConfigManager().getFeatureConfiguration(this.feature, "log.level"),
+                                true, 5 * 1024 * 1024);
     }
 
     @Override
@@ -669,7 +673,7 @@ public class LogAgent extends AgentFeatureComponent {
          * in some cases there are may no log pattern infos
          */
         if (logCatcherInfoMap.isEmpty()) {
-            log.warn(this,
+            log.debug(this,
                     "The logCatcherInfoMap is empty and will not update log pattern info in ProfileData for logCatcher.");
             return;
         }
@@ -714,7 +718,7 @@ public class LogAgent extends AgentFeatureComponent {
         else {
             logCatcher.configure(logCatcherInfoMap);
 
-            log.info(this, "ApplicationServer LogCatcher updates SUCCESS");
+            log.debug(this, "ApplicationServer LogCatcher updates SUCCESS");
         }
 
     }
