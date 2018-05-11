@@ -223,6 +223,11 @@ function showEditNotifyDiv(jsonObjParam,isCopy) {
 	
 	sb.append( "<div class=\"icon-signout icon-myout\" onclick=\"javascript:closeObjectDiv()\"></div>");
 	sb.append( "<div class=\"icon-question-sign icon-myhelp\" onclick=\"javascript:openHelpDiv()\"></div>");
+	
+	if(!isCopy){
+		sb.append( "<div class=\"icon-copy icon-mycopy\" onclick=\"javascript:copyNotifyStra()\"></div>");
+	}
+	
 	sb.append( "</div>");
 	sb.append( "</br>");
 	/**
