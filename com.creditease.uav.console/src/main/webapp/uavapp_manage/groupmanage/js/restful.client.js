@@ -19,12 +19,13 @@ function loadAllApps_RESTClient(func) {
 	});
 }
 
-function addGroup_RESTClient(groupid, appids) {
+function addGroup_RESTClient(groupid, ldapkey,appids) {
 
 	var json = {
-		"groupid" : groupid
+			"groupid" : groupid,
+			"ldapkey":ldapkey
 	};
-	var postUrl = url + "loadGroupByid";
+	var postUrl = url + "loadGroupByInfo"; //先查询是否存在
 	AjaxHelper.call({
 		url : postUrl,
 		data : JSON.stringify(json),
@@ -36,7 +37,7 @@ function addGroup_RESTClient(groupid, appids) {
 			result = eval("(" + result["rs"] + ")");
 			if (result.code == "1") {
 				if (result.data.length > 0) {
-					setErrorMsg("addErrorMsg", "组ID已经存在");
+					setErrorMsg("addErrorMsg", "已经存在");
 				} else {
 					submitAddGroup();
 				}
@@ -54,6 +55,7 @@ function addGroup_RESTClient(groupid, appids) {
 	function submitAddGroup() {
 		var json = {
 			"groupid" : groupid,
+			"ldapkey": ldapkey,
 			"appids" : appids
 		};
 		var postUrl = url + "addGroup";
@@ -153,7 +155,8 @@ function loadAllGroups_Count_RESTClient(groupDatas) {
 				$.each(groupDatas, function(index, obj) {
 					table.add(obj);
 				});
-				
+				//页面全部变量赋值
+				mtableConfig.tableListData=groupDatas;
 			} else {
 				console.log(result);
 			}
@@ -166,8 +169,17 @@ function loadAllGroups_Count_RESTClient(groupDatas) {
 
 function delGroup_RESTClient(id) {
 	var json = {
-		"groupid" : id
-	};
+			"id" : id
+		};
+	 
+	$.each(mtableConfig.tableListData, function(index, obj) {
+
+		if(obj["_id"]==id){ 
+			json["groupid"]=obj["groupid"];
+			json["ldapkey"]=obj["ldapkey"]==null?"":obj["ldapkey"];
+		}
+	}); 
+	
 	var postUrl = url + "delGroup";
 	AjaxHelper.call({
 		url : postUrl,
@@ -190,9 +202,9 @@ function delGroup_RESTClient(id) {
 	});
 }
 
-function loadGroupById_RESTClient(groupid) {
+function loadGroupById_RESTClient(id) {
 	var json = {
-		"groupid" : groupid
+			"id" : id
 	};
 	var postUrl = url + "loadGroupByid";
 	AjaxHelper.call({
@@ -216,10 +228,12 @@ function loadGroupById_RESTClient(groupid) {
 	});
 }
 
-function updateGroup_RESTClient(groupid, appids) {
+function updateGroup_RESTClient(id, groupId,ldapKey,appids) {
 	var json = {
-		"groupid" : groupid,
-		"appids" : appids
+			"id" : id,
+			"groupid":groupId,
+			"ldapkey":ldapKey,
+			"appids" : appids
 	};
 	var postUrl = url + "updateGroup";
 	AjaxHelper.call({

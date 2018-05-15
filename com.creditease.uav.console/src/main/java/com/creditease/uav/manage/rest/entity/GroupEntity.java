@@ -24,8 +24,9 @@ package com.creditease.uav.manage.rest.entity;
  * @author Created by lbay on 2016/4/14.
  */
 public class GroupEntity {
-
+    private String id;
     private String groupid;
+    private String ldapkey;
     private String appids;
     private int state;
     private String createtime;
@@ -33,6 +34,16 @@ public class GroupEntity {
     private String operationuser;
     private String pageindex;
     private String pagesize;
+
+    public String getId() {
+    
+        return id;
+    }
+
+    public void setId(String id) {
+    
+        this.id = id;
+    }
 
     public String getGroupid() {
 
@@ -42,6 +53,16 @@ public class GroupEntity {
     public void setGroupid(String groupid) {
 
         this.groupid = groupid;
+    }
+
+    public String getLdapkey() {
+    
+        return ldapkey;
+    }
+
+    public void setLdapkey(String ldapkey) {
+    
+        this.ldapkey = ldapkey;
     }
 
     public String getAppids() {
@@ -112,14 +133,6 @@ public class GroupEntity {
     public void setPagesize(String pagesize) {
 
         this.pagesize = pagesize;
-    }
-
-    @Override
-    public String toString() {
-
-        return "GroupEntity [groupid=" + groupid + ", appids=" + appids + ", state=" + state + ", createtime="
-                + createtime + ", operationtime=" + operationtime + ", operationuser=" + operationuser + ", pageindex="
-                + pageindex + ", pagesize=" + pagesize + "]";
     }
 
 }
