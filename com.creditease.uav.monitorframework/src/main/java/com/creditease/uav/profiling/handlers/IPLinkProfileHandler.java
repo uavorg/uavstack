@@ -182,7 +182,7 @@ public class IPLinkProfileHandler extends BaseComponent implements ProfileHandle
         else {
             path = iplnkTargetURI.getPath();
         }
-
+        path = MonitorServerUtil.cleanIplnkTargetURL(path);
         if (path.indexOf("/" + appid) == 0) {
             path = path.substring(("/" + appid).length());
         }
