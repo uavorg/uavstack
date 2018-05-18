@@ -51,7 +51,6 @@ public abstract class GUISSOClient {
 
         initMessageMD5();
         initSystemUser(request);
-        initRedis(request);
 
     }
 
@@ -62,21 +61,7 @@ public abstract class GUISSOClient {
         userInfo = getUserBySystem(loginId, loginPwd);
 
         if (userInfo.isEmpty()) {
-            userInfo = getUserByCache(loginId, loginPwd);
-        }
-
-        if (userInfo.isEmpty()) {
             userInfo = getUserByLoginImpl(loginId, loginPwd);
-            if (!userInfo.isEmpty()) {
-                userInfo.put("loginPwd", bytes2Hex(md.digest(loginPwd.getBytes())));
-                cm.putJSON("apphub.ldap.cache", loginId, userInfo, 7L, TimeUnit.DAYS);
-                loggerInfo("用户信息缓存 ", "保存7天", "成功", loginId);
-            }
-        }
-
-        if (!userInfo.isEmpty()) {
-            userInfo.remove("loginPwd");
-            loggerInfo("用户登录 ", "信息获取", "成功", userInfo.toString());
         }
 
         return userInfo;
@@ -160,21 +145,6 @@ public abstract class GUISSOClient {
 
     }
 
-    @SuppressWarnings("unchecked")
-    private void initRedis(HttpServletRequest request) {
-
-        if (null == cm) {
-            String redisAddrStr = request.getServletContext().getInitParameter("uav.app.ldap.redis.store.addr");
-            Map<String, Object> redisParamsMap = JSONHelper.toObject(
-                    request.getServletContext().getInitParameter("uav.app.ldap.redis.store.params"), Map.class);
-            cm = CacheManagerFactory.build(redisAddrStr, Integer.valueOf(String.valueOf(redisParamsMap.get("min"))),
-                    Integer.valueOf(String.valueOf(redisParamsMap.get("max"))),
-                    Integer.valueOf(String.valueOf(redisParamsMap.get("queue"))),
-                    String.valueOf(redisParamsMap.get("pwd")));
-        }
-
-    }
-
     private Map<String, String> getUserBySystem(String loginId, String loginPwd) {
 
         Map<String, String> result = new HashMap<String, String>();
@@ -186,42 +156,7 @@ public abstract class GUISSOClient {
             }
         }
 
-        if (!result.isEmpty()) {
-            loggerInfo("系统用户 ", "校验", "成功", loginId);
-        }
-
         return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, String> getUserByCache(String loginId, String loginPwd) {
-
-        Map<String, String> result = new HashMap<String, String>();
-
-        if (cm.exists("apphub.ldap.cache", loginId)) {
-            Map<String, String> cache = cm.getJSON("apphub.ldap.cache", loginId, Map.class);
-            if (bytes2Hex(md.digest(loginPwd.getBytes())).equals(cache.get("loginPwd"))) {
-                result = cache;
-            }
-        }
-
-        if (!result.isEmpty()) {
-            loggerInfo("缓存用户 ", "校验", "成功", loginId);
-        }
-        return result;
-
-    }
-
-    private String bytes2Hex(byte[] bys) {
-
-        char[] chs = new char[bys.length * 2];
-        int stopCondition = bys.length;
-        int offset = 0;
-        for (int i = 0; i < stopCondition; i++) {
-            chs[offset++] = hex[bys[i] >> 4 & 0xf];
-            chs[offset++] = hex[bys[i] & 0xf];
-        }
-        return new String(chs);
     }
 
     protected void loggerInfo(String title, String action, String result, String msg) {

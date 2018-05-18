@@ -33,32 +33,32 @@ import com.creditease.uav.httpasync.HttpAsyncClientFactory;
  */
 public class OpentsdbDataSource extends AbstractDataSource<HttpAsyncClient> {
 
-    private static int maxConnectionPerRoute;
+    private int maxConnectionPerRoute;
 
-    private static int maxTotalConnection;
+    private int maxTotalConnection;
 
-    private static int sockTimeout;
+    private int sockTimeout;
 
-    private static int connectTimeout;
+    private int connectTimeout;
 
-    private static int requestTimeout;
+    private int requestTimeout;
 
     public OpentsdbDataSource(DataStoreConnection connection) {
 
         super(connection);
 
-        maxConnectionPerRoute = DataConvertHelper
+        this.maxConnectionPerRoute = DataConvertHelper
                 .toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_MAXPERROUTE), 10);
 
-        maxTotalConnection = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_MAXROUTE),
+        this.maxTotalConnection = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_MAXROUTE),
                 50);
 
-        sockTimeout = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_SOTIMEOUT), 5000);
+        this.sockTimeout = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_SOTIMEOUT), 5000);
 
-        connectTimeout = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_CONNTIMEOUT),
+        this.connectTimeout = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_CONNTIMEOUT),
                 5000);
 
-        requestTimeout = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_REQTIMEOUT),
+        this.requestTimeout = DataConvertHelper.toInt(connection.getContext(DataStoreProtocol.OPENTSDB_CLIENT_REQTIMEOUT),
                 5000);
 
     }
