@@ -453,6 +453,25 @@ public class MonitorServerUtil {
         return reUrl;
     }
 
+    
+    /**
+     * sometimes we meet the url like:
+     * http://localhost:8080/static/dev/css/product_pdfView//"932105@
+     * 
+     * clean the Illegal characters in the IplnkTargetURL
+     * 
+     * @param iplinkTargetUrl
+     * 
+     * @return
+     */
+    public static String cleanIplnkTargetURL(String iplinkTargetUrl) {
+
+        if (!StringHelper.isEmpty(iplinkTargetUrl)&&iplinkTargetUrl.contains("\"")) {
+            iplinkTargetUrl = iplinkTargetUrl.replace("\"", "");
+        }
+        return iplinkTargetUrl;
+    }
+    
     /**
      * check if the request is from browser
      * 
