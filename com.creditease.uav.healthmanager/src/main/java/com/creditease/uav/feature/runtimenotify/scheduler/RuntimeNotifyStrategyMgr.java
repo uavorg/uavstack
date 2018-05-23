@@ -96,7 +96,7 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
             String key = entry.getKey();
             Map<String, Object> m = (Map<String, Object>) entry.getValue();
 
-            NotifyStrategy stra = NotifyStrategy.parse(key, JSONHelper.toString(m));
+            NotifyStrategy stra = new NotifyStrategy(key, JSONHelper.toString(m));
 
             if (log.isDebugEnable()) {
                 log.debug(this, "Parse NotifyStrategy: " + JSONHelper.toString(stra));
@@ -234,7 +234,7 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
 
             for (String key : strategyMap.keySet()) {
                 String json = strategyMap.get(key);
-                NotifyStrategy stra = NotifyStrategy.parse(key, json);
+                NotifyStrategy stra = new NotifyStrategy(key, json);
 
                 if (log.isDebugEnable()) {
                     log.debug(this, "Parse NotifyStrategy: " + JSONHelper.toString(stra));

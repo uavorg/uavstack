@@ -34,7 +34,17 @@
                                                  #timeFlag#
                                             </span>
                                         </li>
-                                       
+										<li style="margin-bottom:10px;">
+                                            <span>
+                                                报警策略
+                                            </span>
+                                            <span>
+                                                ：
+                                            </span>
+                                            <span style="color: #DC143C;">
+                                                 #strategydesc#
+                                            </span>
+                                        </li>
                                         <li style="margin-bottom:10px;">
                                             <span>
                                                 问题描述
@@ -88,10 +98,7 @@
                                     <td align="center" style="height:44px">
                                         <a style="margin:0 30px; font-family:Helvetica Neue Light,Helvetica Neue,WenQuanYi Micro Hei,Trebuchet MS,Arial; color:#fff; text-decoration:none; font-size:17px">
                                             <div>
-                                                ©2016-2017 宜信技术研发中心
-                                            </div>
-                                            <div>
-                                                智能微服务团队
+                                                ©2016-2018 UAVStack
                                             </div>
                                         </a>
                                     </td>

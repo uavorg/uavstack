@@ -156,7 +156,7 @@ function showAddDiv() {
 	
 
 	sb.append( '<div><input class="displayMsgTitle" value="描述：" readonly="readonly"></input></div>');
-	sb.append( '<div><textarea class="input_must" placeholder="输入描述" id="notifyDesc"></textarea></div>');
+	sb.append( '<div><textarea class="input_must" placeholder="输入描述（该描述将出现在关联的预警记录中，请简明扼要概括）" id="notifyDesc"></textarea></div>');
 
 	sb.append( '<div class="well" id="conFatDiv">');
 	sb.append( '<div><span class="well-title">条件定义</span><div class="well-title-div"><span class="glyphicon glyphicon-plus well-add" onclick="javascript:showCondDiv(this,\'ADD\');"></span></div></div>');
@@ -320,9 +320,9 @@ function showEditNotifyDiv(jsonObjParam,isCopy) {
 
 	sb.append( '<div><input class="displayMsgTitle" value="描述：" readonly="readonly"></input></div>');
 	if(isOwner){
-		sb.append( '<div><textarea class="input_must" placeholder="输入描述" id="notifyDesc">'+jsonObj.desc+'</textarea></div>');
+		sb.append( '<div><textarea class="input_must" placeholder="输入描述（该描述将出现在关联的预警记录中，请简明扼要概括）" id="notifyDesc">'+jsonObj.desc+'</textarea></div>');
 	}else{
-		sb.append( '<div><textarea class="'+cssRedOnly+'" placeholder="输入描述" id="notifyDesc" readonly="readonly">'+jsonObj.desc+'</textarea></div>');
+		sb.append( '<div><textarea class="'+cssRedOnly+'" placeholder="输入描述（该描述将出现在关联的预警记录中，请简明扼要概括）" id="notifyDesc" readonly="readonly">'+jsonObj.desc+'</textarea></div>');
 	}
 	 
 	/**
