@@ -124,8 +124,25 @@ public class NotifyStrategy {
                     expression = new Expression(expr, func, range, sampling);
                 }
                 else {
-                    String metricPrefix = name.substring(name.indexOf('@') + 1, name.lastIndexOf('@'));
-                    cond.put("metric", metricPrefix + "." + cond.get("metric"));
+                    String metric = String.valueOf(cond.get("metric"));
+
+                    //add default metricPrefix if missing, such as "clientResp.", "hostState." and so on                                      
+                    String metricPrefix="";
+                    
+                    int index = metric.indexOf('.');
+                    
+                    if(index>-1) {
+                        metricPrefix = metric.substring(0, metric.indexOf('.'));
+                    }                   
+                    
+                    if(!metricPrefix.contains("State")&&!metricPrefix.contains("Resp")&&!metricPrefix.contains("jvm")) {
+                        
+                        metricPrefix = name.substring(name.indexOf('@') + 1, name.lastIndexOf('@'));
+                        
+                        metric = metricPrefix + "."+ metric;
+                    }       
+                        
+                    cond.put("metric", metric);
                     expression = new Expression(cond);
                     this.type = Type.TIMER;
                 }
@@ -299,6 +316,10 @@ public class NotifyStrategy {
         private String day_start;
         private String day_end;
         
+        private String exprAdaptorId;
+        
+        private String hashcode;
+        
         public Expression(String exprStr) {
             for (String op : OPERATORS) {
                 if (exprStr.contains(op)) {
@@ -331,7 +352,11 @@ public class NotifyStrategy {
         public Expression(Map<String, Object> cond) {
 
             this.arg = (String) cond.get("metric");
+            
+            this.exprAdaptorId = arg.substring(0,arg.indexOf('.'));
+            
             this.unit = Integer.parseInt((String) cond.get("unit"));
+            
             this.time_from = DateTimeHelper
                     .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + cond.get("time_from"), "yyyy-MM-dd HH:mm")
                     .getTime();
@@ -413,7 +438,11 @@ public class NotifyStrategy {
 
         public String getHashCode() {
 
-            return EncodeHelper.encodeMD5(arg + func + lowerLimit + upperLimit + time_from + time_to + interval + unit);
+            if(this.hashcode == null) {
+                hashcode = EncodeHelper.encodeMD5(arg + func + downsample + lowerLimit + upperLimit + time_from + time_to + interval + unit + time_start + time_end + day_start + day_end);
+            }
+            
+            return hashcode;
         }
 
         public String getArg() {
@@ -519,6 +548,11 @@ public class NotifyStrategy {
         public Boolean[] getWeekdayLimit() {
 
             return weekdayLimit;
+        }
+        
+        public String getExprAdaptorId() {
+            
+            return exprAdaptorId;
         }
 
     }
