@@ -132,6 +132,12 @@ public class ClientProfileHandler extends BaseComponent implements ProfileHandle
             urlAttrs.put(MonitorServerUtil.getActionErrorTag(action), curTime);
         }
 
+        if (clientURL.startsWith("http")) {
+            String rs = (String) context.get(ProfileConstants.PC_ARG_CLIENT_RS);
+            if(StringHelper.isNaturalNumber(rs)) {
+                urlAttrs.put(MonitorServerUtil.getActionTag(rs), curTime);
+            }
+        }
     }
 
     /**

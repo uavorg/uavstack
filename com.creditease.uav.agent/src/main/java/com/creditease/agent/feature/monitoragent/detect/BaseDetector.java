@@ -141,7 +141,7 @@ public abstract class BaseDetector
         this.workers.put(workerName, worker);
 
         // save appserverinfo
-        this.jvmAgentInfos.put(worker.getWorkerId(), appServerInfo);
+        this.jvmAgentInfos.put(workerName, appServerInfo);
 
         log.info(this, worker.getClass().getSimpleName() + "[" + workerName + "] started");
     }
@@ -182,7 +182,7 @@ public abstract class BaseDetector
             // cancel worker
             worker.cancel();
 
-            this.jvmAgentInfos.remove(worker.getWorkerId());
+            this.jvmAgentInfos.remove(worker.getName());
 
             log.info(this, "MonitorDataCatchWorker[" + worker.getName() + "] stopped");
         }
@@ -201,7 +201,7 @@ public abstract class BaseDetector
 
             worker.cancel();
 
-            this.jvmAgentInfos.remove(worker.getWorkerId());
+            this.jvmAgentInfos.remove(workName);
 
             log.info(this, "MonitorDataCatchWorker[" + worker.getName() + "] stopped");
         }

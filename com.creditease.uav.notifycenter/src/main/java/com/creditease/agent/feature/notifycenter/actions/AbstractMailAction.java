@@ -100,6 +100,7 @@ public abstract class AbstractMailAction extends BaseNotifyAction {
         String description = notifyEvent.getDescription();
         String host = notifyEvent.getHost();
         String ip = notifyEvent.getIP();
+        String strategydesc = notifyEvent.getArg("strategydesc");
 
         html = html.replace("#ip#", ip);
         html = html.replace("#host#", host);
@@ -110,6 +111,7 @@ public abstract class AbstractMailAction extends BaseNotifyAction {
         html = html.replace("#JTAtimeFlag#", JTAsdf.format(timeFlag));
         html = html.replace("#id#", id);
         html = html.replace("#description#", description);
+        html = html.replace("#strategydesc#", strategydesc);
 
         String feature = notifyEvent.getArg("feature");
         String component = notifyEvent.getArg("component");
