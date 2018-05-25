@@ -182,10 +182,10 @@ public class TaildirLogComponent extends AbstractComponent {
             reader.close();
         }
         catch (InterruptedException e) {
-            log.info(this, "Interrupted while awaiting termination", e);
+            log.err(this, "Interrupted while awaiting termination", e);
         }
         catch (IOException e) {
-            log.info(this, "Failed: " + e.getMessage(), e);
+            log.err(this, "Failed: " + e.getMessage(), e);
         }
         // sourceCounter.stop();
         log.info("Taildir source {} stopped.", cName);

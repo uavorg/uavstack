@@ -65,13 +65,18 @@ public class InvokeChainDataCollectHandler extends AbstractCollectDataHandler {
 
         for (Line line : frame.getLines()) {
 
-            String content = line.getContent();
+            try {
+                String content = line.getContent();
+                                 
+                  Span span = new Span(content);
 
-            Span span = new Span(content);
+                  pushLatestIVCDataToCache(appUUID, span);
 
-            pushLatestIVCDataToCache(appUUID, span);
-
-            pushSpanToBulkRequest(appUUID, frame.getAppgroup(), span, bulkRequest);
+                  pushSpanToBulkRequest(appUUID, frame.getAppgroup(), span, bulkRequest);
+              }
+              catch (Exception e) {
+                  this.log.err(this, "unsupported ivc content :" + line.getContent(), e);
+              }
         }
 
         // cm.submitBatch();

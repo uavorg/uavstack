@@ -911,8 +911,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
                             Node beanClazz = processor
                                     .selectXMLNode("/beans/bean[@id='" + impl.getNodeValue() + "']/@class");
-
-                            return beanClazz.getNodeValue();
+                            
+                            if(beanClazz!=null) {                               
+                                return beanClazz.getNodeValue();
+                            } 
                         }
 
                         // step 2.3 load serviceBean|implementor/@ref
@@ -923,7 +925,9 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                             Node beanClazz = processor
                                     .selectXMLNode("/beans/bean[@id='" + impl.getNodeValue() + "']/@class");
 
-                            return beanClazz.getNodeValue();
+                            if(beanClazz!=null) {                               
+                                return beanClazz.getNodeValue();
+                            }  
                         }
 
                         return key;

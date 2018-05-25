@@ -1014,4 +1014,45 @@ public class StringHelper {
         }
         return num;
     }
+    
+    /**
+     * @param collection
+     * @param separator
+     * @return
+     */
+    public static String join(Collection<String> collection, String separator) {
+        if (collection == null) {
+            return null;
+        }
+        return join(collection.toArray(new String[collection.size()]), separator);
+    }
+
+    /**
+     * Array can not be empty, the value in an array is empty and not appended to a string
+     * 
+     * @param array
+     * @param separator
+     * @return
+     */
+    public static String join(String[] array, String separator) {
+        if (array == null) {
+            return null;
+        }
+
+        if (separator == null) {
+            separator = "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            if (array[i] != null) {
+                builder.append(array[i]);
+            }
+        }
+        return builder.toString();
+    }
 }

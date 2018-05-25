@@ -92,7 +92,7 @@ public class Span {
 
     private String methodName = "";
 
-    private String endpointInfo;
+    private String endpointInfo = "";
 
     private String state = "";
 
@@ -109,11 +109,11 @@ public class Span {
         this.startTime = DataConvertHelper.toLong(info[4], -1);
         this.cost = DataConvertHelper.toLong(info[5], -1);
         this.appHostPort = info[6];
-        this.appid = info[7];
-        this.endpointInfo = info[8];
+        this.appid = decodeForIVC(info[7]);
+        this.endpointInfo = decodeForIVC(info[8]);
         this.className = info[9];
         this.methodName = info[10];
-        this.url = info[11];
+        this.url = decodeForIVC(info[11]);
         this.state = EncodeHelper.urlDecode(info[12]);
 
     }
@@ -288,6 +288,15 @@ public class Span {
     public void setAppHostPort(String appHostPort) {
 
         this.appHostPort = appHostPort;
+    }
+    private String decodeForIVC(String s) {
+
+        if (!StringHelper.isEmpty(s) && s.contains("%3b")) {
+            return s.replace("%3b", ";");
+        }
+        else {
+            return s;
+        }
     }
 
 }
