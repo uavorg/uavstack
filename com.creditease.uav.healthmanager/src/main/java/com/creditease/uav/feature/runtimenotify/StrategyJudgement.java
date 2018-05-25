@@ -110,6 +110,7 @@ public class StrategyJudgement extends AbstractComponent {
     public Map<String, String> judge(Slice cur, NotifyStrategy stra, List<Slice> slices) {
 
         JudgeResult re = new JudgeResult();
+        re.setStrategy(stra);
 
         List<NotifyStrategy.Condition> conds = stra.getCondtions();
         for (NotifyStrategy.Condition cond : conds) {
@@ -756,8 +757,15 @@ public class StrategyJudgement extends AbstractComponent {
     }
 
     private class JudgeResult {
+        
+        private NotifyStrategy stra;
 
         private List<ConditionResult> crs = new ArrayList<>();
+
+        public void setStrategy(NotifyStrategy stra) {
+            
+            this.stra = stra;
+        }
 
         public void add(ConditionResult cr) {
 
@@ -789,7 +797,7 @@ public class StrategyJudgement extends AbstractComponent {
 
                     if (result == null) {
                         if (log.isTraceEnable()) {
-                            log.warn(this, "JsHelper eval Exception: script=" + script);
+                            log.warn(this, "JsHelper eval Exception: script=" + script + ", StrategyDesc=" + stra.getDesc() + ", StrategyName=" + stra.getName());
                         }
                         continue;
                     }

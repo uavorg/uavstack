@@ -122,7 +122,7 @@ public class JudgeNotifyTaskForTimer extends JudgeNotifyCommonTask {
 
         }
         catch (Exception e) {
-            log.err(this, "JudgeNotifyTimerTask" + stra.getName() + " RUN FAIL.", e);
+            log.err(this, "JudgeNotifyTimerTask RUN FAIL." + " StrategyDesc=" + stra.getDesc() + ", StrategyName=" + stra.getName() + "\n", e);
         }
         finally {
             if (lock != null && lock.isLockInHand()) {
@@ -195,8 +195,8 @@ public class JudgeNotifyTaskForTimer extends JudgeNotifyCommonTask {
         NotificationEvent ne = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_THRESHOLD, title, description,
                 judge_time, ip, host);
 
-        // add appgroup
         ne.addArg("appgroup", appgroup);
+        ne.addArg("strategydesc", stra.getDesc());
 
         // 兼容不存在convergences属性的旧预警策略
         if(convergences == null || convergences.size() == 0 ) {
