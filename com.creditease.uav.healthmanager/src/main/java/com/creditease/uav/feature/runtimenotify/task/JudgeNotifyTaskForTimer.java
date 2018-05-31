@@ -38,7 +38,7 @@ import com.creditease.uav.feature.runtimenotify.Slice;
 import com.creditease.uav.feature.runtimenotify.StrategyJudgement;
 import com.creditease.uav.feature.runtimenotify.scheduler.RuntimeNotifyStrategyMgr;
 
-public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
+public class JudgeNotifyTaskForTimer extends JudgeNotifyCommonTask {
 
     private NotifyStrategy stra;
     private long taskStart = System.currentTimeMillis();
@@ -47,10 +47,10 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
     private static final long LOCK_TIMEOUT = 60 * 1000;
     private CacheManager cm;
 
-    public JudgeNotifyTimerTask(String name, String feature, long judge_time, NotifyStrategy stra) {
+    public JudgeNotifyTaskForTimer(String name, String feature, long judge_time, NotifyStrategy stra) {
         super(name, feature);
         this.stra = stra;
-        this.judge_time = judge_time - judge_time % 60000;
+        this.judge_time = judge_time;
         cm = (CacheManager) this.getConfigManager().getComponent(feature, RuntimeNotifyCatcher.CACHE_MANAGER_NAME);
     }
 
@@ -64,6 +64,12 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
             if (!lock.getLock()) {
                 return;
             }
+            
+            //get the type of source instance,like 'hostState'.For convert it to another type's instance          
+            String instType = stra.getName().substring(stra.getName().indexOf('@') + 1, stra.getName().lastIndexOf('@'));
+            
+            long judge_time_minute = judge_time - judge_time % 60000;
+            
             /**
              * Step 1:find out instance
              */
@@ -75,10 +81,18 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
                 StrategyJudgement judgement = (StrategyJudgement) getConfigManager().getComponent(feature,
                         "StrategyJudgement");
                 
-                Slice slice = new Slice(instance, judge_time);
+                /**
+                 *  we add "_" to the end of each instance in hostState strategy for stream judge, we should remove it in timer judge.  
+                 */
+                if(instance.endsWith("_")) {
+                    instance = instance.substring(0,instance.length()-1);
+                }
+                
+                Slice slice = new Slice(instance, judge_time_minute);
                 Map<String, Object> args = new HashMap<String, Object>();
                 // 标识该slice由TimerTask创建，为同环比创建，非流式计算创建
                 args.put("creater", "timer");
+                args.put("instType", instType);
                 slice.setArgs(args);
                 
                 Map<String, String> result = judgement.judge(slice, stra, null);
@@ -108,7 +122,7 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
 
         }
         catch (Exception e) {
-            log.err(this, "JudgeNotifyTimerTask" + stra.getName() + " RUN FAIL.", e);
+            log.err(this, "JudgeNotifyTimerTask RUN FAIL." + " StrategyDesc=" + stra.getDesc() + ", StrategyName=" + stra.getName() + "\n", e);
         }
         finally {
             if (lock != null && lock.isLockInHand()) {
@@ -181,8 +195,8 @@ public class JudgeNotifyTimerTask extends JudgeNotifyCommonTask {
         NotificationEvent ne = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_THRESHOLD, title, description,
                 judge_time, ip, host);
 
-        // add appgroup
         ne.addArg("appgroup", appgroup);
+        ne.addArg("strategydesc", stra.getDesc());
 
         // 兼容不存在convergences属性的旧预警策略
         if(convergences == null || convergences.size() == 0 ) {

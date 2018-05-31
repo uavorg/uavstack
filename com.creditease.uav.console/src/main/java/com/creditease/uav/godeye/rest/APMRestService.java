@@ -21,6 +21,7 @@
 package com.creditease.uav.godeye.rest;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.inject.Singleton;
 import javax.ws.rs.POST;
@@ -32,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.http.HttpStatus;
 
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.http.api.UAVHttpMessage;
 import com.creditease.uav.httpasync.HttpClientCallback;
 import com.creditease.uav.httpasync.HttpClientCallbackResult;
@@ -86,6 +88,25 @@ public class APMRestService extends GodEyeRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
+        Map<String, String> request = msg.getRequest();
+        String content = request.get("content");
+        
+        if (!StringHelper.isEmpty(content)) {
+            String[] contents = content.split(",");
+            String[] condition;
+            for (String ctn : contents) {
+                if(StringHelper.isEmpty(ctn)) {
+                    continue;
+                }
+                condition = ctn.split("=");
+                if(condition.length < 2) {
+                    response.resume("{\"rs\":\"ERR\",\"msg\":\"query syntax error\"}");
+                    return;
+                }
+                request.put(condition[0], condition[1].replaceAll("\"", ""));
+            }
+        }
+        
         this.doHttpPost("uav.app.apm.ivc.http.addr", "/ivc/q", msg, new IVCCallback(response));
     }
 
