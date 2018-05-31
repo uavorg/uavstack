@@ -48,8 +48,9 @@ public class RMQMessageConsumer extends MessageConsumer {
     private long stopInterval = 0;
 
     @SuppressWarnings("unchecked")
-    public RMQMessageConsumer(String name, String[] bizIds, int maxConcurrent, long stopInterval,
+    public RMQMessageConsumer(String name, String[] bizIds, int maxConcurrent, int initConcurrent, long stopInterval,
             MQFactory.QueueType queueType) {
+
         super(name, bizIds);
 
         this.context = MessagingContext.instance();
@@ -61,7 +62,7 @@ public class RMQMessageConsumer extends MessageConsumer {
         // group不同的consumer不能重复
         config.setComsumerGroup(MessagingContext.DefaultConsumerGroup + "-" + this.getName());
         config.setConsumeThreadMax(maxConcurrent);
-        config.setConsumeThreadMin(1);
+        config.setConsumeThreadMin(initConcurrent);
         // 暂时使用默认值，调优的时候可能需要调整这个参数
         config.setPullBatchSize(0);
         // get bizId2TopicMap
@@ -79,9 +80,9 @@ public class RMQMessageConsumer extends MessageConsumer {
         consumer = MQFactory.createMQConsumer(config, queueInfo);
     }
 
-    public RMQMessageConsumer(String name, String[] bizIds, int maxConcurrent, long stopInterval) {
+    public RMQMessageConsumer(String name, String[] bizIds, int maxConcurrent, int initConcurrent, long stopInterval) {
 
-        this(name, bizIds, maxConcurrent, stopInterval, MQFactory.QueueType.QUEUE);
+        this(name, bizIds, maxConcurrent, initConcurrent, stopInterval, MQFactory.QueueType.QUEUE);
     }
 
     @Override
