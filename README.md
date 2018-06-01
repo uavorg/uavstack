@@ -1,132 +1,116 @@
 # UAVStack
-UAVStack是智能化服务技术栈，是研发运维一体化的解决方案。UAV是无人机的缩写，寓意无人机翱翔蓝天，智能的，透明的完成任务。
-它包括任务机器人（代号HIT），全维监控（代号UAV.Monitor）,应用性能管理（代号UAV.APM）,服务治理（代号UAV.ServiceGovern）,微服务计算（代号UAV.MSCP），用户体验管理（代号UAV.UEM）等。
+中文版README请点击(https://github.com/uavorg/uavstack/blob/master/README%E4%B8%AD%E6%96%87%E7%89%88.md)
 
-UAVStack is an intelligent service technology stack. It is a solution for integration of R & D, operation and maintenance. UAV is the abbreviation of unmanned aerial vehicle (UAV), which means that unmanned aerial vehicle flies into the sky, and completes tasks intelligently and transparently.
+UAVStack as an intelligent service technology stack is the integrated solution to R&D, operation and maintenance. As the acronym of unmanned aerial vehicle, UAV depicts the scenario where the unmanned aerial vehicle hovers under the sky and completes tasks in an intelligent and transparent manner. This stack features AIOps Robot (HIT), full dimension monitoring (UAV.Monitor), application performance management (UAV.APM), service governance (UAV.ServiceGovern), micro-service computing (UAV.MSCP), user experience management (UAV.UEM), etc..
 
-It includes AIOps Robot (HIT),full dimension monitoring (UAV.Monitor), application performance management (UAV.APM), service governance (UAV.ServiceGovern), micro-service computing (UAV.MSCP), user experience management (UAV.UEM) etc..
-
-
-目前UAVStack开源系列 ( 官方网站：https://uavorg.github.io/main/ ) 包括
-
-UAVStack Open Source series includes UAV.Monitor, UAV.APM, UAV.ServiceGovern, UAV.MSCP 
+Please visit https://uavorg.github.io/main/ for the open source series of UAVStack, including UAV.Monitor, UAV.APM, UAV.ServiceGovern and UAV.MSCP
 
 ![Uavstack开源系列](https://uavorg.github.io/main/index/img/support/openSource.png)
 
-# 更新模式 Project Updating Principle
-* 开源系列源代码Issue更新，将与内部版本完全同步，最低频率每周一次
-* 开源系列源代码相关的功能优化，将与内部版本完全同步，最低频率每周一次
-* 开源系列源代码相关的新功能开放，会提前一周预告，并于下周内发布
-* 标准部署包下载会与源代码更新同步，最低频率每周一次
-* AllInOne开发演示版原则上每月更新一次（打包上传比较耗时），中间更新请下载标准部署包替换
----
-* The open source series updating is fully synchronized with the internal version, with the lowest frequency once a week
-* The open source series related functional optimizations is fully synchronized with the internal version, with the lowest frequency once a week
-* The open source series related new features will be announced a week ahead of schedule, and released next week
-* The standard deployment pack download is synchronized with source code updates, with the lowest frequency once a week
-* AllInOne pack are updated once a month (packaged, uploaded, and time-consuming) in principle, and you can download the standard deployment package instead
+# Updating Rules
+* Updates of the open source series (at least once a week) shall synchronize with those of the internal versions.
+* Feature optimization of the open source series (at least once a week) shall synchronize with that of the internal versions as well.
+* New features of the open source series shall be preannounced one week earlier and released within the following week.
+* The standard deployment package shall synchronize with the updated source code (at least once a week).
+* The AllInOne Demo Package is scheduled to be updated once a month. Please download the standard deployment package updated beyond the schedule.
 
-
-# 工程说明 Source Code Project Description
-uavstack是UAVStack的All in One源代码仓库。
+# Project Description
 
 uavstack is the All in One source repository of UAVStack.
 
-## 根POM
-* com.creditease.uav.superpom  根POM，包含依赖管理，Build所需plugins等 (Parent POM for dependency management & build plugins)
+## Parent POM
+* com.creditease.uav.superpom: parent POM that support dependency management and build plugins
 
 ## UAV.Monitor
-* com.creditease.uav.agent             监控代理程序MonitorAgent核心框架 (Core of MonitorAgent)
-* com.creditease.uav.healthmanager     Monitor核心服务，包括实时数据，画像数据存储/查询，实时报警流式计算，AppHub支持服务 (Core feature of HealthManager, including Monitoring Data Service，Application/Service Profiling，Real-time alarm streaming，AppHub Support Service)
-* com.creditease.uav.notifycenter      Monitor服务：报警中心服务端 (Notification Center Service)
-* com.creditease.uav.monitorframework  探针MOF核心框架 （Core of JVM MonitorFramework for Tomcat,Jetty,SpringBoot,MSCP, etc...）
-* com.creditease.uav.monitorframework.agent   探针MOF的javaagent实现 (JVM MonitorFramework javaagent support)
-* com.creditease.uav.monitorframework.dproxy  javaassit支持 (JVM MonitorFramework javassit support)
-* com.creditease.uav.hook.*          探针MOF针对技术规范的钩子，包括Dubbo，HttpClients,JAXWS,JDBC,MongoClients,MQ,Redis等 (JVM MonitorFramework Hooks for application framework)
-* com.creditease.uav.loghook         探针MOF针对log4j,logback支持 (JVM MonitorFramework Hook for log4j, logback)
-* com.creditease.uav.tomcat.plus.core  探针MOF对Tomcat/SpringBoot的支持 (JVM MonitorFramework extension for Tomcat/SpringBoot)
-* com.creditease.uav.jetty.plus.core   探针MOF对Jetty支持 (JVM MonitorFramework extension for Jetty)
-* com.creditease.uav.mock.sl4j       去除某些框架依赖sl4j (mock sl4j)
-* com.creditease.uav.ttl             com.alibaba.ttl源代码引入 (Alibaba TTL)
-* com.creditease.uav.monitorframework.buildFat        WAR测试程序 (Function Test of JVM MonitorFramework)
-* com.creditease.uav.monitorframework.springbootFat   SpringBoot测试程序 (Function Test of JVM MonitorFramework for springboot)
-* com.creditease.uav.agent.buildComponent             制作监控代理程序部署包 (Build POM for MonitorAgent)
-* com.creditease.uav.healthmanager.buildComponent     制作健康管理程序部署包 (Build POM for HealthManager)
-* com.creditease.uav.monitorframework.buildComponent  制作探针MOF部署包     (Build POM for JVM MonitorFramework)
+* com.creditease.uav.agent: core of MonitorAgent
+* com.creditease.uav.healthmanager: core features of HealthManager, including Monitoring Data Service，Application/Service Profiling，Real-time Alarm Streaming and AppHub Support Service
+* com.creditease.uav.notifycenter: Notification Center Service
+* com.creditease.uav.monitorframework: core of JVM MonitorFramework for Tomcat,Jetty,SpringBoot,MSCP, etc...
+* com.creditease.uav.monitorframework.agent: JVM MonitorFramework javaagent support
+* com.creditease.uav.monitorframework.dproxy: JVM MonitorFramework javassit support
+* com.creditease.uav.hook.* : JVM MonitorFramework Hooks for application framework, including Dubbo, HttpClients, JAXWS, JDBC, MongoClients, MQ, Redis, etc. 
+* com.creditease.uav.loghook: JVM MonitorFramework Hook for log4j and logback
+* com.creditease.uav.tomcat.plus.core: JVM MonitorFramework extension for Tomcat/SpringBoot
+* com.creditease.uav.jetty.plus.core: JVM MonitorFramework extension for Jetty
+* com.creditease.uav.mock.sl4j: mock sl4j
+* com.creditease.uav.ttl: com.alibaba.ttl source code introduction (Alibaba TTL)
+* com.creditease.uav.monitorframework.buildFat: function test of JVM MonitorFramework)
+* com.creditease.uav.monitorframework.springbootFat: function test of JVM MonitorFramework for Springboot)
+* com.creditease.uav.agent.buildComponent: build POM for MonitorAgent
+* com.creditease.uav.healthmanager.buildComponent: build POM for HealthManager
+* com.creditease.uav.monitorframework.buildComponent: build POM for JVM MonitorFramework
 
 ## UAV.APM
-* com.creditease.uav.collect          APM归集客户端/服务端 (Core of APM Data Collection Client & Service)
-* com.creditease.uav.invokechain      调用链，日志服务存储和查询 （InvokeChain， Log Collection 2.0）
-* com.creditease.uav.monitorframework.apm  探针MOF的APM支持 （JVM MonitorFramework extension for APM）
-* com.creditease.uav.threadanalysis        一键式线程分析客户端和服务端 (One Shot Thread Analysis Client & Service)
+* com.creditease.uav.collect: core of APM Data Collection client and server
+* com.creditease.uav.invokechain: Invocation Chain and Log Collection 2.0
+* com.creditease.uav.monitorframework.apm: JVM MonitorFramework extension for APM
+* com.creditease.uav.threadanalysis: one-click thread analysis client and server
 
 ## UAV.MSCP
-* com.creditease.uav.base              MSCP核心框架 (Core of MSCP)
-* com.creditease.uav.agent.heartbeat   心跳客户端，心跳服务端，节点远程操控，进程扫描，进程值守 (Base feature of MSCP including heartbeat client & service，node remote opertaions，process auto scanning，process keep-alive support)
-* com.creditease.uav.annoscan          Fastclasspathscanner源代码引入，注解Class扫描 （Fastclasspathscanner）
-* com.creditease.uav.cache.redis       基于Redis的CacheManager （Cache Framework based on redis）
-* com.creditease.uav.dbaccess        存储管理器，目前封装了对MySql，OpenTSDB，HBase，MongoDB的存储和查询 （Data Store Framework for MySQL，OpenTSDB，HBase，MongoDB）
-* com.creditease.uav.elasticsearch.client ElasticSearch的Shaded客户端封装，避免冲突 (ElasticSearch-Shaded-Client)
-* com.creditease.uav.fastjson           Fastjson源代码引入 (FastJson)
-* com.creditease.uav.helper             Util型支持类库 (Util Support Lib)
-* com.creditease.uav.httpasync          Http异步通信客户端，封装Apache AsyncClient (RPC Framework based on Apache Http AsyncClient)
-* com.creditease.uav.logging            MSCP日志支持 (MSCP Logging support)
-* com.creditease.uav.messaging          MSCP消息发送者和消费者支持，无需关心底层消息服务，依赖com.creditease.uav.mq (Messaging Service)
-* com.creditease.uav.mq                 消息队列服务底层封装，目前使用RocketMQ  (Message Queue Support based on Rocket MQ)    
-* com.creditease.uav.notifymanager      MSCP组件级报警支持     (MSCP Component level notification support)
-* com.creditease.uav.upgrade            MSCP升级客户端和服务端 (Remote upgrading support for MSCP)
+* com.creditease.uav.base: core of MSCP
+* com.creditease.uav.agent.heartbeat: basic features of MSCP, including heartbeat client & server，node remote control，process auto scanning and process keep-alive support
+* com.creditease.uav.annoscan: Fastclasspathscanner source code introduction
+* com.creditease.uav.cache.redis: Redis-based cache framework
+* com.creditease.uav.dbaccess: data store framework for MySQL，OpenTSDB，HBase and MongoDB
+* com.creditease.uav.elasticsearch.client: ElasticSearch-shaded-client to avoid conflicts
+* com.creditease.uav.fastjson: Fastjson source code introduction
+* com.creditease.uav.helper: Util support library
+* com.creditease.uav.httpasync: Http asynchronous communication client based on Apache Http AsyncClient)
+* com.creditease.uav.logging: MSCP logging support
+* com.creditease.uav.messaging: MSCP messaging support that relies on com.creditease.uav.mq and requires no underlying messaging service
+* com.creditease.uav.mq: message queue support based on Rocket MQ    
+* com.creditease.uav.notifymanager: component-level MSCP notification support
+* com.creditease.uav.upgrade: remote upgrading support for MSCP client and server
 
 ## UAV.AppHub
-* com.creditease.uav.console           UAVStack交互前端，包括Monitor，APM等前端交互功能 (AppHub is the GUI console for UAVStack)
-* com.creditease.uav.console.buildComponent    制作AppHub部署包 （Build POM for AppHub）
+* com.creditease.uav.console: GUI console of UAVStack with front-end interactive features such as Monitor and APM
+* com.creditease.uav.console.buildComponent: build POM for AppHub
 
 ## UAV.ServiceGovern
-* 服务自动注册包含与探针MOF代码中
-* 服务发现代码包含与健康管理程序画像数据查询中
-* 服务降级保护（代码整理中，陆续更新...）
-* 服务授权（代码整理中，陆续更新...）
+* Service automatic registration is included in the codes of MOF.
+* Codes for service discovery is included in profile data query of HealthManager.
+* Service downgrading protection (To be updated).
+* Service authorization (To be update).
 
-# 如何构建 How to Build
-如果由于缺少jar包或某些依赖jar无法下载导致Maven Build Failure，可下载[参考Maven依赖仓库](https://pan.baidu.com/s/1gfeY8pH)，使用该Maven仓库或将其复制到你正在使用的Maven仓库中。
-
-If you are unable to build because of the lack of jar packages or certain dependency jar, pleaser refer this [Maven Repository](https://pan.baidu.com/s/1gfeY8pH), use the Maven repository, or copy it to the Maven warehouse you are using.
+# How to Build
+Download the [reference Maven dependency repository](https://pan.baidu.com/s/1gfeY8pH)for Maven Build Failure resulted from the lack of jar packages or the lack of dependent jar packages, and use the downloaded Maven repository instead or copy it into the Maven repository that you are using.
 
 1. build com.creditease.uav.superpom
 ```
 cd com.creditease.uav.superpom
 mvn clean install 
 ```
-2 中间件增强框架（MOF探针）
+2 MonitorFramework
 ```
 cd com.creditease.uav.monitorframework.buildComponent
 mvn clean install 
 ```
 
-build结果  
+build result  
 >target   
 > -build   
 > -uavmof_1.0_XXXXX.zip   
 > -uavmof_1.0_XXXXX.zip.MD5   
 
-3. 监控代理程序(MA)
+3. MonitorAgent
 ```
 cd com.creditease.uav.agent.buildComponent
 mvn clean install 
 ```
 
-build结果   
+build result   
 >target   
 > -build   
 > -uavagent_1.0_XXXXX.zip   
 > -uavagent_1.0_XXXXX.zip.MD5   
 
-4. 健康管理服务(HM)
+4. HealthManager
 ```
 cd com.creditease.uav.healthmanager.buildComponent
 mvn clean install 
 ```
 
-build结果   
+build result   
 >target   
 > -build   
 > -uavhm_1.0_XXXXX.zip   
@@ -138,36 +122,30 @@ cd com.creditease.uav.console
 mvn clean install 
 ```
 
-build结果   
+build result   
 >target   
 > -com.creditease.uav.console-1.0.war   
 
-# 文档中心 Documents
-## 全维监控UAV.Monitor+APM
-* [用户指南](https://uavorg.github.io/documents/uavdoc_useroperation/index.html)
-* [安装部署](https://uavorg.github.io/documents/uavdoc_deploydocs/index.html)
-* [架构说明](https://uavorg.github.io/documents/uavdoc_architecture/index.html)
+# Documents
+## UAV.Monitor+APM
+* [User Operation](https://uavorg.github.io/documents/uavdoc_useroperation/index.html)
+* [Deployment](https://uavorg.github.io/documents/uavdoc_deploydocs/index.html)
+* [Architecture](https://uavorg.github.io/documents/uavdoc_architecture/index.html)
 
-# 下载中心 Downloads
-## 全维监控UAV.Monitor+APM
-* [MOF探针](https://pan.baidu.com/s/1cg4J0q)
-* [监控代理程序](https://pan.baidu.com/s/1ge5MJ9h)
-* [健康管理服务](https://pan.baidu.com/s/1i4HnV85)
+# Downloads
+## UAV.Monitor+APM
+* [Monitor Framework](https://pan.baidu.com/s/1cg4J0q)
+* [Monitor Agent](https://pan.baidu.com/s/1ge5MJ9h)
+* [Health Manager](https://pan.baidu.com/s/1i4HnV85)
 * [AppHub](https://pan.baidu.com/s/1dFxtDZV)
 
-## 第三方下载 Thirdparty Downloads
+## Thirdparty Downloads
 * [rocket.war](https://pan.baidu.com/s/1dF6NeHN)
 
-## AllInOne开发演示版 AllInOne Install Downloads
-开发演示版的健康管理服务(HM)仅适合开发环境，演示环境，小规模测试环境。
-生产环境推荐使用[分布式部署](https://uavorg.github.io/documents/uavdoc_deploydocs/healmanagerInstall/healmanagerInstall/microservice.html)
+## AllInOne Installation Downloads
+The Health Manager (HM) in the AllInOne Installation Package is applicable to development environments, demos and small-scale testing environments.
+[A distributed deployment](https://uavorg.github.io/documents/uavdoc_deploydocs/healmanagerInstall/healmanagerInstall/microservice.html) is recommended for the production environment.
 
-The health management service (HM) in AllInOne Install Package is only suitable for development environments, demos, and small scale testing environments. [A distributed deployment](https://uavorg.github.io/documents/uavdoc_deploydocs/healmanagerInstall/healmanagerInstall/microservice.html) is recommended for the production environment
-
-* [Windows64位](https://pan.baidu.com/s/1jIF0wNs)
+* [Windows64](https://pan.baidu.com/s/1jIF0wNs)
 * [Mac](https://pan.baidu.com/s/1mhCykp6)
 * [Linux(CentOS)](https://pan.baidu.com/s/1nvj6jW1)
-
-
-
-

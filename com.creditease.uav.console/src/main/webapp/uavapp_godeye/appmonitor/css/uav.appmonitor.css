@@ -491,6 +491,11 @@ select{
 	color:#333;
 }
 
+.IvcHighLightKeyword {
+	background:yellow;
+	color:#333;
+}
+
 .pluginAlertNtfy {
 	width: 30px;
 	height: 30px;

@@ -473,6 +473,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
 
             if (null != stra) {
                 putNotifyAction(event, stra);
+                event.addArg("strategydesc", stra.getDesc());
             }
 
             if (log.isTraceEnable()) {

@@ -206,24 +206,107 @@ public class InvokeChainQueryHandler extends AbstractHttpHandler<UAVHttpMessage>
         String cls = data.getRequest("class");
 
         if (cls != null) {
-            queryBuilder.must(QueryBuilders.wildcardQuery("class.keyword", cls.trim()));
+            parseSearchCondition(queryBuilder, cls, "class");
         }
 
         String method = data.getRequest("method");
 
         if (method != null) {
-            queryBuilder.must(QueryBuilders.wildcardQuery("method.keyword", method.trim()));
+            parseSearchCondition(queryBuilder, method, "method");
         }
 
         String url = data.getRequest("url");
 
         if (url != null) {
-            queryBuilder.must(QueryBuilders.wildcardQuery("url.keyword", url.trim()));
+            parseSearchCondition(queryBuilder, url, "url");
+        }
+        
+        String state = data.getRequest("state");
+
+        if (state != null) {
+            parseSearchCondition(queryBuilder, state, "state");
         }
 
         SortBuilder[] sorts = buildSort(data);
 
         this.queryToList(data, queryBuilder, null, sorts);
+    }
+    
+    /**
+     * parseSearchCondition
+     * 
+     * 如果用空格分开多个关键字，则默认为或的关系
+     * 
+     * 如果某些关键字是以+连接，代表与关系
+     * 
+     * 注意这里只支持或优先的操作
+     * 
+     * 举例： <kwd1>+<kwd2> <kwd3> <kwd4>
+     * 
+     * 则代表的是意思是（kwd1 and kwd2 同时存在）或kwd3存在或kwd4存在
+     * 
+     * @param queryBuilder
+     * @param content
+     */
+    private void parseSearchCondition(BoolQueryBuilder queryBuilder, String content, String field) {
+
+        if (content == null) {
+            return;
+        }
+        
+        boolean hasCompandSearch = (content.indexOf("+") > -1) ? true : false;
+
+        if (hasCompandSearch == false) {
+            if (content.indexOf("*") == -1) {
+                queryBuilder.must(QueryBuilders.matchQuery(field, content));
+            }
+            else {
+                queryBuilder.must(QueryBuilders.wildcardQuery(field+".keyword", content));
+            }
+        }
+        else {
+
+            BoolQueryBuilder orQueryBuilder = QueryBuilders.boolQuery();
+
+            String[] orKwds = content.split(" ");
+
+            for (String orKwd : orKwds) {
+
+                /**
+                 * 如果没有与关系，就检查是否有*
+                 */
+                if (orKwd.indexOf("+") == -1) {
+                    if (orKwd.indexOf("*") == -1) {
+                        orQueryBuilder.should(QueryBuilders.matchQuery(field, orKwd));
+                    }
+                    else {
+                        orQueryBuilder.should(QueryBuilders.wildcardQuery(field+".keyword", orKwd));
+                    }
+                }
+                else {
+                    /**
+                     * 或关系，检查是否有*
+                     */
+                    String[] andKwds = orKwd.split("\\+");
+
+                    BoolQueryBuilder andQueryBuilder = QueryBuilders.boolQuery();
+
+                    for (String andKwd : andKwds) {
+                        if (andKwd.indexOf("*") == -1) {
+                            andQueryBuilder.must(QueryBuilders.matchQuery(field, andKwd));
+                        }
+                        else {
+                            andQueryBuilder.must(QueryBuilders.wildcardQuery(field+".keyword", andKwd));
+                        }
+                    }
+
+                    orQueryBuilder.should(andQueryBuilder);
+                }
+
+            }
+
+            queryBuilder.must(orQueryBuilder);
+        }
     }
 
     @SuppressWarnings("rawtypes")
