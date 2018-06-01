@@ -445,7 +445,6 @@ function showEditNotifyDiv(jsonObjParam,isCopy) {
 		}else{
 			sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(false);">修改</button></div>');
 		}
-		sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(false);">修改</button></div>');
 		sb.append( '<div><span id="addNotifyErrMSG" style="color:#ff0000;"></span></div>');
 		sb.append( '<div style="">&nbsp;</div>');
 	}
