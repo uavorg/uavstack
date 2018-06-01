@@ -72,8 +72,9 @@ function loadDescDiv(appendId,datas){
 				"viewTs":{"n":"预警浏览时间","v":obj['view_ts'] ? TimeHelper.getTime(obj['view_ts'],'FMS'): ""},
 				"nodename":{"n":"UAV节点进程","v":obj['args']['nodename']},
 				"nodeuuid":{"n":"UAV节点ID","v":obj['args']['nodeuuid']},
-				"component":{"n":"报警组件","v":obj['args']['component']},	
+				"component":{"n":"报警组件","v":obj['args']['component']},
 				"feature":{"n":"报警组件Feature","v":obj['args']['feature']},
+				"strategydesc":{"n":"报警策略","v":obj['args']['strategydesc']},
 				"desc":{"n":"问题描述","v":obj['description']}
 			};
 
@@ -98,6 +99,7 @@ function loadDescDiv(appendId,datas){
 		sb.append( " <li><span class=\"argsTitle\">来源</span></li>");
 		sb.append("	<li><span class=\"argsSubTitle\">"+objattr.nodename.n+"</span></span><span class=\"colon\">：</span><span>"+objattr.nodename.v+"("+objattr.nodeuuid.v+")</span></li>");
 		sb.append( "<li><span class=\"argsSubTitle\" >"+objattr.component.n+"</span><span class=\"colon\">：</span><span>"+objattr.feature.v+"."+objattr.component.v+"</span></li>");
+		sb.append( "<li><span class=\"argsSubTitle\" >"+objattr.strategydesc.n+"</span><span class=\"colon\">：</span><span>"+objattr.strategydesc.v+"</span></li>");
 		sb.append( " <li><span class=\"argsTitle\">"+objattr.desc.n+"</span><div class=\"listBdesc\">"+issueDesc+"</div></li>");
 		sb.append( " <div class=\"args\">" /*用于后续扩充收缩功能*/);
 		sb.append( "<li class=\"argsTitle\"><span>上下文信息</span></li>");

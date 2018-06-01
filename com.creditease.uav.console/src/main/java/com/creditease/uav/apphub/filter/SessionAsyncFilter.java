@@ -56,7 +56,7 @@ public class SessionAsyncFilter implements Filter {
     private String[] exResSs;
     private ISystemLogger logger = null;
 
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -248,7 +248,7 @@ public class SessionAsyncFilter implements Filter {
          */
 
         String ip = request.getRemoteAddr();
-        String xip = request.getHeader("X-Forward-For");
+        String xip = request.getHeader("X-Forwarded-For");
 
         String time = sdf.format(new Date());
         String userid = getUserIdBySession(request);

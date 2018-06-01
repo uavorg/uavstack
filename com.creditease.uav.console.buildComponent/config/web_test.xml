@@ -118,10 +118,6 @@
 		<param-value>127.0.0.1:6379</param-value>
 	</context-param>
 	<context-param>
-		<param-name>uav.app.ldap.redis.store.addr</param-name>
-		<param-value>127.0.0.1:6379</param-value>
-	</context-param>
-	<context-param>
 		<param-name>uav.app.godeye.redis.store.addr</param-name>
 		<param-value>127.0.0.1:6379</param-value>
 	</context-param>
@@ -136,10 +132,6 @@
 	<context-param>
 		<param-name>uav.app.manage.redis.store.params</param-name>
 		<param-value>{"min":50,"max":300,"queue":10,"pwd":"Uav!1227Admin"}</param-value>
-	</context-param>
-	<context-param>
-		<param-name>uav.app.ldap.redis.store.params</param-name>
-		<param-value>{"min":30,"max":100,"queue":5,"pwd":"Uav!1227Admin"}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.app.godeye.redis.store.params</param-name>
@@ -216,7 +208,7 @@
     </context-param>
 	<context-param>
 		<param-name>uav.app.godeye.notify.mongodb.query.range</param-name>
-		<param-value>{"skip":0,"limit":20000}</param-value>
+		<param-value>{"skip":0,"limit":1000}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.loginid</param-name>
@@ -224,7 +216,7 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.admin.password</param-name>
-		<param-value>Uav!1227admin</param-value>
+		<param-value>123456</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.guest.loginid</param-name>
@@ -240,7 +232,7 @@
 	</context-param>		
 	<context-param>
 		<param-name>uav.apphub.sso.ldap.connection.info</param-name>
-		<param-value>{"url":"ldap://127.0.0.1:389/","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
+		<param-value>{"url":"ldap://127.0.0.1:389/","timeout":"1000","retry":"5","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.grafana.connection.info</param-name>

@@ -193,7 +193,7 @@ public class OpentsdbDataStore extends AbstractDataStore<HttpAsyncClient> {
 
     private static final String HTTP_HEAD = "http://";
     private static final String HTTP_QUERY = "/api/query";
-    private static final String HTTP_PUT_PREFIX = "/api/put";
+    private static final String HTTP_PUT_PREFIX = "/api/put?summary";
 
     private static final int ACTIONOK = 2;
     private static final int ACTIONFAIL = 0;
@@ -382,7 +382,12 @@ public class OpentsdbDataStore extends AbstractDataStore<HttpAsyncClient> {
         this.datasource.getSourceConnect().doAsyncHttpPost(queryURL, datab, "application/json", "utf-8", queryCallBack);
 
         try {
-            cdl.await(10, TimeUnit.SECONDS);
+            /**
+             * 因为是异步http（http 有超时设置），因此等待http处理完。
+             * 
+             * 由callback里CountDownLatch.countDown()来结束等待
+             */
+            cdl.await();
         }
         catch (InterruptedException e) {
             log.err(this, "DataStore QUERY InterruptedException.", e);
