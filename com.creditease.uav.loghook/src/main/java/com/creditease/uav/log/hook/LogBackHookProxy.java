@@ -43,6 +43,7 @@ import com.creditease.uav.monitorframework.dproxy.DynamicProxyProcessor;
 import com.creditease.uav.monitorframework.dproxy.bytecode.DPMethod;
 import com.creditease.uav.profiling.handlers.log.LogProfileInfo;
 
+import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
@@ -136,55 +137,20 @@ public class LogBackHookProxy extends HookProxy {
     private void figureoutLogConfiguration(Logger Logger, LinkedList<LogProfileInfo> list, String appid) {
 
         Iterator<Appender<ILoggingEvent>> appenders = Logger.iteratorForAppenders();
-
         while (appenders != null && appenders.hasNext()) {
-
-            LogProfileInfo logProfileInfo = new LogProfileInfo();
-
-            if (appid != null) {
-                logProfileInfo.setAppId(appid);
-            }
-
-            logProfileInfo.setLogType(LogProfileInfo.LogType.Log4j);
-
-            Map<String, String> attributes = new HashMap<String, String>();
-
-            attributes.put(LogProfileInfo.ENGINE, "logback");
-
             Appender<ILoggingEvent> appender = appenders.next();
-
-            if (!(appender instanceof FileAppender<?>)) {
-                continue;
+            if (appender instanceof FileAppender<?>) {
+                getAppenderInfo((FileAppender<ILoggingEvent>)appender, list, appid);
             }
-
-            FileAppender<ILoggingEvent> fileAppender = (FileAppender<ILoggingEvent>) appender;
-            @SuppressWarnings("rawtypes")
-            LayoutWrappingEncoder encoder = (LayoutWrappingEncoder) fileAppender.getEncoder();
-
-            Layout<?> layout = encoder.getLayout();
-
-            if (null != layout) {
-
-                if (layout instanceof PatternLayout) {
-                    PatternLayout patternLayout = (PatternLayout) encoder.getLayout();
-                    attributes.put(LogProfileInfo.PATTERN, patternLayout.getPattern());
-                }
-                else if (layout instanceof HTMLLayout) {
-                    attributes.put(LogProfileInfo.PATTERN, "HTMLLayout");
-                }
-                else if (layout instanceof XMLLayout) {
-                    attributes.put(LogProfileInfo.PATTERN, "XMLLayout");
-                }
-                else if (layout instanceof TTLLLayout) {
-                    attributes.put(LogProfileInfo.PATTERN, "TTCCLayout");
-                }
+            else if(appender instanceof AsyncAppender) {
+                Iterator<Appender<ILoggingEvent>> itAppenders = (Iterator<Appender<ILoggingEvent>>)((AsyncAppender) appender).iteratorForAppenders();
+                while (itAppenders != null && itAppenders.hasNext()) {
+                    Appender<ILoggingEvent> ap = itAppenders.next();
+                    if (ap instanceof FileAppender<?>) {
+                        getAppenderInfo((FileAppender<ILoggingEvent>)ap, list, appid);
+                    }
+                } 
             }
-
-            logProfileInfo.setFilePath(fileAppender.getFile());
-            logProfileInfo.setAttributes(attributes);
-
-            list.add(logProfileInfo);
-
         }
     }
 
@@ -223,5 +189,40 @@ public class LogBackHookProxy extends HookProxy {
 
         // release loader
         dpInstall.releaseTargetClassLoader();
+    }
+    
+    private void getAppenderInfo(FileAppender<ILoggingEvent> fileAppender, LinkedList<LogProfileInfo> list, String appid) {
+        
+        LogProfileInfo logProfileInfo = new LogProfileInfo();
+        logProfileInfo.setLogType(LogProfileInfo.LogType.Log4j);
+        logProfileInfo.setFilePath(fileAppender.getFile());
+        if (appid != null) {
+            logProfileInfo.setAppId(appid);
+        }
+        
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(LogProfileInfo.ENGINE, "logback");
+
+        @SuppressWarnings("rawtypes")
+        LayoutWrappingEncoder encoder = (LayoutWrappingEncoder) fileAppender.getEncoder();
+        Layout<?> layout = encoder.getLayout();
+        if (null != layout) {
+            if (layout instanceof PatternLayout) {
+                PatternLayout patternLayout = (PatternLayout) encoder.getLayout();
+                attributes.put(LogProfileInfo.PATTERN, patternLayout.getPattern());
+            }
+            else if (layout instanceof HTMLLayout) {
+                attributes.put(LogProfileInfo.PATTERN, "HTMLLayout");
+            }
+            else if (layout instanceof XMLLayout) {
+                attributes.put(LogProfileInfo.PATTERN, "XMLLayout");
+            }
+            else if (layout instanceof TTLLLayout) {
+                attributes.put(LogProfileInfo.PATTERN, "TTCCLayout");
+            }
+        }
+
+        logProfileInfo.setAttributes(attributes);
+        list.add(logProfileInfo);      
     }
 }

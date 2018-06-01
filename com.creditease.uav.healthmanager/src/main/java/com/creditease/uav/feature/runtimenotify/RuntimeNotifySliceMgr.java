@@ -308,9 +308,10 @@ public class RuntimeNotifySliceMgr extends AbstractComponent {
     private List<Integer> getPreRangePoint(Slice slice, long range) {
 
         int points = (int) Math.ceil(range / 1000 / 60.0);
-        List<Integer> list = new ArrayList<>(points);
+        List<Integer> list = new ArrayList<>(points + 1);
         @SuppressWarnings("deprecation")
         int pn = new Date(slice.getTime()).getMinutes();
+        list.add(pn);
         for (int i = 0; i < points; i++) {
             pn = lastPointNum(pn);
             list.add(pn);

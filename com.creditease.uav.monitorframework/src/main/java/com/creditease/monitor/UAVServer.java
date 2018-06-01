@@ -23,10 +23,8 @@ package com.creditease.monitor;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.creditease.agent.helpers.IOHelper;
@@ -314,17 +312,19 @@ public class UAVServer {
      * 
      * @param supporterClasses
      * @param cl
+	 *
+	 * @return Supporter Status
      */
-    public Set<String> startSupporters(String[] supporterClasses, boolean needPersist) {
+    public Map<String, Object> startSupporters(String[] supporterClasses, boolean needPersist) {
 
         ClassLoader cl = this.getClass().getClassLoader();
 
-        Set<String> existSupporters = new HashSet<String>();
+        Map<String, Object> supportersStatus = new HashMap<String, Object>();
 
         for (String supporterClass : supporterClasses) {
 
             if (supporters.containsKey(supporterClass)) {
-                existSupporters.add(supporterClass);
+                supportersStatus.put(supporterClass, "Exist");
                 continue;
             }
 
@@ -346,21 +346,28 @@ public class UAVServer {
                 if (log.isLogEnabled()) {
                     log.info("Supporter[" + supporterClass + "] starts SUCCESS");
                 }
+				
+                supportersStatus.put(supporterClass, "OK");
+				
+                if (needPersist) {
+                   this.metaMgr.addSupporterMeta(supporterClasses);
+                }
+				
 
             }
             catch (Exception e) {
 
                 supporters.remove(supporterClass);
+				
+                supportersStatus.put(supporterClass, "Fail:" + e.toString());
 
                 log.error("Supporter[" + supporterClass + "] starts FAIL", e);
             }
         }
 
-        if (needPersist) {
-            this.metaMgr.addSupporterMeta(supporterClasses);
-        }
+        
 
-        return existSupporters;
+        return supportersStatus;
     }
 
     public void stop() {

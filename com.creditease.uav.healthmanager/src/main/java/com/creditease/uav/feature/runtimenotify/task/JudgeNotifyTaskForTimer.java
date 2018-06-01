@@ -20,13 +20,16 @@
 
 package com.creditease.uav.feature.runtimenotify.task;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.NotificationEvent;
-import com.creditease.agent.spi.Abstract1NTask;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManager.CacheLock;
 import com.creditease.uav.feature.RuntimeNotifyCatcher;
@@ -35,7 +38,7 @@ import com.creditease.uav.feature.runtimenotify.Slice;
 import com.creditease.uav.feature.runtimenotify.StrategyJudgement;
 import com.creditease.uav.feature.runtimenotify.scheduler.RuntimeNotifyStrategyMgr;
 
-public class JudgeNotifyTimerTask extends Abstract1NTask {
+public class JudgeNotifyTaskForTimer extends JudgeNotifyCommonTask {
 
     private NotifyStrategy stra;
     private long taskStart = System.currentTimeMillis();
@@ -44,10 +47,10 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
     private static final long LOCK_TIMEOUT = 60 * 1000;
     private CacheManager cm;
 
-    public JudgeNotifyTimerTask(String name, String feature, long judge_time, NotifyStrategy stra) {
+    public JudgeNotifyTaskForTimer(String name, String feature, long judge_time, NotifyStrategy stra) {
         super(name, feature);
         this.stra = stra;
-        this.judge_time = judge_time - judge_time % 60000;
+        this.judge_time = judge_time;
         cm = (CacheManager) this.getConfigManager().getComponent(feature, RuntimeNotifyCatcher.CACHE_MANAGER_NAME);
     }
 
@@ -61,6 +64,12 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
             if (!lock.getLock()) {
                 return;
             }
+            
+            //get the type of source instance,like 'hostState'.For convert it to another type's instance          
+            String instType = stra.getName().substring(stra.getName().indexOf('@') + 1, stra.getName().lastIndexOf('@'));
+            
+            long judge_time_minute = judge_time - judge_time % 60000;
+            
             /**
              * Step 1:find out instance
              */
@@ -71,16 +80,31 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
 
                 StrategyJudgement judgement = (StrategyJudgement) getConfigManager().getComponent(feature,
                         "StrategyJudgement");
-                Map<String, String> result = judgement.judge(new Slice(instance, judge_time), stra, null);
+                
+                /**
+                 *  we add "_" to the end of each instance in hostState strategy for stream judge, we should remove it in timer judge.  
+                 */
+                if(instance.endsWith("_")) {
+                    instance = instance.substring(0,instance.length()-1);
+                }
+                
+                Slice slice = new Slice(instance, judge_time_minute);
+                Map<String, Object> args = new HashMap<String, Object>();
+                // 标识该slice由TimerTask创建，为同环比创建，非流式计算创建
+                args.put("creater", "timer");
+                args.put("instType", instType);
+                slice.setArgs(args);
+                
+                Map<String, String> result = judgement.judge(slice, stra, null);
 
                 /**
                  * Step 3: if fire the event, build notification event
                  */
                 if (result != null && !result.isEmpty()) {
-                    NotificationEvent event = this.newNotificationEvent(instance, result);
+                    NotificationEvent event = this.newNotificationEvent(instance, result, stra.getConvergences());
 
                     // get context
-                    putContext(event);
+                    putContext(slice,event);
 
                     // get action
                     putNotifyAction(event, stra);
@@ -98,7 +122,7 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
 
         }
         catch (Exception e) {
-            log.err(this, "JudgeNotifyTimerTask" + stra.getName() + " RUN FAIL.", e);
+            log.err(this, "JudgeNotifyTimerTask RUN FAIL." + " StrategyDesc=" + stra.getDesc() + ", StrategyName=" + stra.getName() + "\n", e);
         }
         finally {
             if (lock != null && lock.isLockInHand()) {
@@ -118,8 +142,18 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
      * 
      * TODO: we need support context param in strategy
      */
-    private void putContext(NotificationEvent event) {
+    private void putContext(Slice slice, NotificationEvent event) {
+        
+        Map<String, Object> args = slice.getArgs();
 
+        for (String key : args.keySet()) {
+
+            Object argVal = args.get(key);
+
+            String jsonstr = JSONHelper.toString(argVal);
+
+            event.addArg(key, jsonstr);
+        }
     }
 
     /**
@@ -128,7 +162,7 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
      * 
      * @return
      */
-    private NotificationEvent newNotificationEvent(String instance, Map<String, String> result) {
+    private NotificationEvent newNotificationEvent(String instance, Map<String, String> result, List<String> convergences) {
 
         String ip = instance;
         String host = instance;
@@ -144,16 +178,16 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
         }
 
         StringBuilder desc = new StringBuilder();
-        StringBuilder conditionIndex = new StringBuilder();
+        List<String> conditionIndex = new ArrayList<String>();
 
         for (Map.Entry<String, String> cause : result.entrySet()) {
             // description
             desc.append(instance + "触发条件[" + cause.getKey() + "]：").append(cause.getValue()).append("\r\n");
             // condition index
-            conditionIndex.append(" " + cause.getKey());
+            conditionIndex.add(cause.getKey());
         }
 
-        String title = ip + "[" + instance + "]触发" + result.size() + "个报警(条件序号：" + conditionIndex.toString() + ")";
+        String title = ip + "[" + instance + "]触发" + result.size() + "个报警(条件序号： " + conditionIndex.toString().replaceAll("\\[|]|,", "") + ")";
 
         // fix &nbsp(\u00A0) can be shown in email
         String description = desc.toString().replace('\u00A0', ' ');
@@ -161,9 +195,21 @@ public class JudgeNotifyTimerTask extends Abstract1NTask {
         NotificationEvent ne = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_THRESHOLD, title, description,
                 judge_time, ip, host);
 
-        // add appgroup
         ne.addArg("appgroup", appgroup);
+        ne.addArg("strategydesc", stra.getDesc());
 
+        // 兼容不存在convergences属性的旧预警策略
+        if(convergences == null || convergences.size() == 0 ) {
+            return ne;
+        }
+        
+        // 同一个Event由多个策略触发时，梯度收敛以最长的为准
+        String conv = obtainConvergenceForEvent(convergences, conditionIndex);
+        if(!StringHelper.isEmpty(conv)) {
+            ne.addArg("convergences", conv);
+            ne.addArg(NotificationEvent.EVENT_Tag_NoBlock, "true");
+        }
+        
         return ne;
     }
 

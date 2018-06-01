@@ -26,7 +26,7 @@ public class SimpleThread implements Runnable {
     public void run() {
 
         // TODO Auto-generated method stub
-        System.out.println(Test.THREAD_LOCAL.get());
+        System.out.println(TtlCase.THREAD_LOCAL.get());
     }
 
 }
