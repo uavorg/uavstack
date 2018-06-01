@@ -103,7 +103,13 @@ public class LogBackHookProxy extends HookProxy {
      */
     private void figureOutLogBackConfig(HookContext context, ClassLoader webapploader) {
 
-        Logger logback = (Logger) LoggerFactory.getLogger(LogBackHookProxy.class);
+        org.slf4j.Logger slflogger = LoggerFactory.getLogger(LogBackHookProxy.class);
+
+        if (!(slflogger instanceof Logger)) {
+            return;
+        }
+
+        Logger logback = (Logger) slflogger;
 
         InterceptContext interceptContext = (InterceptContext) context.get(HookConstants.INTERCEPTCONTEXT);
 
