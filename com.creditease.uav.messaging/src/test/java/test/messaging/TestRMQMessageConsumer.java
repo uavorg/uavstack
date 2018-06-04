@@ -44,7 +44,7 @@ public class TestRMQMessageConsumer {
         bizIDs[0] = "test";
         String[] handlerNames = new String[1];
         handlerNames[0] = "test";
-        MessageConsumer consumer = MessagingFactory.createMessageConsumer("name", bizIDs, 10, 0);
+        MessageConsumer consumer = MessagingFactory.createMessageConsumer("name", bizIDs, 10, 10, 0);
         consumer.start();
     }
 }
