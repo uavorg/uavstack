@@ -43,6 +43,7 @@ import com.creditease.uav.mq.api.MQFactory;
 public class StandardMessagingBuilder extends AbstractComponent {
 
     public StandardMessagingBuilder(String cName, String feature) {
+
         super(cName, feature);
     }
 
@@ -103,6 +104,8 @@ public class StandardMessagingBuilder extends AbstractComponent {
 
         String ConsumeThreadMax = ConfigurationManager.getInstance().getFeatureConfiguration(feature,
                 msgType + ".consumethreadmax");
+        String ConsumeThreadInit = ConfigurationManager.getInstance().getFeatureConfiguration(feature,
+                msgType + ".consumethreadinit");
         String ConsumeStopInterval = ConfigurationManager.getInstance().getFeatureConfiguration(feature,
                 msgType + ".consumestopinterval");
 
@@ -117,6 +120,7 @@ public class StandardMessagingBuilder extends AbstractComponent {
         bizIDs[0] = msgType;
         MessageConsumer consumer = MessagingFactory.createMessageConsumer(groupName, bizIDs,
                 ConsumeThreadMax == null ? 10 : Integer.parseInt(ConsumeThreadMax),
+                ConsumeThreadInit == null ? 10 : Integer.parseInt(ConsumeThreadInit),
                 ConsumeStopInterval == null ? 0 : Long.parseLong(ConsumeStopInterval), queueType);
 
         return consumer;
