@@ -37,11 +37,20 @@ import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.agent.spi.AgentFeatureComponent;
 import com.creditease.agent.spi.I1NQueueWorker;
+import com.creditease.agent.spi.IActionEngine;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManagerFactory;
 import com.creditease.uav.feature.runtimenotify.RuntimeNotifySliceMgr;
 import com.creditease.uav.feature.runtimenotify.Slice;
 import com.creditease.uav.feature.runtimenotify.StrategyJudgement;
+import com.creditease.uav.feature.runtimenotify.expradaptors.AbstractExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.AppExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.ClientExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.HostExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.JvmExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.ProcExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.ServerExprAdaptor;
+import com.creditease.uav.feature.runtimenotify.expradaptors.UrlExprAdaptor;
 import com.creditease.uav.feature.runtimenotify.http.RuntimeNotifyServerWorker;
 import com.creditease.uav.feature.runtimenotify.scheduler.NodeInfoWatcher;
 import com.creditease.uav.feature.runtimenotify.scheduler.RuntimeNotifyStrategyMgr;
@@ -69,6 +78,8 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
 
     private Thread qwThread;
 
+    private IActionEngine engine;
+    
     public RuntimeNotifyCatcher(String cName, String feature) {
         super(cName, feature);
     }
@@ -157,6 +168,17 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
                                     + "] started: coresize:%d,maxsize:%d,bqsize:%d,keepalivetimeout:%d",
                             coreSize, maxSize, bqSize, timeout));
         }
+        
+        //init RuntimeNotifyActionEngine
+        engine = this.getActionEngineMgr().newActionEngine("RuntimeNotifyActionEngine", this.feature);
+        //register exprAdaptor
+        new ClientExprAdaptor(AbstractExprAdaptor.CLIENT_RESP, this.feature, engine);
+        new UrlExprAdaptor(AbstractExprAdaptor.URL_RESP, this.feature, engine);       
+        new AppExprAdaptor(AbstractExprAdaptor.APP_RESP, this.feature, engine);       
+        new ServerExprAdaptor(AbstractExprAdaptor.SERVER_RESP, this.feature, engine);       
+        new JvmExprAdaptor(AbstractExprAdaptor.JVM, this.feature, engine);        
+        new ProcExprAdaptor(AbstractExprAdaptor.PROC_STATE, this.feature, engine);        
+        new HostExprAdaptor(AbstractExprAdaptor.HOST_STATE, this.feature, engine);
 
         // start runtime notify data consumer
         StandardMessagingBuilder smb = new StandardMessagingBuilder("RTNTFCommonMsgBuilder", this.feature);
@@ -297,7 +319,11 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
         }
 
         this.getConfigManager().unregisterComponent(this.feature, "StrategyJudgement");
-
+        
+        if(engine!=null) {
+            this.getActionEngineMgr().shutdown("RuntimeNotifyActionEngine");
+        }
+        
         super.stop();
     }
 
@@ -396,6 +422,7 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
         List<Slice> list = new ArrayList<>();
         Map<String, List<Map>> frames = mdf.getDatas();
         String appgroup = mdf.getExt("appgroup");
+        String pid=mdf.getExt("pid");
         for (Map.Entry<String, List<Map>> frame : frames.entrySet()) {
             List<Map> servers = frame.getValue();
             for (Map server : servers) {
@@ -407,6 +434,9 @@ public class RuntimeNotifyCatcher extends AgentFeatureComponent {
                     Map values = (Map) ins.get("values");
                     values.put("ip", mdf.getIP());
                     values.put("host", mdf.getHost());
+                    if(pid != null) {
+                        values.put("pid", pid);
+                    }
                     values.put("appgroup", appgroup);
                     String key = frame.getKey() + RuntimeNotifyCatcher.STRATEGY_SEPARATOR + meId
                             + RuntimeNotifyCatcher.STRATEGY_SEPARATOR + id;

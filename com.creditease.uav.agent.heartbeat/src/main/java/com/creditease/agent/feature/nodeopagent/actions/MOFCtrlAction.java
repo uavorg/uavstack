@@ -86,13 +86,26 @@ public class MOFCtrlAction extends AbstractBaseAction {
 
                 String res = result.getReplyDataAsString();
 
-                log.info(this, "MOFCtrlAction Success: url=" + url + ", res=" + res);
+                if (result.getRetCode() >= 400) {
+                    log.err(this,
+                            "MOFCtrlAction FAIL: retcode=" + result.getRetCode() + ", url=" + url + ", err=" + res);
+                    if (result.getRetCode() >= 500) {
+                        response.append("请求" + url + "完成时的状态码为【" + result.getRetCode() + "】, 服务器遇到错误而不能完成该请求.");
+                    }
+                    else {
+                        response.append("请求" + url + "完成时的状态码为【" + result.getRetCode() + "】, 请求客户端错误.");
+                    }
 
-                if (!StringHelper.isEmpty(res)) {
-                    isSuccess.set(true);
+                    isSuccess.set(false);
                 }
-
-                response.append(res);
+                else {
+                    response.append(res);
+                    log.info(this,
+                            "MOFCtrlAction Success: retcode=" + result.getRetCode() + ", url=" + url + ", res=" + res);
+                    if (!StringHelper.isEmpty(res)) {
+                        isSuccess.set(true);
+                    }
+                }
 
                 cdl.countDown();
             }

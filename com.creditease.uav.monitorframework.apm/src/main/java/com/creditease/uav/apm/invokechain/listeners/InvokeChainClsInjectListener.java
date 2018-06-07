@@ -260,6 +260,7 @@ public class InvokeChainClsInjectListener extends InterceptEventListener {
     public boolean isEventListener(Event event) {
 
         switch (event) {
+            case SPRING_BEAN_REGIST:
             case WEBCONTAINER_RESOURCE_INIT:
             case WEBCONTAINER_INIT:
                 return true;

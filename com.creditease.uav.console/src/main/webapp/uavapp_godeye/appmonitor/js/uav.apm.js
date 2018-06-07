@@ -158,7 +158,7 @@ function APMTool(app) {
 		openDelete : false,
 		key : "traceid",
 		pagerSwitchThreshold : 600,
-		pagesize : 100,
+		pagesize : 50,
 		deleteCtr : {
 			key : "state",
 			showDelete : "0"
@@ -304,6 +304,54 @@ function APMTool(app) {
 		if(params.appid=="ROOT"){
 			appurl = "http://"+params.ipport+"/";
 		}
+		
+		var results = _this.getProfileByAppurl(appurl);
+		//连接失败
+		if(results == undefined){
+			alert("获取日志文件失败");
+			return;
+		}
+		//第一次没有获取到日志，把appurl中的appname去掉后再尝试获取一次
+        if(results.rs == undefined){
+        	appurl = "http://"+params.ipport+"/";
+        	results = _this.getProfileByAppurl(appurl);
+            
+            //仍然没有获取到日志文件信息，此时profile中没有该appurl对应的信息，应该是由于应用停掉了
+            if(results == undefined || results.rs == undefined){
+            	alert("获取日志文件失败，请检查应用是否处于运行状态");
+            	return;
+            }
+        }
+        
+        var res = results["rs"];
+        var datas = StringHelper.str2obj(res);
+
+        var data;
+        for(var key in datas){
+        	data = datas[key];
+        }
+        var logdata = StringHelper.str2obj(data)["logs.log4j"];
+        var logObj = StringHelper.str2obj(logdata);
+        for(var key in logObj){
+        	if(key.lastIndexOf("/") > 0){
+        		key = key.substring(key.lastIndexOf("/") + 1);
+        	}
+        	$("#logSelector").append("<option value='"+ key +"' width='%97'> "+ key +"</option>");
+        }
+        if($("#logSelector option").size()>0){
+        	$("#selectLogWinfooter").append( '<button class="btn btn-primary " onclick=\'javascript:appAPM.jumpLogRollWnd('+ JSON.stringify(params) +')\';">确定</button>');
+        }else{
+        	$("#logSelector").append("<option value='无日志文件' width='%97'>无日志文件</option>");
+        }
+        $("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
+
+		
+		$("#selectLogWin").modal({backdrop:false});
+	}
+	
+	
+	this.getProfileByAppurl = function(appurl){
+		var results = undefined;
 		AjaxHelper.call({
             url: '../../rs/godeye/profile/q/cache',
             data: {"fkey":"appurl","fvalue":appurl},
@@ -311,36 +359,13 @@ function APMTool(app) {
             type: 'GET',
             dataType: 'html',
             timeout: 30000,
+            async: false,
             success: function(result){
-                var obj = StringHelper.str2obj(result);
-                var res = obj["rs"];
-                var datas = StringHelper.str2obj(res);
-                var data;
-                for(var key in datas){
-                	data = datas[key];
-                }
-                var logdata = StringHelper.str2obj(data)["logs.log4j"];
-                var logObj = StringHelper.str2obj(logdata);
-                for(var key in logObj){
-                	if(key.lastIndexOf("/") > 0){
-                		key = key.substring(key.lastIndexOf("/") + 1);
-                	}
-                	$("#logSelector").append("<option value='"+ key +"' width='%97'> "+ key +"</option>");
-                }
-                if($("#logSelector option").size()>0){
-                	$("#selectLogWinfooter").append( '<button class="btn btn-primary " onclick=\'javascript:appAPM.jumpLogRollWnd('+ JSON.stringify(params) +')\';">确定</button>');
-                }else{
-                	$("#logSelector").append("<option value='无日志文件' width='%97'>无日志文件</option>");
-                }
-                $("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
-            },
-            error: function(result){
-            	$("#logSelector").append("<value='获取日志文件失败' width='%97'>");
-            	$("#selectLogWinfooter").append( '<button class="btn" data-dismiss="modal" onclick="javascript:appAPM.clearLogSelector()">关闭</button></div>');
+            	results =  StringHelper.str2obj(result);
             }
-         });
+		});
 		
-		$("#selectLogWin").modal({backdrop:false});
+		return results;
 	}
 	
 	/**
@@ -478,34 +503,39 @@ function APMTool(app) {
 	        "<div class=\"glyphicon glyphicon-cog\" onclick='javascript:app.controller.showWindow("+sObjStr+",\"AppIVCCfgWnd\",\"buildAppIVCCfgWnd\",\"runAppIVCCfgWnd\")'></div>"+
 	        "</div></div>";
 			
-			html+="<div class=\"AppHubMVCSearchBar AppIVCWnd_AppMode\" align='left' style='background:#eee;'>";
+			html+="<div class=\"AppHubMVCSearchBar AppIVCWnd_AppMode\" align='left' style='background:#eee;height:115px;'>";
 		}
 		//全局模式
 		else {
-			html="<div class=\"AppHubMVCSearchBar AppIVCWnd_GlobalMode\">"
+			html="<div class=\"AppHubMVCSearchBar AppIVCWnd_GlobalMode\" style='height:140px;'>"
 			html+= "<div id=\"AppIVCWnd_Selectors\">应用实例 </div>";
 		}
 		
-		html+="<div class=\"\">时间 <div class=\"\" style='display:inline-block;'>" 
-    		+	"<input id='AppIVCWnd_TimeRange' type=\"text\" class=\"form_datetime\" style=\"width:100px;font-size:11px;height:27px;\" readonly placeholder='全部' title=\"选择时间区段\" />"
+		html+="<div class=\"\"> <div class=\"\" style='display:inline-block;'>" 
+    		+ "时间<input id='AppIVCWnd_TimeRange' type=\"text\" class=\"form_datetime\" style=\"width:100px;font-size:11px;height:27px;\" readonly placeholder='全部' title=\"选择时间区段\" />"
     		+ "<span id='AppIVCWnd_TimeRangeSelectorCtn'></span>"
     		+ "<button type=\"button\" class=\"btn btn-default\" title=\"清除时间段，代表全部时间\" onclick='appAPM.cleanTimeRange()'>"
 			+ "<span class=\"glyphicon glyphicon-remove\"></span>"
-			+ "</button>"
+			+ "</button></div>"
 			
-			+ "<button id=\"searchbtn\" type=\"button\" class=\"btn btn-default\" title=\"快速搜索\n不输入时间范围，则默认搜索最近1分钟调用链\" onclick='appAPM.callIVCQuery(\"qsearch\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"});'>"
+			
+			+ "<div>搜索 <input id=\"AppIVCWnd_KeyWord\" class=\"form-control AppHubMVCSearchBarInputText\""
+			+ " type=\"text\" title=\'1. 默认查询服务URL字段，以@开头时表示查询状态字段，可以用\*进行模糊匹配\n"
+			+ '2.可通过@连接服务URL和状态字段查询，查询同时满足条件的信息，如\*creditease\*@200表示查询url中包含creditease且返回状态为200的请求\n'
+			+ '3.同时还支持方法及服务类查询，各个字段间仅存在与关系查询，格式为method=\"xxx\",class=\"xxx\",例如method=\"\*Monitor\*\",class=\"\*GodEye\*\"表示查询方法中含有Monitor同时服务类中包含GodEye的数据\n'
+			+ '4.每种字段可存在多个关键字，用空格或+号连接，空格表示所有关键字或匹配，+号表示所有关键字与匹配，空格和+号可同时使用，但+号优先\' placeholder=\"关键字\" value=\"\"></input>'
+			+ "<button id=\"searchbtn\" type=\"button\" class=\"btn btn-default\" title=\"快速搜索\n不输入时间范围，则默认搜索最近1个小时调用链\" onclick='appAPM.callIVCQuery(\"qsearch\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"});'>"
 			+ "<span class=\"glyphicon glyphicon-search\"></span>"
 			+ "</button>"
-			
-            + "</div></div>";
-    	
-//    	    + "<div>搜索 <input id=\"AppIVCWnd_KeyWord\" class=\"form-control AppHubMVCSearchBarInputText\""
-//			+ " type=\"text\" title=\"1. 可输入多个关键字，用空格分隔，代表或连接，即任一关键字匹配\n2.多个关键字用+号连接，代表所有关键字匹配\n3.空格和+号可同时使用，或连接优先\n4. 可在关键字两头加*，代表启用模糊匹配，例如*com.creditease*，则所有包含com.creditease字符串都会被匹配\" placeholder=\"关键字\" value=\"\"></input>"
+			+ "<button id=\"helpbtn\" type=\"button\" class=\"btn btn-default\" title=\"点击查看查询功能的详细介绍及相关示例\" onclick='appAPM.openHelpDiv();'>"
+			+ "<span class=\"icon-question-sign icon-myhelp\"><span>"
+			+ "</button>"
+            + "</div>";
 
 		html+="&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看最近1分钟内的服务请求\" onclick='appAPM.callIVCQuery(\"lst1min\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L1min</button>"+
 				"&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看1小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100in1hr\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100in1hr</button>" +
 		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最近100条的服务请求\"  onclick='appAPM.callIVCQuery(\"lst100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L100</button>" +
-		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100</button>" ;
+		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100</button></div></div>" ;
 		
 		html+="<div  id='AppIVCWnd_TContainer' style='font-size:12px;color:black;'></div>";
 		
@@ -550,6 +580,16 @@ function APMTool(app) {
 		this.mainList.cellClickUser = function(id,pNode) {
 			//comeFrom表示该请求的来源位置，用于后面的返回定位
 			app.controller.showWindow({traceid:id,comeFrom:"IVC"},"AppIVCTraceWnd","buildAppIVCTraceWnd","runAppIVCTraceWnd");
+		};
+		
+		 // 分页事件
+		this.mainList.sendRequest=function() {
+			
+			var pInfo=_this.mainList.getPagingInfo();
+			
+			var start=(pInfo.pageNum-1)*pInfo.pageSize;
+			
+			_this.callIVCQuery("qsearch",{},{from:start,size:pInfo.pageSize});
 		};
 		
 		//init datetime picker		
@@ -670,6 +710,13 @@ function APMTool(app) {
 	 */
 	this.destroyAppIVCTraceWnd=function(){
 		
+	}
+	
+	/**
+	 * 跳转查询帮助界面
+	 */
+	this.openHelpDiv = function() {
+	 	window.open("https://uavorg.github.io/documents/uavdoc_useroperation/59.html#%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9","apphub.help");	
 	}
 	
 	/**
@@ -862,7 +909,7 @@ function APMTool(app) {
 			var errMsg = "无数据，请刷新重试";
 			var epinfo = sObj["epinfo"].split(",")[0];
 			//当前支持的类型
-			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer"];
+			var epinfos = ["http.service","apache.http.Client","apache.http.AsyncClient","mq.service","rabbitmq.client","jdbc.client","method","dubbo.provider","dubbo.consumer","rocketmq.client"];
 			if($.inArray(epinfo, epinfos)==-1){
 				errMsg = "不支持的数据类型";
 			}
@@ -886,8 +933,17 @@ function APMTool(app) {
 		}
 		
 		// 必须先显示分页
-		list.setTotalRow(count);
-		list.renderPagination();		
+		list.setTotalRow(totalCount);
+		list.renderPagination();
+		
+		var keywords =  this.getHighlightKeywords();
+		
+		if(params == undefined && keywords !=  undefined){
+			for(var type in keywords){
+				this.setKeywordsHighlight(type,keywords[type],datas);
+			}
+		}
+				
 		list.addTreeTableRows(datas);
 		
 		// only AppIVCTraceWnd_TraceList need treetable
@@ -898,6 +954,70 @@ function APMTool(app) {
 			});
 			//diaplay the Root Node
 			$("#AppIVCTraceWnd_TraceList").treetable("expandNode","1");
+		}
+		
+		if(datas.length > 50){
+			list.hidePagerPagination();
+		}
+	};
+	
+	this.getHighlightKeywords=function() {
+		
+		var content = this.parseKeyword();
+		
+		if(content == undefined){
+			return;
+		}
+		
+        var contents = content.split(",");
+        
+        var result = {};
+        
+        for (var i = 0;i < contents.length;i++){
+        	
+        	this.getKeywordArray(contents[i],result);
+        	
+        }
+		
+		return result;
+	};
+	
+	this.getKeywordArray = function(contents,result){
+		if(contents.indexOf("=") == -1){
+			return;
+		}
+		
+		var keywords = [];
+    	var ctn = contents.split("=");
+    	var orkwds=ctn[1].replace(/\"/g,"").split(" ");
+    	
+		for(var i=0;i<orkwds.length;i++) {
+			
+			var andkwds=orkwds[i].split("+");
+			
+			for(var j=0;j<andkwds.length;j++) {
+				
+				keywords[keywords.length]=andkwds[j];
+			}
+		}
+		
+		result[ctn[0]] = keywords;
+		
+	};
+	
+	this.setKeywordsHighlight = function(type,keywords,datas) {
+		for (var i=0;i<keywords.length;i++) {
+			if(keywords[i] == ""){
+				continue;
+			}
+			keywords[i] = keywords[i].replace(/\*/g,"");
+			var lines;
+			for (var j = 0;j<datas.length;j++) {
+				if (datas[j][type] != undefined && datas[j][type].indexOf(keywords[i]) > -1) {
+					lines=datas[j][type].split(keywords[i]);
+					datas[j][type] = lines.join("<span class='IvcHighLightKeyword'>"+keywords[i]+"</span>");
+				}
+			}
 		}
 	};
 	// TODO ----------------------------------调用链查看窗口：全局模式专有---------------------
@@ -1076,7 +1196,7 @@ function APMTool(app) {
 	/**
 	 * 访问调用链查询服务
 	 */
-	this.callIVCQuery=function(intent,pObj) {
+	this.callIVCQuery=function(intent,pObj,cursor) {
 		
 		var data={intent:"qApp",request:{}};
 		
@@ -1095,7 +1215,12 @@ function APMTool(app) {
 			appuuid=this.appInfo["appuuid"];
 		}
 		else {
-			appuuid=pObj["appuuid"];
+			appuuid=this.appInfo["appuuid"];
+		}
+
+		var content = this.parseKeyword();
+		if(content != undefined){
+			data["request"]["content"] = content;
 		}
 		
 		switch(intent) {
@@ -1109,7 +1234,7 @@ function APMTool(app) {
 				
 				if (timeRange==undefined) {
 					var tmp=new Date().getTime();
-					timeRange={etime:tmp,stime:tmp-60000};
+					timeRange={etime:tmp,stime:tmp-60000*60};
 				}
 				
 				var etime=timeRange["etime"];
@@ -1119,8 +1244,16 @@ function APMTool(app) {
 				data["request"]["etime"]=etime+"";
 				data["request"]["eptype"]="E,S";
 				data["request"]["from"]=0+"";
-				data["request"]["size"]=500+"";
+				data["request"]["size"]=50+"";
 				data["request"]["indexdate"]=timeRange["indexdate"];
+				
+				if (cursor != undefined){
+					data["request"]["from"]=cursor.from+"";
+					data["request"]["size"]=cursor.size+"";
+				}
+				else{
+					dataList.setPageNum(1);
+				}
 				
 				var timeSort=this.timeSortSelector.value();
 				if (timeSort=="DESC") {
@@ -1140,7 +1273,7 @@ function APMTool(app) {
 				data["request"]["etime"]=etime+"";
 				data["request"]["eptype"]="E,S";
 				data["request"]["from"]=0+"";
-				data["request"]["size"]=100+"";
+				data["request"]["size"]=50+"";
 				break;
 			case "lst100":
 				dataList=this.mainList;
@@ -1206,7 +1339,7 @@ function APMTool(app) {
             	
                 var obj = StringHelper.str2obj(result);
                 var res = obj["rs"];
-                if (obj=="ERR"||res=="ERR") {
+                if (obj=="ERR"||res=="ERR"||res==undefined) {
                     alert("调用链查询操作["+intent+"]失败:"+result);
                 }
                 else {
@@ -1229,6 +1362,50 @@ function APMTool(app) {
                 alert("调用链查询操作["+intent+"]失败:" + result);
             }
         });
+	};
+	
+	this.getKeyword=function() {
+		
+		var keys="";
+		
+		if (HtmlHelper.id("AppIVCWnd_KeyWord")!=undefined&&HtmlHelper.id("AppIVCWnd_KeyWord").value!="") {
+			keys=HtmlHelper.id("AppIVCWnd_KeyWord").value;
+		}
+		
+		return keys;
+	};
+	
+	/**
+	 * 把keyword转换成后台需要的格式url="xxx",stat="xxx",class="xxx"
+	 */
+	this.parseKeyword=function(){
+		
+		var keyword = this.getKeyword();
+		if(keyword == ""){
+			return;
+		}
+		
+		//如果是类似method="**"直接返回
+		if(keyword.indexOf("=") > -1 && keyword.indexOf("\"") > -1){
+			return keyword;
+		}
+		//不包含@标识，当作url关键字
+		if(keyword.indexOf("@") == -1){
+			return  "url=\"" + keyword + "\"";
+		}
+		//以@标识开头，当作state关键字
+		if(keyword.startsWith("@")){
+			return "state=\"" + keyword.substring(1) + "\"";
+		}
+		//@标识符超过一个，目前先当作url关键字
+		var keywords  = keyword.split("@");
+		if(! keywords.length == 2){
+			return "url=\"" + keyword + "\"";
+		}
+		//@标识符只有一个，@前面的为url关键字，后边的为state关键字
+		var content = "url=\"" + keywords[0] + "\"";
+		content += ",state=\"" + keywords[1] + "\"";
+		return content;
 	};
 	
 	/**

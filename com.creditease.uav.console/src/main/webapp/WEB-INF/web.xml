@@ -24,6 +24,15 @@
 		<servlet-name>jersey-serlvet</servlet-name>
 		<url-pattern>/rs/*</url-pattern>
 	</servlet-mapping>
+	<!-- jersey restful service END -->
+		 
+	<!-- apphubTimer begin -->
+	<servlet> 
+		<servlet-name>apphubTimer</servlet-name>
+		<servlet-class>com.creditease.uav.timer.TimerServlet</servlet-class>
+		<load-on-startup>2</load-on-startup> 
+	</servlet>
+	<!-- apphubTimer END -->
 	
 	<servlet>
 		<servlet-name>es-serlvet</servlet-name>
@@ -32,7 +41,7 @@
 			<param-name>es.info</param-name>
 			<param-value>{"forwar.url":"http://localhost:9200"}</param-value>
 		</init-param>
-		<load-on-startup>2</load-on-startup>
+		<load-on-startup>3</load-on-startup>
 		<async-supported>true</async-supported>
 	</servlet>
 
@@ -44,7 +53,7 @@
 	<servlet>
 		<servlet-name>opentsdb-agent-servlet</servlet-name>
 		<servlet-class>com.creditease.uav.opentsdb.OpenTSDBRestAgentServlet</servlet-class>
-		<load-on-startup>3</load-on-startup>
+		<load-on-startup>4</load-on-startup>
 		<async-supported>true</async-supported>
 	</servlet>
 	
@@ -61,7 +70,6 @@
 		<url-pattern>/db2/</url-pattern>
 		<url-pattern>/db2/aggregators</url-pattern>
 	</servlet-mapping>
-	<!-- jersey restful service END -->
 
 	<!-- filter START -->
 	<filter>
@@ -114,10 +122,6 @@
 		<param-value>localhost:6379</param-value>
 	</context-param>
 	<context-param>
-		<param-name>uav.app.ldap.redis.store.addr</param-name>
-		<param-value>localhost:6379</param-value>
-	</context-param>
-	<context-param>
 		<param-name>uav.app.godeye.redis.store.addr</param-name>
 		<param-value>localhost:6379</param-value>
 	</context-param>
@@ -132,10 +136,6 @@
 	<context-param>
 		<param-name>uav.app.manage.redis.store.params</param-name>
 		<param-value>{"min":50,"max":200,"queue":5,"pwd":""}</param-value>
-	</context-param>
-	<context-param>
-		<param-name>uav.app.ldap.redis.store.params</param-name>
-		<param-value>{"min":30,"max":100,"queue":5,"pwd":""}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.app.godeye.redis.store.params</param-name>
@@ -215,7 +215,7 @@
     </context-param>
 	<context-param>
 		<param-name>uav.app.godeye.notify.mongodb.query.range</param-name>
-		<param-value>{"skip":0,"limit":20000}</param-value>
+		<param-value>{"skip":0,"limit":1000}</param-value>
 	</context-param>
     <context-param>
 		<param-name>uav.apphub.sso.admin.loginid</param-name>
@@ -241,7 +241,7 @@
 	
 	<context-param>
 		<param-name>uav.apphub.sso.ldap.connection.info</param-name>
-		<param-value>{"url":"ldap://127.0.0.1:389/","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
+		<param-value>{"url":"ldap://127.0.0.1:389/","timeout":"1000","retry":"5","loginbasedn":"","querybasedn":"","user":"","password":"","suffix":"","primaryKey":"userPrincipalName","groupKey":"memberOf","groupTag":"邮件通讯组List","memberKey":"member","groupQueryField":"mail","userQueryField":"mail"}</param-value>
 	</context-param>
 	
 	<context-param>
