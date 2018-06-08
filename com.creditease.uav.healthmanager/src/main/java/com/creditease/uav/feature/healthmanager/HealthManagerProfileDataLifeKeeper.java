@@ -41,7 +41,7 @@ public class HealthManagerProfileDataLifeKeeper extends AbstractTimerWork {
 
     private long lockTimeout = 60000;
 
-    private long nodeDyingTimeout = 120000;
+    private long nodeDyingTimeout = 15000;
 
     private CacheManager cacheManager;
 
@@ -74,7 +74,7 @@ public class HealthManagerProfileDataLifeKeeper extends AbstractTimerWork {
         lockTimeout = (StringHelper.isEmpty(lockTimeoutStr)) ? lockTimeout : Long.parseLong(lockTimeoutStr);
 
         // node dying timeout
-        String nodeDyingTimeoutStr = this.getConfigManager().getFeatureConfiguration(feature, "lifekeeper.nodetimeout");
+        String nodeDyingTimeoutStr = this.getConfigManager().getFeatureConfiguration(feature, "lifekeeper.apptimeout");
 
         nodeDyingTimeout = (StringHelper.isEmpty(nodeDyingTimeoutStr)) ? nodeDyingTimeout
                 : Long.parseLong(nodeDyingTimeoutStr);
@@ -152,21 +152,21 @@ public class HealthManagerProfileDataLifeKeeper extends AbstractTimerWork {
              */
 
             // node is in dying state
-            if (timeout >= this.nodeDyingTimeout && timeout < this.nodeDyingTimeout * 5) {
+            if (timeout >= this.nodeDyingTimeout && timeout < this.nodeDyingTimeout * 2) {
                 appInstProfile.put("state", "0");
                 nodeInfoMap.put(nodeId, JSONHelper.toString(appInstProfile));
                 cm.putHash(HealthManagerConstants.STORE_REGION_UAV, HealthManagerConstants.STORE_KEY_PROFILEINFO,
                         nodeInfoMap);
             }
             // node is in dead state
-            else if (timeout >= this.nodeDyingTimeout * 5 && timeout < this.nodeDyingTimeout * 10) {
+            else if (timeout >= this.nodeDyingTimeout * 2 && timeout < this.nodeDyingTimeout * 3) {
                 appInstProfile.put("state", "-1");
                 nodeInfoMap.put(nodeId, JSONHelper.toString(appInstProfile));
                 cm.putHash(HealthManagerConstants.STORE_REGION_UAV, HealthManagerConstants.STORE_KEY_PROFILEINFO,
                         nodeInfoMap);
             }
             // clean this node info
-            else if (timeout >= this.nodeDyingTimeout * 10) {
+            else if (timeout >= this.nodeDyingTimeout * 3) {
                 // delete profile data
                 cm.delHash(HealthManagerConstants.STORE_REGION_UAV, HealthManagerConstants.STORE_KEY_PROFILEINFO,
                         nodeId);

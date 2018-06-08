@@ -74,7 +74,7 @@ public class Span implements Cloneable {
 
     private String methodName = "";
 
-    private String endpointInfo;
+    private String endpointInfo = "";
 
     private String state = "";
 
@@ -122,7 +122,7 @@ public class Span implements Cloneable {
 
     public void setAppid(String appid) {
 
-        this.appid = appid;
+        this.appid = encodeForIVC(appid);
     }
 
     public String getEndpointType() {
@@ -140,7 +140,7 @@ public class Span implements Cloneable {
         if (StringHelper.isEmpty(endpointInfo)) {
             return;
         }
-        this.endpointInfo = endpointInfo;
+        this.endpointInfo = encodeForIVC(endpointInfo);
     }
 
     public String getUrl() {
@@ -154,7 +154,7 @@ public class Span implements Cloneable {
             return;
         }
 
-        this.url = url;
+        this.url = encodeForIVC(url);
     }
 
     public long getStartTime() {
@@ -279,4 +279,15 @@ public class Span implements Cloneable {
         long endTime = System.currentTimeMillis();
         this.cost = endTime - this.startTime;
     }
+
+    private String encodeForIVC(String s) {
+
+        if (!StringHelper.isEmpty(s) && s.contains(";")) {
+            return s.replace(";", "%3b");
+        }
+        else {
+            return s;
+        }
+    }
+
 }

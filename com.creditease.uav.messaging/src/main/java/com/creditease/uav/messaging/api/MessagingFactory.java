@@ -77,17 +77,19 @@ public class MessagingFactory {
      * @return
      */
     public static MessageConsumer createMessageConsumer(String name, String[] bizIDs, int maxConcurrent,
-            long stopInterval, MQFactory.QueueType queueType) {
+            int initConcurrent, long stopInterval, MQFactory.QueueType queueType) {
 
-        MessageConsumer consumer = new RMQMessageConsumer(name, bizIDs, maxConcurrent, stopInterval, queueType);
+        MessageConsumer consumer = new RMQMessageConsumer(name, bizIDs, maxConcurrent, initConcurrent, stopInterval,
+                queueType);
 
         return consumer;
     }
 
     public static MessageConsumer createMessageConsumer(String name, String[] bizIDs, int maxConcurrent,
-            long stopInterval) {
+            int initConcurrent, long stopInterval) {
 
-        return createMessageConsumer(name, bizIDs, maxConcurrent, stopInterval, MQFactory.QueueType.QUEUE);
+        return createMessageConsumer(name, bizIDs, maxConcurrent, initConcurrent, stopInterval,
+                MQFactory.QueueType.QUEUE);
     }
 
     /**

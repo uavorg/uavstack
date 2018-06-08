@@ -119,7 +119,7 @@ public class RabbitmqIT extends BaseComponent {
                     && method.getExceptionTypes()[0].getName().equals(IOException.class.getName())) {
                 String methodName = method.getName();
                 String queueName = null;
-                if (queueNameIndex.containsKey(methodName) && args.length != 0) {
+                if (queueNameIndex.containsKey(methodName) && (args != null && args.length != 0)) {
 
                     queueName = (String) args[queueNameIndex.get(methodName)];
                     if (isTempQueue(queueName)) {
@@ -169,7 +169,7 @@ public class RabbitmqIT extends BaseComponent {
                             new Object[] { (BasicProperties) args[args.length - 2], args[args.length - 1] });
                     if (ivcContextParams != null
                             && ivcContextParams.containsKey(InvokeChainConstants.PARAM_MQHEAD_INFO)) {
-                        args[2] = ivcContextParams.get(InvokeChainConstants.PARAM_MQHEAD_INFO);
+                        args[args.length - 2] = ivcContextParams.get(InvokeChainConstants.PARAM_MQHEAD_INFO);
                     }
                 }
             }
@@ -201,7 +201,7 @@ public class RabbitmqIT extends BaseComponent {
                 return false;
             }
             String methodName = method.getName();
-            if (queueNameIndex.containsKey(methodName) && args.length != 0) {
+            if (queueNameIndex.containsKey(methodName) && (args != null && args.length != 0)) {
 
                 if (isTempQueue((String) args[queueNameIndex.get(methodName)])) {
                     return false;

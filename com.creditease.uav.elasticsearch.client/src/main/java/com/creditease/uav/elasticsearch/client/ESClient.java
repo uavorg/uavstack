@@ -27,7 +27,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
@@ -111,17 +111,66 @@ public class ESClient {
      * 
      * @param index
      * @return
+     * @throws IOException
      */
-    public boolean creatIndex(String index) {
+    public boolean creatIndex(String index) throws IOException {
 
-        CreateIndexRequest cir = new CreateIndexRequest(index);
-        CreateIndexResponse resp = client.admin().indices().create(cir).actionGet();
+        return creatIndex(index, null, null, null);
+    }
+
+    public boolean creatIndex(String index, String type, Map<String, String> set,
+            Map<String, Map<String, Object>> mapping) throws IOException {
+
+        CreateIndexRequestBuilder createIndexRequestBuilder = client.admin().indices().prepareCreate(index);
+        if (type != null && mapping != null) {
+            createIndexRequestBuilder.addMapping(type, createMapping(type, mapping));
+        }
+        if (set != null) {
+            createIndexRequestBuilder.setSettings(createSetting(set));
+        }
+        CreateIndexResponse resp = createIndexRequestBuilder.execute().actionGet();
 
         if (resp.isAcknowledged()) {
             return true;
         }
 
         return false;
+    }
+
+    private Settings createSetting(Map<String, String> set) {
+
+        Settings settings = Settings.builder().put(set).build();
+
+        return settings;
+    }
+
+    private XContentBuilder createMapping(String type, Map<String, Map<String, Object>> properties) throws IOException {
+
+        XContentBuilder mapping;
+
+        mapping = jsonBuilder().startObject().startObject(type);
+
+        mapping = mapping.startObject("properties");
+
+        for (String key : properties.keySet()) {
+            mapping = mapping.startObject(key);
+
+            Map<String, Object> fv = properties.get(key);
+
+            for (String field : fv.keySet()) {
+                mapping = mapping.field(field, fv.get(field));
+            }
+
+            mapping = mapping.endObject();
+        }
+
+        mapping = mapping.endObject();
+
+        mapping = mapping.endObject();
+
+        mapping = mapping.endObject();
+
+        return mapping;
     }
 
     /**
@@ -173,29 +222,7 @@ public class ESClient {
     public boolean setIndexTypeMapping(String index, String type, Map<String, Map<String, Object>> properties)
             throws IOException {
 
-        XContentBuilder mapping;
-
-        mapping = jsonBuilder().startObject();
-
-        mapping = mapping.startObject("properties");
-
-        for (String key : properties.keySet()) {
-            mapping = mapping.startObject(key);
-
-            Map<String, Object> fv = properties.get(key);
-
-            for (String field : fv.keySet()) {
-                mapping = mapping.field(field, fv.get(field));
-            }
-
-            mapping = mapping.endObject();
-        }
-
-        mapping = mapping.endObject();
-
-        mapping = mapping.endObject();
-
-        PutMappingRequest pmp = Requests.putMappingRequest(index).type(type).source(mapping);
+        PutMappingRequest pmp = Requests.putMappingRequest(index).type(type).source(createMapping(type, properties));
         PutMappingResponse resp = client.admin().indices().putMapping(pmp).actionGet();
 
         return resp.isAcknowledged();

@@ -120,8 +120,11 @@ public class PLogger implements IPLogger {
     private FileHandler fileHandler = null;
     private MemoryHandler memHandler = null;
     private Level level = Level.INFO;
-
+    private boolean isEnableFileOutSus = false;
+    private boolean isEnableConsoleOutSus = false;
+	
     public PLogger(String name) {
+		
         log = Logger.getLogger(name);
         log.setUseParentHandlers(false);
     }
@@ -146,7 +149,15 @@ public class PLogger implements IPLogger {
     @Override
     public void log(LogLevel level, String info, Object... objects) {
 
+        /**
+         * NOTE: only when enable is OK to record the log
+         */
+        if (isEnableFileOutSus == false && isEnableConsoleOutSus == false) {
+            return;
+        }
+		
         Level l = getLevel(level);
+		
         log.log(l, info, objects);
     }
 
@@ -187,7 +198,7 @@ public class PLogger implements IPLogger {
     }
 
     @Override
-    public void enableConsoleOut(boolean check) {
+    public boolean enableConsoleOut(boolean check) {
 
         if (check == true) {
             if (this.consoleHandler == null) {
@@ -196,16 +207,20 @@ public class PLogger implements IPLogger {
                 this.consoleHandler.setFormatter(new DefaultLogFormatter());
             }
             log.addHandler(this.consoleHandler);
+            isEnableConsoleOutSus = true;
         }
         else {
             if (this.consoleHandler != null) {
                 log.removeHandler(this.consoleHandler);
             }
+            isEnableConsoleOutSus = false;
         }
+		
+        return isEnableConsoleOutSus;
     }
 
     @Override
-    public void enableFileOut(String filepattern, boolean check, int bufferSize, int fileSize, int fileCount,
+    public boolean enableFileOut(String filepattern, boolean check, int bufferSize, int fileSize, int fileCount,
             boolean isAppend, Formatter format) {
 
         if (check == true) {
@@ -222,16 +237,20 @@ public class PLogger implements IPLogger {
             /**
              * NOTE: we use async log buffer
              */
-            if (this.memHandler == null) {
+            if (this.memHandler == null&& this.fileHandler != null) {
                 this.memHandler = new MemoryHandler(this.fileHandler, bufferSize, this.level);
                 this.log.addHandler(this.memHandler);
+                isEnableFileOutSus = true;
             }
         }
         else {
             if (this.memHandler != null) {
                 log.removeHandler(this.memHandler);
+                isEnableFileOutSus = false;
             }
         }
+		
+        return isEnableFileOutSus;
     }
 
     /**
