@@ -135,8 +135,8 @@ public class ThreadAnalysisSupporter extends Supporter {
             cmd = jstackPath + " " + pid + " >> " + file;        
         }
         else {
-            cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jstackPath
-                                      + " " + pid + " >>  " + file;
+            cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jstackPath 
+                    + " " + pid + " >>  " + file;
         }
 
         // 生成线程分析文件即将开始运行，在日志中记录开始运行记录
