@@ -29,10 +29,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.alibaba.fastjson.JSONArray;
 import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.agent.helpers.JSONHelper;
-
 /**
  * notify strategy ds
  */
@@ -58,45 +58,209 @@ public class NotifyStrategy {
 
     private static final Pattern INDEX_PATTERN = Pattern.compile("\\[\\d+\\]");
 
+    private long maxRange = 0;
+
     private Type type;
-
+    
+    private String name;
+    
+    private String desc;
+    
     private String scope;
-
+    
+    private String msgTemplate;
+    
     private List<Condition> condtions;
 
-    private String msgTemplate;
-
-    private Map<String, String> action = Collections.emptyMap();
+    private List<String> convergences;
 
     private List<String> context = Collections.emptyList();
 
     private List<String> instances = Collections.emptyList();
 
-    private long maxRange = 0;
-
-    private String name;
+    private Map<String, String> action = Collections.emptyMap();
 
     public NotifyStrategy() {
     }
 
-    public NotifyStrategy(String name, String scope, List<String> context, Map<String, String> action,
-            List<String> instances, String msgTemplate) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public NotifyStrategy(String name, String json) {
+
+        Map m = JSONHelper.toObject(json, Map.class);
+        String scope = (String) m.get("scope");
+        String desc = (String) m.get("desc");
+        List<String> context = (List<String>) m.get("context");
+        List<Object> conds = (List<Object>) m.get("conditions");
+        List<String> relations = (List<String>) m.get("relations");
+        List<String> convergences = (List<String>) m.get("convergences");
+        Map<String, String> action = (Map<String, String>) m.get("action");
+        String msgTemplate = (String) m.get("msgTemplate");
+        List<String> instances = (List<String>) m.get("instances");
+
+        List<Condition> conditions = determineConditions(conds, relations, name);
+        long maxRange = determineMaxRange(conditions);
+        Type type = determineType(conds);
+
+        setMaxRange(maxRange).setType(type).setName(name).setDesc(desc).setScope(scope).setMsgTemplate(msgTemplate)
+                .setConditions(conditions).setConvergences(convergences).setContext(context).setInstances(instances)
+                .setAction(action);
+    }
+
+    public NotifyStrategy setMaxRange(long maxRange) {
+
+        this.maxRange = maxRange;
+        return this;
+    }
+    
+    public NotifyStrategy setType(Type type) {
+
+        this.type = type;
+        return this;
+    }
+
+    public NotifyStrategy setName(String name) {
+
         this.name = name;
+        return this;
+    }
+    
+    public NotifyStrategy setDesc(String desc) {
+        
+        this.desc = desc;
+        return this;
+    }
+    
+    public NotifyStrategy setScope(String scope) {
+        
         this.scope = scope;
+        return this;
+    }
+    
+    public NotifyStrategy setMsgTemplate(String msgTemplate) {
+        
+        this.msgTemplate = msgTemplate;
+        return this;
+    }
+    
+    public NotifyStrategy setConditions(List<Condition> conditions) {
+        
+        this.condtions = conditions;
+        return this;
+    }
+    
+    public NotifyStrategy setConvergences(List<String> convergences) {
+        
+        this.convergences = convergences;
+        return this;
+    }
+    
+    public NotifyStrategy setContext(List<String> context) {
+        
         if (context != null && context.size() != 0) {
             this.context = context;
         }
-        if (action != null && action.size() != 0) {
-            this.action = action;
-        }
+        return this;
+    }
+    
+    public NotifyStrategy setInstances(List<String> instances) {
+        
         if (instances != null && instances.size() != 0) {
             this.instances = instances;
         }
-        this.msgTemplate = msgTemplate;
+        return this;
+    }
+    
+    public NotifyStrategy setAction(Map<String, String> action) {
+        
+        if (action != null && action.size() != 0) {
+            this.action = action;
+        }
+        return this;
     }
 
-    public void setConditions(List<Object> conditions, List<String> relations) {
+    public long getMaxRange() {
 
+        return maxRange;
+    }
+
+    public Type getType() {
+
+        return type;
+    }
+
+    public String getName() {
+
+        return name;
+    }
+
+    public String getDesc() {
+
+        return desc;
+    }
+
+    public String getScope() {
+
+        return scope;
+    }
+
+    public String getMsgTemplate() {
+
+        return msgTemplate;
+    }
+
+    public List<Condition> getCondtions() {
+
+        return condtions;
+    }
+
+    public List<String> getConvergences() {
+
+        return convergences;
+    }
+
+    public List<String> getContext() {
+
+        return context;
+    }
+
+    public List<String> getInstances() {
+
+        return instances;
+    }
+
+    public Map<String, String> getAction() {
+
+        return action;
+    }
+
+    private long determineMaxRange(List<Condition> conditions) {
+        
+        long maxRange = 0;
+        for (Condition cond : conditions) {
+            for (Expression expr : cond.expressions) {
+                maxRange = Math.max(maxRange, expr.range);
+            }
+        }
+        
+        return maxRange;
+    }
+    
+    private Type determineType(List<Object> conds) {
+        
+        Type type = Type.STREAM;
+        for (Object o : conds) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> cond = (Map<String, Object>) o;
+            if (cond.get("type") != null && cond.get("type").equals(Type.TIMER.name)) {
+                type = Type.TIMER;
+            }
+        }
+        
+        return type;
+    }
+    
+    private List<Condition> determineConditions(List<Object> conditions, List<String> relations, String name) {
+        
         int idx = 0; // expression count
         List<Expression> exprs = new ArrayList<>();
         for (Object o : conditions) {
@@ -120,10 +284,26 @@ public class NotifyStrategy {
                     expression = new Expression(expr, func, range, sampling);
                 }
                 else {
-                    String metricPrefix = name.substring(name.indexOf('@') + 1, name.lastIndexOf('@'));
-                    cond.put("metric", metricPrefix + "." + cond.get("metric"));
+                    String metric = String.valueOf(cond.get("metric"));
+
+                    //add default metricPrefix if missing, such as "clientResp.", "hostState." and so on                                      
+                    String metricPrefix="";
+                    
+                    int index = metric.indexOf('.');
+                    
+                    if(index>-1) {
+                        metricPrefix = metric.substring(0, metric.indexOf('.'));
+                    }                   
+                    
+                    if(!metricPrefix.contains("State")&&!metricPrefix.contains("Resp")&&!metricPrefix.contains("jvm")) {
+                        
+                        metricPrefix = name.substring(name.indexOf('@') + 1, name.lastIndexOf('@'));
+                        
+                        metric = metricPrefix + "."+ metric;
+                    }       
+                        
+                    cond.put("metric", metric);
                     expression = new Expression(cond);
-                    this.type = Type.TIMER;
                 }
                 expression.setIdx(idx++);
                 exprs.add(expression);
@@ -163,104 +343,7 @@ public class NotifyStrategy {
             }
         }
 
-        this.condtions = conds;
-
-        /** init max range */
-        for (Condition cond : this.condtions) {
-            for (Expression expr : cond.expressions) {
-                maxRange = Math.max(maxRange, expr.range);
-            }
-        }
-
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static NotifyStrategy parse(String name, String json) {
-
-        Map m = JSONHelper.toObject(json, Map.class);
-        String scope = (String) m.get("scope");
-        List<String> context = (List<String>) m.get("context");
-        List<Object> conditions = (List<Object>) m.get("conditions");
-        List<String> relations = (List<String>) m.get("relations");
-        Map<String, String> action = (Map<String, String>) m.get("action");
-        String msgTemplate = (String) m.get("msgTemplate");
-        List<String> instances = (List<String>) m.get("instances");
-
-        NotifyStrategy stra = new NotifyStrategy(name, scope, context, action, instances, msgTemplate);
-
-        stra.setConditions(conditions, relations);
-
-        return stra;
-    }
-
-    public long getMaxRange() {
-
-        return maxRange;
-    }
-
-    public String getMsgTemplate() {
-
-        return msgTemplate;
-    }
-
-    public void setMsgTemplate(String msgTemplate) {
-
-        this.msgTemplate = msgTemplate;
-    }
-
-    public Map<String, String> getAction() {
-
-        return action;
-    }
-
-    public void setAction(Map<String, String> action) {
-
-        this.action = action;
-    }
-
-    public List<String> getContext() {
-
-        return context;
-    }
-
-    public void setContext(List<String> context) {
-
-        this.context = context;
-    }
-
-    public String getScope() {
-
-        return scope;
-    }
-
-    public void setScope(String scope) {
-
-        this.scope = scope;
-    }
-
-    public List<String> getInstances() {
-
-        return instances;
-    }
-
-    public void setInstances(List<String> instances) {
-
-        this.instances = instances;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public Type getType() {
-
-        return type;
-    }
-
-    public List<Condition> getCondtions() {
-
-        return condtions;
+        return conds;
     }
 
     protected static class Expression {
@@ -273,7 +356,9 @@ public class NotifyStrategy {
         private long range = 0;
         private String func;
         private float sampling = 1;
-
+        private String downsample;
+        private Boolean[] weekdayLimit=new Boolean[] {true,true,true,true,true,true,true};
+        
         private Set<String> matchArgExpr = new HashSet<String>();
 
         private long time_from;
@@ -282,7 +367,15 @@ public class NotifyStrategy {
         private int unit;
         private String upperLimit;
         private String lowerLimit;
-
+        private String time_end;
+        private String time_start;
+        private String day_start;
+        private String day_end;
+        
+        private String exprAdaptorId;
+        
+        private String hashcode;
+        
         public Expression(String exprStr) {
             for (String op : OPERATORS) {
                 if (exprStr.contains(op)) {
@@ -315,13 +408,30 @@ public class NotifyStrategy {
         public Expression(Map<String, Object> cond) {
 
             this.arg = (String) cond.get("metric");
+            
+            this.exprAdaptorId = arg.substring(0,arg.indexOf('.'));
+            
             this.unit = Integer.parseInt((String) cond.get("unit"));
+            
             this.time_from = DateTimeHelper
                     .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + cond.get("time_from"), "yyyy-MM-dd HH:mm")
                     .getTime();
             this.time_to = DateTimeHelper
                     .dateFormat(DateTimeHelper.getToday("yyyy-MM-dd") + " " + cond.get("time_to"), "yyyy-MM-dd HH:mm")
                     .getTime();
+            
+            this.time_start=(String) cond.get("time_start");
+            
+            this.time_end= (String) cond.get("time_end");
+            
+            this.day_start=(String) cond.get("day_start");
+            
+            this.day_end= (String) cond.get("day_end");
+            
+            if(cond.containsKey("weekdayLimit")) {
+                ((JSONArray)cond.get("weekdayLimit")).toArray(this.weekdayLimit);
+            }       
+            
             if (cond.get("interval") != null) {
                 long interval = Long.parseLong((String) cond.get("interval"));
                 switch (unit) {
@@ -341,6 +451,7 @@ public class NotifyStrategy {
             this.upperLimit = (String) cond.get("upperLimit");
             this.lowerLimit = (String) cond.get("lowerLimit");
             this.func = (String) cond.get("aggr");
+            this.downsample=(String) cond.get("downsample");
             this.type = Type.TIMER;
         }
 
@@ -383,7 +494,11 @@ public class NotifyStrategy {
 
         public String getHashCode() {
 
-            return EncodeHelper.encodeMD5(arg + func + lowerLimit + upperLimit + time_from + time_to + interval + unit);
+            if(this.hashcode == null) {
+                hashcode = EncodeHelper.encodeMD5(arg + func + downsample + lowerLimit + upperLimit + time_from + time_to + interval + unit + time_start + time_end + day_start + day_end);
+            }
+            
+            return hashcode;
         }
 
         public String getArg() {
@@ -459,6 +574,41 @@ public class NotifyStrategy {
         public void setIdx(int idx) {
 
             this.idx = idx;
+        }
+        
+        public String getTime_end() {
+
+            return time_end;
+        }
+
+        public String getTime_start() {
+
+            return time_start;
+        }
+
+        public String getDownsample() {
+
+            return downsample;
+        }
+
+        public String getDay_start() {
+
+            return day_start;
+        }
+
+        public String getDay_end() {
+
+            return day_end;
+        }
+
+        public Boolean[] getWeekdayLimit() {
+
+            return weekdayLimit;
+        }
+        
+        public String getExprAdaptorId() {
+            
+            return exprAdaptorId;
         }
 
     }

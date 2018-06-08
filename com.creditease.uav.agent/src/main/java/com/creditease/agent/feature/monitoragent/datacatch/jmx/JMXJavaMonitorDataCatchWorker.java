@@ -159,11 +159,18 @@ public class JMXJavaMonitorDataCatchWorker extends BaseJMXMonitorDataCatchWorker
     // localIP
     protected String localIP;
 
+    private long profileHBTimeout;
+
     public JMXJavaMonitorDataCatchWorker(String cName, String feature, JVMAgentInfo appServerInfo,
             BaseDetector detector) {
+
         super(cName, feature, appServerInfo, detector);
 
         collectJavaProcRunInfo(appServerInfo);
+
+        String profileHBTimeoutStr = this.getConfigManager().getFeatureConfiguration(feature,
+                "detector.profilehbtimeout");
+        profileHBTimeout = StringHelper.isEmpty(profileHBTimeoutStr) ? 15000 : Long.parseLong(profileHBTimeoutStr);
     }
 
     /**
@@ -271,7 +278,7 @@ public class JMXJavaMonitorDataCatchWorker extends BaseJMXMonitorDataCatchWorker
         else {
             long curTime = System.currentTimeMillis();
 
-            if (curTime - state.getProfileTimestamp() < 60000) {
+            if (curTime - state.getProfileTimestamp() < profileHBTimeout) {
                 return;
             }
 

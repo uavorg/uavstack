@@ -31,11 +31,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -139,9 +141,17 @@ public class GUIService extends AppHubBaseRestService {
 
         try {
             /**
-             * redis cache init :等待AppHubInit执行完成（0.5秒为估计值）
+             * redis cache init :等待AppHubInit执行完成（1秒为估计值）
              */
-            Thread.sleep(500L);
+            Thread.sleep(1000L);
+            /**
+             * 先清空redis：app group 授权信息
+             */
+            cm.del("apphub.gui.cache", "manage.app");
+            cm.del("apphub.gui.cache", "manage.group");
+            /**
+             * 然后将mongodb数据缓存到redis
+             */
             createGroupInfoCache();
             createAppInfoCache();
         }
@@ -215,10 +225,10 @@ public class GUIService extends AppHubBaseRestService {
             monitor.flushToSystemProperties();
 
             String ip = request.getRemoteAddr();
-            String xip = request.getHeader("X-Forward-For");
+            String xip = request.getHeader("X-Forwarded-For");
             String userip = getClientIP(ip, xip);
             Map<String, String> userInfo = new HashMap<String, String>();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             String time = sdf.format(new Date());
             userInfo.put("key", "ulog");
             userInfo.put("time", time);
@@ -258,10 +268,10 @@ public class GUIService extends AppHubBaseRestService {
             Object obj = request.getSession(false).getAttribute("apphub.gui.session.login.user.id");
             String userId = null == obj ? "" : String.valueOf(obj);
             String ip = request.getRemoteAddr();
-            String xip = request.getHeader("X-Forward-For");
+            String xip = request.getHeader("X-Forwarded-For");
             String userip = getClientIP(ip, xip);
             Map<String, String> userInfo = new HashMap<String, String>();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             String time = sdf.format(new Date());
             userInfo.put("key", "ulog");
             userInfo.put("time", time);
@@ -327,29 +337,72 @@ public class GUIService extends AppHubBaseRestService {
      * 
      * @return
      */
+    @SuppressWarnings("rawtypes")
     @GET
     @Path("loadUserManageInfo")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     public void loadUserManageInfo(@Suspended AsyncResponse response) {
 
-        String result = "";
         String userGroup = String
                 .valueOf(request.getSession(false).getAttribute("apphub.gui.session.login.user.group"));
         Map<String, String> manageGroup = cm.getHashAll("apphub.gui.cache", "manage.group");
 
-        // 授权匹配
-        if (manageGroup.containsKey(userGroup)) {
+        /**
+         * 获取用户ldap信息 begin
+         */
+        GUISSOClient guissoClient = GUISSOClientFactory.getGUISSOClient(request);
+        String userLoginId = String.valueOf(request.getSession(false).getAttribute("apphub.gui.session.login.user.id"));
+        Object userLdapInfo = guissoClient.getUserByQuery(userLoginId);
+        String userLdapInfoStr = JSONHelper.toString(userLdapInfo);
+        /**
+         * 获取用户ldap信息 end
+         */
+
+        /**
+         * 获取匹配授权信息，去重
+         * 
+         * 只要匹配上，权限都能得到
+         */
+        Set<String> appids = new HashSet<String>();
+        Iterator manageGroupI = manageGroup.keySet().iterator();
+        while (manageGroupI.hasNext()) {
+            String key = String.valueOf(manageGroupI.next());
+            String[] keys = key.split(",");
+            String groupId = keys[0].replace("groupId:", "");
+            String ldapKey = keys[1].replace("ldappKey:", "");
+
+            boolean keyCheck = false;
+            if (ldapKey.length() == 0) {
+                keyCheck = true; // 没有则不验证
+            }
+            else {
+                keyCheck = userLdapInfoStr.contains(ldapKey); // 关键字匹配
+            }
+
+            if (userGroup.equals(groupId) && keyCheck) {
+                // 授权匹配
+                String[] userManAppids = manageGroup.get(key).split(",");
+                for (String appid : userManAppids) {
+                    appids.add(appid);
+                }
+            }
+        }
+
+        String result = "";
+        if (appids.size() > 0) {
+            // 赋值
+            Iterator appidsI = appids.iterator();
             Map<String, String> userManageInfo = new HashMap<String, String>();
-            String[] userManAppids = manageGroup.get(userGroup).split(",");
-            for (String appid : userManAppids) {
+            while (appidsI.hasNext()) {
+                String appid = String.valueOf(appidsI.next());
                 Map<String, String> appinfo = cm.getHash("apphub.gui.cache", "manage.app", appid);
                 userManageInfo.putAll(appinfo);
             }
+
             result = JSONHelper.toString(userManageInfo);
         }
 
-        logger.info(this, "\r\nloadUserManageInfo\r\nuserGroup:" + userGroup + "\r\nmanageGroup:" + manageGroup
-                + " \r\nresult:" + result);
+        logger.info(this, "\r\nloadUserManageInfo->\r\nuserGroup:" + userGroup + "\r\nmapping:" + appids.toString());
 
         response.resume(result);
 
@@ -495,13 +548,11 @@ public class GUIService extends AppHubBaseRestService {
      * @return
      */
     private boolean whiteListSet(String loginId, String groupName, Map<String, String> userInfo) {
-
-        String checkLoginId = loginId;
-
+ 
         boolean result = false;
         String[] memberNames = whiteList.get(groupName).split(",");
         for (String memberName : memberNames) {
-            if (checkLoginId.equals(memberName)) {
+            if (loginId.toLowerCase().equals(memberName.toLowerCase())) {
                 userInfo.remove("groupId");
                 userInfo.put("groupId", groupName);
                 result = true;
@@ -668,8 +719,11 @@ public class GUIService extends AppHubBaseRestService {
             Map<String, Object> respMap = JSONHelper.toObject(respStr, Map.class);
             List<Map<String, String>> respList = (List<Map<String, String>>) respMap.get("data");
             for (Map<String, String> map : respList) {
-                String key = map.get("groupid");
+                String groupid = map.get("groupid");
                 String value = map.get("appids");
+                String ldapkey = map.get("ldapkey") == null ? "" : map.get("ldapkey");
+
+                String key = "groupId:" + groupid + ",ldappKey:" + ldapkey;
                 groupCache.put(key, value);
             }
             cm.putHash("apphub.gui.cache", "manage.group", groupCache);

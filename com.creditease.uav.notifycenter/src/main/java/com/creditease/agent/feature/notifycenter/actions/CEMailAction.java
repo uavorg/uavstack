@@ -72,12 +72,12 @@ public class CEMailAction extends AbstractMailAction {
     public CEMailAction(String cName, String feature, IActionEngine engine) {
         super(cName, feature, engine);
 
-        userName = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.username");
-        password = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.password");
-        brokerURL = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.brokerurl");
+        userName = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.cemail.username");
+        password = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.cemail.password");
+        brokerURL = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.cemail.brokerurl");
 
-        activeID = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.activeid");
-        systemSign = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.systemsign");
+        activeID = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.cemail.activeid");
+        systemSign = this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.mail.cemail.systemsign");
     }
 
     /**

@@ -950,6 +950,7 @@ public class StringHelper {
         return set;
     }
 
+    @Deprecated
     public static boolean isNumeric(String str) {
 
         if (str == null || str.isEmpty()) {
@@ -957,6 +958,19 @@ public class StringHelper {
         }
         Pattern pattern = Pattern.compile("[0-9]*");
         return pattern.matcher(str).matches();
+    }
+    
+    public static boolean isNaturalNumber(String str) {
+        
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) < '0' || str.charAt(i) > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1013,5 +1027,46 @@ public class StringHelper {
             num += randomNum;
         }
         return num;
+    }
+    
+    /**
+     * @param collection
+     * @param separator
+     * @return
+     */
+    public static String join(Collection<String> collection, String separator) {
+        if (collection == null) {
+            return null;
+        }
+        return join(collection.toArray(new String[collection.size()]), separator);
+    }
+
+    /**
+     * Array can not be empty, the value in an array is empty and not appended to a string
+     * 
+     * @param array
+     * @param separator
+     * @return
+     */
+    public static String join(String[] array, String separator) {
+        if (array == null) {
+            return null;
+        }
+
+        if (separator == null) {
+            separator = "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < array.length; i++) {
+            if (i > 0) {
+                builder.append(separator);
+            }
+            if (array[i] != null) {
+                builder.append(array[i]);
+            }
+        }
+        return builder.toString();
     }
 }
