@@ -84,6 +84,9 @@ public class MOFAgent {
         }
         else if (jversion.indexOf("1.8") > -1) {
             extlib += "8";
+        } 
+        else if (jversion.startsWith("9.")) {
+            extlib += "9";
         }
         return extlib;
     }
