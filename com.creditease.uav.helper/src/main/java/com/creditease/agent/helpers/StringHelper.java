@@ -950,6 +950,7 @@ public class StringHelper {
         return set;
     }
 
+    @Deprecated
     public static boolean isNumeric(String str) {
 
         if (str == null || str.isEmpty()) {
@@ -957,6 +958,19 @@ public class StringHelper {
         }
         Pattern pattern = Pattern.compile("[0-9]*");
         return pattern.matcher(str).matches();
+    }
+    
+    public static boolean isNaturalNumber(String str) {
+        
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) < '0' || str.charAt(i) > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
