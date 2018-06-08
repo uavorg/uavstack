@@ -118,12 +118,14 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
 
             String action = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_ACTION);
             Integer rc = (Integer) context.get(CaptureConstants.INFO_CLIENT_RESPONSECODE);
+            String rs = (String) context.get(CaptureConstants.INFO_CLIENT_RESPONSESTATE);
             String type = (String) context.get(CaptureConstants.INFO_CLIENT_TYPE);
             String server = (String) context.get(CaptureConstants.INFO_CLIENT_TARGETSERVER);
 
             pc.put(ProfileConstants.PC_ARG_CLIENT_URL, clientRequestURL);
             pc.put(ProfileConstants.PC_ARG_CLIENT_ACTION, action);
             pc.put(ProfileConstants.PC_ARG_CLIENT_RC, rc);
+            pc.put(ProfileConstants.PC_ARG_CLIENT_RS, rs);
             pc.put(ProfileConstants.PC_ARG_CLIENT_TYPE, type);
             pc.put(ProfileConstants.PC_ARG_CLIENT_TARGETSERVER, server);
 
@@ -148,6 +150,7 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
          */
         String action = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_ACTION);
         Integer rc = (Integer) context.get(CaptureConstants.INFO_CLIENT_RESPONSECODE);
+        String clientRequestURL = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_URL);
 
         if (rc != null && rc == -1) {
             inst.increValue(CaptureConstants.MEI_ERROR);
@@ -159,6 +162,13 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
             }
             else if (rc == -1) {
                 inst.increValue(MonitorServerUtil.getActionErrorTag(action));
+            }
+        }
+        
+        if (clientRequestURL.startsWith("http")) {
+            String rs = (String) context.get(CaptureConstants.INFO_CLIENT_RESPONSESTATE);
+            if(StringHelper.isNaturalNumber(rs)) {
+                inst.increValue(MonitorServerUtil.getActionTag(rs));
             }
         }
     }

@@ -156,7 +156,7 @@ function showAddDiv() {
 	
 
 	sb.append( '<div><input class="displayMsgTitle" value="描述：" readonly="readonly"></input></div>');
-	sb.append( '<div><textarea class="input_must" placeholder="输入描述" id="notifyDesc"></textarea></div>');
+	sb.append( '<div><textarea class="input_must" placeholder="输入描述（该描述将出现在关联的预警记录中，请简明扼要概括）" id="notifyDesc"></textarea></div>');
 
 	sb.append( '<div class="well" id="conFatDiv">');
 	sb.append( '<div><span class="well-title">条件定义</span><div class="well-title-div"><span class="glyphicon glyphicon-plus well-add" onclick="javascript:showCondDiv(this,\'ADD\');"></span></div></div>');
@@ -187,7 +187,7 @@ function showAddDiv() {
 /**
  * 显示编辑策略
  */
-function showEditNotifyDiv(jsonObjParam) {
+function showEditNotifyDiv(jsonObjParam,isCopy) {
 
 	var key,jsonObj,isOwner=false;enableThreadAnalysis=false;
 	//因为只有一对 key：value 获取key（值为id） 
@@ -195,6 +195,12 @@ function showEditNotifyDiv(jsonObjParam) {
 		key = index;
 		jsonObj = obj;
 	});
+	
+	if(isCopy==true){
+		jsonObj.owner=window.parent.loginUser.userId;
+	}else{
+		actionConf.actionObj=jsonObjParam;
+	}
 	
 	if(jsonObj.owner == window.parent.loginUser.userId 
 			|| window.parent.loginUser.groupId == "uav_admin"
@@ -208,9 +214,20 @@ function showEditNotifyDiv(jsonObjParam) {
 	var sb=new StringBuffer();
 	sb.append( "<div class=\"titleDiv\">");
 	sb.append( "<input type=\"hidden\" id=\"isOwner\" value=\""+isOwner+"\">");
-	sb.append( "编辑策略");
+	
+	if(isCopy){
+		sb.append( "编辑复制策略");
+	}else{
+		sb.append( "编辑策略");
+	}
+	
 	sb.append( "<div class=\"icon-signout icon-myout\" onclick=\"javascript:closeObjectDiv()\"></div>");
 	sb.append( "<div class=\"icon-question-sign icon-myhelp\" onclick=\"javascript:openHelpDiv()\"></div>");
+	
+	if(!isCopy){
+		sb.append( "<div class=\"icon-copy icon-mycopy\" onclick=\"javascript:copyNotifyStra()\"></div>");
+	}
+	
 	sb.append( "</div>");
 	sb.append( "</br>");
 	/**
@@ -250,8 +267,12 @@ function showEditNotifyDiv(jsonObjParam) {
 	if(showNameF=="自定义指标"){
 		selUiConf["userInput"]["notifyNameM"]=names[1];//编辑赋值，准备修改数据
 	}else if(names[1] == "log"){
-		sb.append( '<div><input class="'+cssRedOnly+'" value="应用ID:'+names[0]+'" readonly="readonly"></input></div>');
-		selUiConf["userInput"]["notifyNameM"]=names[1];//编辑赋值，准备修改数据
+		if(isCopy){
+			sb.append( '<div><input class="input_must" placeholder="输入应用ID" id="add_appname" onchange="javascript:appNameChange(this);"></input></div>');
+		}else{
+			sb.append( '<div><input class="'+cssRedOnly+'" value="应用ID:'+names[0]+'" readonly="readonly"></input></div>');
+			selUiConf["userInput"]["notifyNameM"]=names[1];//编辑赋值，准备修改数据
+		}
 	}else if(names[1]){
 		sb.append( '<div><input class="'+cssRedOnly+'" value="'+getSelUiConfigValue(names[1])+'" readonly="readonly"></input></div>');
 		selUiConf["userInput"]["notifyNameM"]=names[1];//编辑赋值，准备修改数据
@@ -262,14 +283,26 @@ function showEditNotifyDiv(jsonObjParam) {
 	//3
 	if(names[2] && names[1] == "log"){
 		var nNameIShow = "指定日志:"+names[2];
-		sb.append( '<div><input class="'+cssRedOnly+'" value='+nNameIShow+' readonly="readonly"></input></div>');
-		selUiConf["userInput"]["notifyNameI"]=names[2];//编辑赋值，准备修改数据
+		if(isCopy){
+			sb.append( '<div><input placeholder="输入指定日志" id="notifyNameI" onkeyup="javascript:checkNameIShow();"></input></div>');
+		}else{
+			sb.append( '<div><input class="'+cssRedOnly+'" value='+nNameIShow+' readonly="readonly"></input></div>');
+			selUiConf["userInput"]["notifyNameI"]=names[2];//编辑赋值，准备修改数据
+		}
 	}else if(names[1] == "log"){
-		sb.append( '<div><input class="'+cssRedOnly+'" value="全部日志" readonly="readonly"></input></div>');
+		if(isCopy){
+			sb.append( '<div><input placeholder="输入指定日志" id="notifyNameI" onkeyup="javascript:checkNameIShow();"></input></div>');
+		}else{
+			sb.append( '<div><input class="'+cssRedOnly+'" value="全部日志" readonly="readonly"></input></div>');
+		}
 	}else if(names[2]){
 		var nNameIShow = (existsIns?"实例组:":"实例:")+names[2];
-		sb.append( '<div><input class="'+cssRedOnly+'" value='+nNameIShow+' readonly="readonly"></input></div>');
-		selUiConf["userInput"]["notifyNameI"]=names[2];//编辑赋值，准备修改数据
+		if(isCopy){
+			sb.append( '<div><input placeholder="输入监控实例名或者实例组名" id="notifyNameI" onkeyup="javascript:checkNameIShow();"></input></div>');
+		}else{
+			sb.append( '<div><input class="'+cssRedOnly+'" value='+nNameIShow+' readonly="readonly"></input></div>');
+			selUiConf["userInput"]["notifyNameI"]=names[2];//编辑赋值，准备修改数据
+		}
 	}else{
 		sb.append( '<div><input class="'+cssRedOnly+'" value="全部实例" readonly="readonly"></input></div>');
 	}
@@ -287,9 +320,9 @@ function showEditNotifyDiv(jsonObjParam) {
 
 	sb.append( '<div><input class="displayMsgTitle" value="描述：" readonly="readonly"></input></div>');
 	if(isOwner){
-		sb.append( '<div><textarea class="input_must" placeholder="输入描述" id="notifyDesc">'+jsonObj.desc+'</textarea></div>');
+		sb.append( '<div><textarea class="input_must" placeholder="输入描述（该描述将出现在关联的预警记录中，请简明扼要概括）" id="notifyDesc">'+jsonObj.desc+'</textarea></div>');
 	}else{
-		sb.append( '<div><textarea class="'+cssRedOnly+'" placeholder="输入描述" id="notifyDesc" readonly="readonly">'+jsonObj.desc+'</textarea></div>');
+		sb.append( '<div><textarea class="'+cssRedOnly+'" placeholder="输入描述（该描述将出现在关联的预警记录中，请简明扼要概括）" id="notifyDesc" readonly="readonly">'+jsonObj.desc+'</textarea></div>');
 	}
 	 
 	/**
@@ -407,7 +440,11 @@ function showEditNotifyDiv(jsonObjParam) {
 
 	if(isOwner){
 		//按钮
-		sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(false);">修改</button></div>');
+		if(isCopy){
+			sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(true);">保存</button></div>');		
+		}else{
+			sb.append( '<div><button style="width:50%;margin-top:5px;min-width:340px;" class="btn btn-primary " onclick="javascript:saveNotify(false);">修改</button></div>');
+		}
 		sb.append( '<div><span id="addNotifyErrMSG" style="color:#ff0000;"></span></div>');
 		sb.append( '<div style="">&nbsp;</div>');
 	}
@@ -1031,7 +1068,7 @@ function conditionsAppend(){
 	if(checkFunc()){		
 		var jsonObject;
 		if("stream"==$("#condType").val()){		
-			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
+			jsonObject = {"type":"stream","expr":HtmlHelper.inputXSSFilter($("#contExpr").val()).replace(/\s+/g,''),"range":HtmlHelper.inputXSSFilter($("#conRange").val()),"func":HtmlHelper.inputXSSFilter($("#conFunc").val()),"cparam":HtmlHelper.inputXSSFilter($("#conFuncParam").val())};		
 		}else{			
 			jsonObject = {"type":"timer","time_from":HtmlHelper.inputXSSFilter($("#time_from").val()),"time_to":HtmlHelper.inputXSSFilter($("#time_to").val()),"metric":HtmlHelper.inputXSSFilter($("#conMetric").val()),"upperLimit":HtmlHelper.inputXSSFilter($("#conUpperLimit").val()),"lowerLimit":HtmlHelper.inputXSSFilter($("#conLowerLimit").val())};		
 
@@ -1380,6 +1417,10 @@ function openHelpDiv() {
  	window.open("https://uavorg.github.io/documents/uavdoc_useroperation/28.html#%E5%88%9B%E5%BB%BA","apphub.help");	
 }
 
+function copyNotifyStra(){
+	
+	showEditNotifyDiv(actionConf.actionObj,true);
+}
 
 /**
  * 策略表达式处理类
@@ -1519,7 +1560,7 @@ var StgyClass = {
 		/**
 		 * 策略编辑,保存按钮:关闭编辑,并且将策略结果追加到页面
 		 */
-		var html = document.getElementById("stgy_exp").innerHTML;
+		var html = document.getElementById("stgy_exp").innerHTML.replace('<br>', '');
 		var htmlConvergence = document.getElementById("convergence_exp").innerHTML.replace(/<\/?[^>]*>/g,'');
 		
 		if(html.length>0 && type=="add"){

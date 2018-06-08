@@ -354,7 +354,7 @@ public class JVMContainerOSDetector extends BaseDetector {
         
         for(BaseMonitorDataCatchWorker worker:workers.values()) {
             
-            JVMAgentInfo appServerInfo = jvmAgentInfos.get(worker.getWorkerId());
+            JVMAgentInfo appServerInfo = jvmAgentInfos.get(worker.getName());
            
             if(appServerInfo!=null && JVMAccessURL.equals((appServerInfo.getJVMAccessURL()))) {
                 
