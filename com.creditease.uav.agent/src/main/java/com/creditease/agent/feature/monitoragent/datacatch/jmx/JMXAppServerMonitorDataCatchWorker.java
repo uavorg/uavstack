@@ -66,9 +66,12 @@ public class JMXAppServerMonitorDataCatchWorker extends BaseJMXMonitorDataCatchW
 
             long timeFlag = (System.currentTimeMillis() / 10) * 10;
 
+            String pid = this.cName.substring("MO-".length() > this.cName.length() ? 0 : 3);
+            
             // get all monitor's MBean
             MonitorDataFrame mdf = new MonitorDataFrame(this.getWorkerId(), "M", timeFlag);
-
+            mdf.addExt("pid", pid);
+            
             needProcessCheck = doCaptureMonitorData(mbsc, timeFlag, mdf);
 
             // if needProcessCheck is still true, need see if the appserver is still alive
