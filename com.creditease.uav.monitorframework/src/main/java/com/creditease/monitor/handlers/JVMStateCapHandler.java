@@ -64,7 +64,9 @@ public class JVMStateCapHandler implements MonitorElemCapHandler {
         minorGC.add("Garbage collection optimized for throughput Young Collector");
         // -XgcPrio:deterministic
         minorGC.add("Garbage collection optimized for deterministic pausetimes Young Collector");
-
+        // -XX:+UseG1GC
+        minorGC.add("G1 Young Generation");
+        
         // Oracle (Sun) HotSpot
         // -XX:+UseSerialGC
         fullGC.add("MarkSweepCompact");
@@ -72,6 +74,8 @@ public class JVMStateCapHandler implements MonitorElemCapHandler {
         fullGC.add("PS MarkSweep");
         // -XX:+UseConcMarkSweepGC
         fullGC.add("ConcurrentMarkSweep");
+        // -XX:+UseG1GC
+        fullGC.add("G1 Old Generation");
 
         // Oracle (BEA) JRockit
         // -XgcPrio:pausetime
@@ -193,16 +197,39 @@ public class JVMStateCapHandler implements MonitorElemCapHandler {
 
         List<MemoryPoolMXBean> pmbList = ManagementFactory.getMemoryPoolMXBeans();
 
-        for (MemoryPoolMXBean mpmb : pmbList) {
+        /*for (MemoryPoolMXBean mpmb : pmbList) {
 
             String jvmMemPoolName = getHeapPoolName(mpmb.getName().trim());
-
+    
             MemoryUsage mu = mpmb.getUsage();
-
+    
             instance.setValue(jvmMemPoolName + "_use", mu.getUsed());
             instance.setValue(jvmMemPoolName + "_commit", mu.getCommitted());
             instance.setValue(jvmMemPoolName + "_max", mu.getMax());
             instance.setValue(jvmMemPoolName + "_init", mu.getInit());
+        }*/
+        
+        Set<String> addedSet = new HashSet<String>();
+        
+        for (MemoryPoolMXBean mpmb : pmbList) {
+    
+            String jvmMemPoolName = getHeapPoolName(mpmb.getName().trim());
+            MemoryUsage mu = mpmb.getUsage();
+            
+            if(addedSet.contains(jvmMemPoolName)) {
+            
+                instance.setValue(jvmMemPoolName + "_use", (Long)instance.getValue(jvmMemPoolName + "_use") + mu.getUsed());
+                instance.setValue(jvmMemPoolName + "_commit", (Long)instance.getValue(jvmMemPoolName + "_commit") + mu.getCommitted());
+                instance.setValue(jvmMemPoolName + "_max", (Long)instance.getValue(jvmMemPoolName + "_max") + mu.getMax());
+                instance.setValue(jvmMemPoolName + "_init", (Long)instance.getValue(jvmMemPoolName + "_init") + mu.getInit());
+            }else {
+                
+                addedSet.add(jvmMemPoolName);
+                instance.setValue(jvmMemPoolName + "_use", mu.getUsed());
+                instance.setValue(jvmMemPoolName + "_commit", mu.getCommitted());
+                instance.setValue(jvmMemPoolName + "_max", mu.getMax());
+                instance.setValue(jvmMemPoolName + "_init", mu.getInit());
+            }
         }
     }
 
