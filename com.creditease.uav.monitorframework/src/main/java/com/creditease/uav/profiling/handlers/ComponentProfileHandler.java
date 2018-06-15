@@ -2909,7 +2909,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         }
 
         Class<?> annoClass = annoAvailableClasses.get(componentClassName);
-
+        if (null == annoClass) {
+            return;
+        } 
+        
         List<String> coms = fcs.getNamesOfClassesWithAnnotation(annoClass);
 
         if (null == coms || coms.isEmpty()) {
