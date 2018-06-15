@@ -110,7 +110,9 @@ public class MOFClsTransformer implements ClassFileTransformer {
             try {
                 Class adptCls = this.mofLoader.loadClass(adaptorClass);
 
-                adaptorInst = adptCls.newInstance();
+                // adaptorInst = adptCls.newInstance();
+                // jdk9中newInstance被deprecate，建议使用如下方式：
+                adaptorInst = adptCls.getDeclaredConstructor().newInstance();
 
                 Method onStartupMethod = adptCls.getMethod("onStartup",
                         new Class[] { ClassLoader.class, String.class, String.class });
