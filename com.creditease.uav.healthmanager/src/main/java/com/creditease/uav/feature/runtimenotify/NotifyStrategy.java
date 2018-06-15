@@ -33,7 +33,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.helpers.EncodeHelper;
 import com.creditease.agent.helpers.JSONHelper;
-
 /**
  * notify strategy ds
  */
@@ -59,48 +58,209 @@ public class NotifyStrategy {
 
     private static final Pattern INDEX_PATTERN = Pattern.compile("\\[\\d+\\]");
 
+    private long maxRange = 0;
+
     private Type type;
-
+    
+    private String name;
+    
+    private String desc;
+    
     private String scope;
-
+    
+    private String msgTemplate;
+    
     private List<Condition> condtions;
 
     private List<String> convergences;
-    
-    private String msgTemplate;
-
-    private Map<String, String> action = Collections.emptyMap();
 
     private List<String> context = Collections.emptyList();
 
     private List<String> instances = Collections.emptyList();
 
-    private long maxRange = 0;
-
-    private String name;
+    private Map<String, String> action = Collections.emptyMap();
 
     public NotifyStrategy() {
     }
 
-    public NotifyStrategy(String name, String scope, List<String> context, Map<String, String> action,
-            List<String> instances, String msgTemplate, List<String> convergences) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public NotifyStrategy(String name, String json) {
+
+        Map m = JSONHelper.toObject(json, Map.class);
+        String scope = (String) m.get("scope");
+        String desc = (String) m.get("desc");
+        List<String> context = (List<String>) m.get("context");
+        List<Object> conds = (List<Object>) m.get("conditions");
+        List<String> relations = (List<String>) m.get("relations");
+        List<String> convergences = (List<String>) m.get("convergences");
+        Map<String, String> action = (Map<String, String>) m.get("action");
+        String msgTemplate = (String) m.get("msgTemplate");
+        List<String> instances = (List<String>) m.get("instances");
+
+        List<Condition> conditions = determineConditions(conds, relations, name);
+        long maxRange = determineMaxRange(conditions);
+        Type type = determineType(conds);
+
+        setMaxRange(maxRange).setType(type).setName(name).setDesc(desc).setScope(scope).setMsgTemplate(msgTemplate)
+                .setConditions(conditions).setConvergences(convergences).setContext(context).setInstances(instances)
+                .setAction(action);
+    }
+
+    public NotifyStrategy setMaxRange(long maxRange) {
+
+        this.maxRange = maxRange;
+        return this;
+    }
+    
+    public NotifyStrategy setType(Type type) {
+
+        this.type = type;
+        return this;
+    }
+
+    public NotifyStrategy setName(String name) {
+
         this.name = name;
+        return this;
+    }
+    
+    public NotifyStrategy setDesc(String desc) {
+        
+        this.desc = desc;
+        return this;
+    }
+    
+    public NotifyStrategy setScope(String scope) {
+        
         this.scope = scope;
+        return this;
+    }
+    
+    public NotifyStrategy setMsgTemplate(String msgTemplate) {
+        
+        this.msgTemplate = msgTemplate;
+        return this;
+    }
+    
+    public NotifyStrategy setConditions(List<Condition> conditions) {
+        
+        this.condtions = conditions;
+        return this;
+    }
+    
+    public NotifyStrategy setConvergences(List<String> convergences) {
+        
+        this.convergences = convergences;
+        return this;
+    }
+    
+    public NotifyStrategy setContext(List<String> context) {
+        
         if (context != null && context.size() != 0) {
             this.context = context;
         }
-        if (action != null && action.size() != 0) {
-            this.action = action;
-        }
+        return this;
+    }
+    
+    public NotifyStrategy setInstances(List<String> instances) {
+        
         if (instances != null && instances.size() != 0) {
             this.instances = instances;
         }
-        this.convergences = convergences;
-        this.msgTemplate = msgTemplate;
+        return this;
+    }
+    
+    public NotifyStrategy setAction(Map<String, String> action) {
+        
+        if (action != null && action.size() != 0) {
+            this.action = action;
+        }
+        return this;
     }
 
-    public void setConditions(List<Object> conditions, List<String> relations) {
+    public long getMaxRange() {
 
+        return maxRange;
+    }
+
+    public Type getType() {
+
+        return type;
+    }
+
+    public String getName() {
+
+        return name;
+    }
+
+    public String getDesc() {
+
+        return desc;
+    }
+
+    public String getScope() {
+
+        return scope;
+    }
+
+    public String getMsgTemplate() {
+
+        return msgTemplate;
+    }
+
+    public List<Condition> getCondtions() {
+
+        return condtions;
+    }
+
+    public List<String> getConvergences() {
+
+        return convergences;
+    }
+
+    public List<String> getContext() {
+
+        return context;
+    }
+
+    public List<String> getInstances() {
+
+        return instances;
+    }
+
+    public Map<String, String> getAction() {
+
+        return action;
+    }
+
+    private long determineMaxRange(List<Condition> conditions) {
+        
+        long maxRange = 0;
+        for (Condition cond : conditions) {
+            for (Expression expr : cond.expressions) {
+                maxRange = Math.max(maxRange, expr.range);
+            }
+        }
+        
+        return maxRange;
+    }
+    
+    private Type determineType(List<Object> conds) {
+        
+        Type type = Type.STREAM;
+        for (Object o : conds) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> cond = (Map<String, Object>) o;
+            if (cond.get("type") != null && cond.get("type").equals(Type.TIMER.name)) {
+                type = Type.TIMER;
+            }
+        }
+        
+        return type;
+    }
+    
+    private List<Condition> determineConditions(List<Object> conditions, List<String> relations, String name) {
+        
         int idx = 0; // expression count
         List<Expression> exprs = new ArrayList<>();
         for (Object o : conditions) {
@@ -144,7 +304,6 @@ public class NotifyStrategy {
                         
                     cond.put("metric", metric);
                     expression = new Expression(cond);
-                    this.type = Type.TIMER;
                 }
                 expression.setIdx(idx++);
                 exprs.add(expression);
@@ -184,110 +343,7 @@ public class NotifyStrategy {
             }
         }
 
-        this.condtions = conds;
-
-        /** init max range */
-        for (Condition cond : this.condtions) {
-            for (Expression expr : cond.expressions) {
-                maxRange = Math.max(maxRange, expr.range);
-            }
-        }
-
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static NotifyStrategy parse(String name, String json) {
-
-        Map m = JSONHelper.toObject(json, Map.class);
-        String scope = (String) m.get("scope");
-        List<String> context = (List<String>) m.get("context");
-        List<Object> conditions = (List<Object>) m.get("conditions");
-        List<String> relations = (List<String>) m.get("relations");
-        List<String> convergences = (List<String>) m.get("convergences");
-        Map<String, String> action = (Map<String, String>) m.get("action");
-        String msgTemplate = (String) m.get("msgTemplate");
-        List<String> instances = (List<String>) m.get("instances");
-
-        NotifyStrategy stra = new NotifyStrategy(name, scope, context, action, instances, msgTemplate, convergences);
-
-        stra.setConditions(conditions, relations);
-
-        return stra;
-    }
-
-    public long getMaxRange() {
-
-        return maxRange;
-    }
-
-    public String getMsgTemplate() {
-
-        return msgTemplate;
-    }
-
-    public void setMsgTemplate(String msgTemplate) {
-
-        this.msgTemplate = msgTemplate;
-    }
-
-    public Map<String, String> getAction() {
-
-        return action;
-    }
-
-    public void setAction(Map<String, String> action) {
-
-        this.action = action;
-    }
-
-    public List<String> getContext() {
-
-        return context;
-    }
-
-    public void setContext(List<String> context) {
-
-        this.context = context;
-    }
-
-    public String getScope() {
-
-        return scope;
-    }
-
-    public void setScope(String scope) {
-
-        this.scope = scope;
-    }
-
-    public List<String> getInstances() {
-
-        return instances;
-    }
-
-    public void setInstances(List<String> instances) {
-
-        this.instances = instances;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public Type getType() {
-
-        return type;
-    }
-
-    public List<Condition> getCondtions() {
-
-        return condtions;
-    }
-    
-    public List<String> getConvergences() {
-        
-        return convergences;
+        return conds;
     }
 
     protected static class Expression {

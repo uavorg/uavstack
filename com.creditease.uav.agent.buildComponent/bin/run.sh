@@ -30,6 +30,11 @@ do
 done
 fi
 
+JAVA_VERSION=`java -version 2>&1 |awk 'NR==1{ gsub(/"/,""); print $3 }'`
+if [[ ${JAVA_VERSION:0:1} -eq "9" ]];then
+    export JRE_HOME=$JAVA_HOME
+fi
+
 echo "using $executeJava"
 
 netcardIndex=
@@ -46,7 +51,14 @@ cd ..
 export CLASSPATH=bin/com.creditease.uav.base-1.0-boot.jar
 echo $CLASSPATH
 javaAgent="-javaagent:../uavmof/com.creditease.uav.agent/com.creditease.uav.monitorframework.agent-1.0-agent.jar"
-javaOpts="-server -Xms64m -Xmx256m -Xss256k -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:CMSIncrementalDutyCycle=10 -XX:+UseParNewGC -XX:+UseCMSCompactAtFullCollection -XX:-CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=0 -XX:CMSInitiatingOccupancyFraction=70 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=."
+
+if [[ ${JAVA_VERSION:0:1} -eq "9" ]];then
+javaOpts="-server -Xms64m -Xmx256m -Xss256k -Djdk.attach.allowAttachSelf=true -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=."
+else
+ javaOpts="-server -Xms64m -Xmx256m -Xss256k -XX:-UseSplitVerifier -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:CMSIncrementalDutyCycle=10 -XX:+UseParNewGC -XX:+UseCMSCompactAtFullCollection -XX:-CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=0 -XX:CMSInitiatingOccupancyFraction=70 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=."
+fi
+#javaOpts="-server -Xms64m -Xmx256m -Xss256k -XX:-UseSplitVerifier -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:CMSIncrementalDutyCycle=10 -XX:+UseParNewGC -XX:+UseCMSCompactAtFullCollection -XX:-CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=0 -XX:CMSInitiatingOccupancyFraction=70 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=."
+
 $executeJava $javaAgent $javaOpts -XX:OnOutOfMemoryError='kill -9 %p' -DNetCardIndex=$netcardIndex -DNetCardName=$netcardName -DJAppID=$2 -DJAppGroup=UAV -classpath $CLASSPATH com.creditease.mscp.boot.MSCPBoot -p $1 &
 
 # add crontab process watcher

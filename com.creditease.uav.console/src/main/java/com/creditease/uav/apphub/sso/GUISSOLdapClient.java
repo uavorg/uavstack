@@ -295,10 +295,16 @@ public class GUISSOLdapClient extends GUISSOClient {
 
         String userQueryField = ldapConfig.get("userQueryField");
 
-        String email1 = email + suffix;
-
-        String filter = "(|(" + userCNField + "=" + email + ")(" + userQueryField + "=" + email + ")(" + userQueryField
-                + "=" + email1 + "))";
+        String email1=email.indexOf("@") >0?email:email+suffix;
+        
+        String primaryKey = ldapConfig.get("primaryKey");
+ 
+        /**
+         * "|"或 聚集操作   
+         * primaryKey  采用userPrincipalName字段查询  带后缀的账号
+         * userCNField  CN中文名查询   
+         */  
+        String filter = "(|("+primaryKey + "=" +email1+")(" + userCNField + "=" + email + "))";
  
         /**
          * 查询ldap 获取list信息
@@ -353,6 +359,10 @@ public class GUISSOLdapClient extends GUISSOClient {
 
             List<SearchResult> sResultList = ldapApiQuery("", filter);
             // filter 只能查询到一个结果
+            if (sResultList.isEmpty()) {
+                result.put("msg", "result is empty.");
+                return result;
+            }
             SearchResult sResult = sResultList.get(0);
             if (null == sResult) {
                 result.put("msg", "emailList query,result is empty.");

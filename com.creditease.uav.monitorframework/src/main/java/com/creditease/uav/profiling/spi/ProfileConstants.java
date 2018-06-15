@@ -48,6 +48,7 @@ public class ProfileConstants {
     public final static String PC_ARG_CLIENT_URL = "pc.client.url";
     public final static String PC_ARG_CLIENT_ACTION = "pc.client.action";
     public static final String PC_ARG_CLIENT_RC = "pc.client.rc";
+    public static final String PC_ARG_CLIENT_RS = "pc.client.rs";
     public static final String PC_ARG_CLIENT_TYPE = "pc.client.type";
     public static final String PC_ARG_CLIENT_TARGETSERVER = "pc.client.target.server";
 
