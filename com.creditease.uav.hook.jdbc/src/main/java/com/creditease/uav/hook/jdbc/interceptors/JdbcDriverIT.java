@@ -535,19 +535,30 @@ public class JdbcDriverIT extends BaseComponent {
 
         String action = "";
 
-        if (sql.indexOf("insert") > -1) {
-            action = "I";
-        }
-        else if (sql.indexOf("update") > -1) {
-            action = "U";
-        }
-        else if (sql.indexOf("delete") > -1) {
-            action = "D";
-        }
-        else if (sql.indexOf("select") > -1) {
+        if (startsWithIgnoreCase(sql, "select")) {
             action = "Q";
         }
+        else if (startsWithIgnoreCase(sql, "insert")) {
+            action = "I";
+        }
+        else if (startsWithIgnoreCase(sql, "update")) {
+            action = "U";
+        }
+        else if (startsWithIgnoreCase(sql, "delete")) {
+            action = "D";
+        }
         return action;
+    }
+    
+    private boolean startsWithIgnoreCase(String str, String prefix) {
+
+        str=str.trim();
+        if(str.length()<prefix.length()) {
+            return false;
+        }
+        str=str.substring(0, prefix.length());
+        
+        return str.equalsIgnoreCase(prefix);
     }
 
     public Connection doProxyConnection(Object res) {
