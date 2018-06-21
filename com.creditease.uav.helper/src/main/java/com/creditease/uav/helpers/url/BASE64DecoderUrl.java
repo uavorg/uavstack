@@ -23,9 +23,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
 
-import sun.misc.CEFormatException;
-import sun.misc.CEStreamExhausted;
-
 // Referenced classes of package sun.misc:
 // CharacterDecoder, CEFormatException, CEStreamExhausted
 
@@ -57,18 +54,18 @@ public class BASE64DecoderUrl extends CharacterDecoderUrl {
         byte byte2 = -1;
         byte byte3 = -1;
         if (i < 2)
-            throw new CEFormatException("BASE64Decoder: Not enough bytes for an atom.");
+            throw new IOException("BASE64Decoder: Not enough bytes for an atom.");
         int j;
         do {
             j = pushbackinputstream.read();
             if (j == -1)
-                throw new CEStreamExhausted();
+                throw new IOException();
         }
         while (j == 10 || j == 13);
         decode_buffer[0] = (byte) j;
         j = readFully(pushbackinputstream, decode_buffer, 1, i - 1);
         if (j == -1)
-            throw new CEStreamExhausted();
+            throw new IOException();
         if (i > 3 && decode_buffer[3] == 61)
             i = 3;
         if (i > 2 && decode_buffer[2] == 61)
