@@ -53,21 +53,28 @@ public class LogProfileDataNotifyHandler extends AbstractHandler<MonitorDataFram
         DetectorManager asmd = (DetectorManager) this.getConfigManager().getComponent(this.feature,
                 "AppServerMonitorDetector_TimerWorker");
 
-        if (null != afc && null != asmd) {
+        if (afc == null || asmd == null) {
 
-            JVMAgentInfo jvmAgentInfo = asmd.getJVMAgentInfo(profileData.getServerId());
-
-            if (null == jvmAgentInfo) {
-                log.warn(this, "can't find jvm agent info for serverid [" + profileData.getServerId()
-                        + "], the jvm may be dead.");
-                return;
-            }
-
-            afc.exchange("logagent.profiledata.notify", profileData, jvmAgentInfo);
-        }
-        else {
             log.warn(this, "can't find agent feature component [logagent], this feature may not start. LogAgent-null("
                     + (afc == null) + "), DetectorManager-null(" + (asmd == null) + ")");
+
+            return;
         }
+
+        JVMAgentInfo jvmAgentInfo = asmd.getJVMAgentInfo(profileData.getServerId());
+
+        if (jvmAgentInfo == null) {
+
+            jvmAgentInfo = asmd.getJVMAgentInfo("MO-" + profileData.getExt("pid"));
+        }
+
+        if (jvmAgentInfo == null) {
+
+            log.warn(this,
+                    "can't find jvm agent info for serverid [" + profileData.getServerId() + "], the jvm may be dead.");
+            return;
+        }
+
+        afc.exchange("logagent.profiledata.notify", profileData, jvmAgentInfo);
     }
 }

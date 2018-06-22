@@ -75,6 +75,7 @@ public class JVMToolHelper {
     private static Method method_VMId;
     private static Method method_GetSystemProperties;
     private static Method method_LoadAgent;
+    private static Method method_StartLocalManagementAgent;
 
     private static Class<?> hostIdentifierClass;
     private static Class<?> monitoredVmClass;
@@ -263,10 +264,18 @@ public class JVMToolHelper {
             if (jvmProperties.get(JMX_CONNECTOR_ADDRESS) == null) {
 
                 Properties systemProperties = (Properties) method_GetSystemProperties.invoke(vm, (Object[]) null);
-
-                String agent = systemProperties.getProperty("java.home") + File.separator + "lib" + File.separator
-                        + "management-agent.jar";
-                method_LoadAgent.invoke(vm, new Object[] { agent });
+                String jversion = (String) systemProperties.get("java.version");
+                if(null != jversion && jversion.startsWith("9.")){
+                    
+                    if(null == method_StartLocalManagementAgent ) {
+                        return;
+                    }
+                    method_StartLocalManagementAgent.invoke(vm, (Object[]) null);
+                }else {
+                    String agent = systemProperties.getProperty("java.home") + File.separator + "lib" + File.separator
+                            + "management-agent.jar";
+                    method_LoadAgent.invoke(vm, new Object[] { agent });
+                }
             }
         }
         catch (Exception e) {
@@ -277,6 +286,7 @@ public class JVMToolHelper {
     private static void initJVMToolJarClassLoader() {
 
         String javaHome = System.getProperty("java.home");
+        String javaVersion = System.getProperty("java.version");
 
         String tools = javaHome + File.separator + ".." + File.separator + "lib" + File.separator + "tools.jar";
 
@@ -298,7 +308,10 @@ public class JVMToolHelper {
                         method_VMId = virtualMachineDescriptor.getMethod("id", (Class[]) null);
                         method_GetSystemProperties = virtualMachine.getMethod("getSystemProperties", (Class[]) null);
                         method_LoadAgent = virtualMachine.getMethod("loadAgent", new Class[] { String.class });
-
+                        if(null != javaVersion && javaVersion.startsWith("9.")) {
+                            method_StartLocalManagementAgent = virtualMachine.getMethod("startLocalManagementAgent", (Class[]) null);                        
+                        }
+                        
                         // java process
                         hostIdentifierClass = JVMToolClassloader.loadClass("sun.jvmstat.monitor.HostIdentifier");
                         monitoredVmClass = JVMToolClassloader.loadClass("sun.jvmstat.monitor.MonitoredVm");
@@ -443,7 +456,9 @@ public class JVMToolHelper {
         minorGC.add("Garbage collection optimized for throughput Young Collector");
         // -XgcPrio:deterministic
         minorGC.add("Garbage collection optimized for deterministic pausetimes Young Collector");
-
+        // -XX:+UseG1GC
+        minorGC.add("G1 Young Generation");
+        
         // Oracle (Sun) HotSpot
         // -XX:+UseSerialGC
         fullGC.add("MarkSweepCompact");
@@ -451,6 +466,8 @@ public class JVMToolHelper {
         fullGC.add("PS MarkSweep");
         // -XX:+UseConcMarkSweepGC
         fullGC.add("ConcurrentMarkSweep");
+        // -XX:+UseG1GC
+        fullGC.add("G1 Old Generation");
 
         // Oracle (BEA) JRockit
         // -XgcPrio:pausetime
@@ -533,7 +550,7 @@ public class JVMToolHelper {
 
         Map<String, Long> m = new LinkedHashMap<String, Long>();
 
-        for (MemoryPoolMXBean mpmb : pmbList) {
+        /*for (MemoryPoolMXBean mpmb : pmbList) {
 
             String jvmMemPoolName = getHeapPoolName(mpmb.getName().trim());
 
@@ -543,6 +560,29 @@ public class JVMToolHelper {
             m.put(jvmMemPoolName + "_commit", mu.getCommitted());
             m.put(jvmMemPoolName + "_max", mu.getMax());
             m.put(jvmMemPoolName + "_init", mu.getInit());
+        }*/
+        
+        Set<String> addedSet = new HashSet<String>();
+        
+        for (MemoryPoolMXBean mpmb : pmbList) {
+
+            String jvmMemPoolName = getHeapPoolName(mpmb.getName().trim());
+            MemoryUsage mu = mpmb.getUsage();
+            
+            if(addedSet.contains(jvmMemPoolName)) {
+            
+                m.put(jvmMemPoolName + "_use", (Long)m.get(jvmMemPoolName + "_use") + mu.getUsed());
+                m.put(jvmMemPoolName + "_commit", (Long)m.get(jvmMemPoolName + "_commit") + mu.getCommitted());
+                m.put(jvmMemPoolName + "_max", (Long)m.get(jvmMemPoolName + "_max") + mu.getMax());
+                m.put(jvmMemPoolName + "_init", (Long)m.get(jvmMemPoolName + "_init") + mu.getInit());
+            }else {
+                
+                addedSet.add(jvmMemPoolName);
+                m.put(jvmMemPoolName + "_use", mu.getUsed());
+                m.put(jvmMemPoolName + "_commit", mu.getCommitted());
+                m.put(jvmMemPoolName + "_max", mu.getMax());
+                m.put(jvmMemPoolName + "_init", mu.getInit());
+            }          
         }
 
         return m;
