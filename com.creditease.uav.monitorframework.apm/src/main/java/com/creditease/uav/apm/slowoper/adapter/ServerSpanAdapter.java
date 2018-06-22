@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -94,7 +95,15 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
 
                 RewriteIvcResponseWrapper response = (RewriteIvcResponseWrapper) args[1];
                 slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_RSP_HEADER, getResponHeaders(response));
-                slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_RSP_BODY, response.getContent().toString());
+
+                if ((Integer) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSECODE) == 500) {
+                    String exceptionStr = ((Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION))
+                            .toString();
+                    slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_RSP_BODY, exceptionStr);
+                }
+                else {
+                    slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_RSP_BODY, response.getContent().toString());
+                }
                 response.clearBodyContent();
             }
             else {
