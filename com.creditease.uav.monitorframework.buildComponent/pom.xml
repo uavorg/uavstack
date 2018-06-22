@@ -28,6 +28,8 @@
     	<module>../com.creditease.uav.monitorframework.agent</module>
     	<module>../com.creditease.uav.monitorframework.apm</module>
     	<module>../com.creditease.uav.logging</module>
+        <module>../com.creditease.uav.base</module>
+        <module>../com.creditease.uav.cache.redis</module>
     	<module>../com.creditease.uav.ttl</module>
     	<module>../com.creditease.uav.hook.dubbo</module>
     	<module>../com.creditease.uav.jetty.plus.core</module>

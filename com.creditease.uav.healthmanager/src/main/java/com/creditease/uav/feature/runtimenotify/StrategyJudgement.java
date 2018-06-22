@@ -39,6 +39,7 @@ import com.creditease.agent.http.api.UAVHttpMessage;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.agent.spi.AbstractComponent;
 import com.creditease.agent.spi.AbstractSystemInvoker;
+import com.creditease.agent.spi.ActionContext;
 import com.creditease.agent.spi.ISystemInvokerMgr.InvokerType;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.feature.RuntimeNotifyCatcher;
@@ -109,6 +110,7 @@ public class StrategyJudgement extends AbstractComponent {
     public Map<String, String> judge(Slice cur, NotifyStrategy stra, List<Slice> slices) {
 
         JudgeResult re = new JudgeResult();
+        re.setStrategy(stra);
 
         List<NotifyStrategy.Condition> conds = stra.getCondtions();
         for (NotifyStrategy.Condition cond : conds) {
@@ -296,7 +298,7 @@ public class StrategyJudgement extends AbstractComponent {
                 judgeResult.put("fire", false);
             }
             else if (timeMap != null) {
-                caculateJudgeResult(timeMap, judgeResult, slice.getKey(), expr, cr);
+                caculateJudgeResult(timeMap, judgeResult, slice, expr, cr);
                 
                 if((Boolean) judgeResult.get("fire")) {
                     //add detail info
@@ -320,9 +322,9 @@ public class StrategyJudgement extends AbstractComponent {
             return;
         }
         
-        Map<String,String>  currentDetailValue = queryDetailValue(slice.getKey(),expr,timeMap.get("time_from"),timeMap.get("time_to"));
+        Map<String,String>  currentDetailValue = queryDetailValue(slice,expr,timeMap.get("time_from"),timeMap.get("time_to"));
         
-        Map<String,String>  lastDetailValue = queryDetailValue(slice.getKey(),expr,timeMap.get("last_time_from"),timeMap.get("last_time_to"));
+        Map<String,String>  lastDetailValue = queryDetailValue(slice,expr,timeMap.get("last_time_from"),timeMap.get("last_time_to"));
        
         args.put("currentDetailValue_"+metric, currentDetailValue);
         
@@ -330,11 +332,11 @@ public class StrategyJudgement extends AbstractComponent {
     }
 
     @SuppressWarnings("rawtypes")
-    private Map<String, String> queryDetailValue(String instance, Expression expr, Long startTime, Long endTime) {
+    private Map<String, String> queryDetailValue(Slice slice, Expression expr, Long startTime, Long endTime) {
         
         Map<String,String> detail = new LinkedHashMap<String,String>();
         
-        String data = buildQueryJSON(instance,expr,startTime,endTime,true);                
+        String data = buildQueryJSON(slice,expr,startTime,endTime,true);                
         
         List<Map> resultList = queryOpentsdb(data);
         
@@ -358,7 +360,7 @@ public class StrategyJudgement extends AbstractComponent {
         
     }
 
-    private void caculateJudgeResult(Map<String, Long> timeMap, Map<String, Object> judgeResult, String instance,
+    private void caculateJudgeResult(Map<String, Long> timeMap, Map<String, Object> judgeResult, Slice slice,
             Expression expr, ConditionResult cr) {
 
         // if this time's judge has been done, return the last result.
@@ -367,7 +369,7 @@ public class StrategyJudgement extends AbstractComponent {
             return;
         }
 
-        Double currentValue = queryValue(instance, expr, timeMap.get("time_from"),
+        Double currentValue = queryValue(slice, expr, timeMap.get("time_from"),
                 timeMap.get("time_to"));
         Double lastValue = 0.0;
 
@@ -383,11 +385,11 @@ public class StrategyJudgement extends AbstractComponent {
             lastValue = Double.parseDouble(String.valueOf(judgeResult.get("currentValue")));
         }
         else {
-            lastValue = queryValue(instance, expr, timeMap.get("last_time_from"),
+            lastValue = queryValue(slice, expr, timeMap.get("last_time_from"),
                     timeMap.get("last_time_to"));
         }
 
-        judgeResult.put("instance", instance);
+        judgeResult.put("instance", slice.getKey());
 
         for (String key : timeMap.keySet()) {
             judgeResult.put(key, DateTimeHelper.dateFormat(new Date(timeMap.get(key)), "yyyy-MM-dd HH:mm"));
@@ -404,7 +406,7 @@ public class StrategyJudgement extends AbstractComponent {
         }
 
         // cache the judgeResult
-        cm.putHash(RuntimeNotifyCatcher.UAV_CACHE_REGION, TIMER_JUDGE_RESULT, instance + expr.getHashCode(),
+        cm.putHash(RuntimeNotifyCatcher.UAV_CACHE_REGION, TIMER_JUDGE_RESULT, slice.getKey() + expr.getHashCode(),
                 JSONHelper.toString(judgeResult));
 
         // set there is a judge event
@@ -428,7 +430,7 @@ public class StrategyJudgement extends AbstractComponent {
 
         double diff = currentValue - lastValue;
 
-        String limitString = null;
+        String limitString = "";
 
         String upperLimitString = expr.getUpperLimit();
         String lowerLimitString = expr.getLowerLimit();
@@ -479,15 +481,20 @@ public class StrategyJudgement extends AbstractComponent {
     }
 
     @SuppressWarnings({"rawtypes" })
-    private Double queryValue(String instance, Expression expr, Long startTime, Long endTime) {
+    private Double queryValue(Slice slice, Expression expr, Long startTime, Long endTime) {
 
         Double result = null;
-        for (int i = 0; i < 3; i++) {
+
+        String data = buildQueryJSON(slice,expr,startTime,endTime,false);                
+
+        if(data==null) {
+            return result;
+        }
+        
+        for (int i = 0; i < 2; i++) {
 
             try {              
-
-                String data = buildQueryJSON(instance,expr,startTime,endTime,false);                
-
+                
                 List<Map> resultList = queryOpentsdb(data);                
                 
                 if(resultList==null) {
@@ -533,14 +540,44 @@ public class StrategyJudgement extends AbstractComponent {
         return rsList;
     }
 
-    private String buildQueryJSON(String instance, Expression expr, Long startTime, Long endTime, boolean groupBy) {
+    private String buildQueryJSON(Slice slice, Expression expr, Long startTime, Long endTime, boolean groupBy) {
         
-        String data=String.format(
-                    "{\"start\":%d,\"end\":%d,\"queries\":[{\"aggregator\":\"%s\",\"downsample\":\"%s\",\"metric\":\"%s\",\"filters\":[{\"filter\":\"%s\",\"tagk\":\"instid\",\"type\":\"regexp\",\"groupBy\":%b}]}]}",
-                    startTime, endTime, expr.getFunc(), expr.getDownsample(), expr.getArg(),
-                    instance.replace(":", "/u003a").replace("%", "/u0025").replace("#", "/u0023"),groupBy);
+        String instance = slice.getKey();
+        
+        instance=convertInstance(instance, (String)slice.getArgs().get("instType"), expr);
+
+        if (instance==null) {
+            return null;
+        }
+        
+        String filterType=(instance.contains("*"))?"wildcard":"literal_or";
+        
+        String data = String.format(
+                "{\"start\":%d,\"end\":%d,\"queries\":[{\"aggregator\":\"%s\",\"downsample\":\"%s\",\"metric\":\"%s\",\"filters\":[{\"filter\":\"%s\",\"tagk\":\"instid\",\"type\":\"%s\",\"groupBy\":%b}]}]}",
+                startTime, endTime, expr.getFunc(), expr.getDownsample(), expr.getArg(),
+                instance.replace(":", "/u003a").replace("%", "/u0025").replace("#", "/u0023"),filterType,groupBy);
             
         return data;
+    }
+    
+    /**
+     * @param orignal instance
+     *      
+     * @return adaptive instance
+     * 
+     * convert instance to expr's adaptive instance
+     */
+    private String convertInstance(String instance,String instType,Expression expr) {
+
+        ActionContext ac = new ActionContext();
+
+        ac.putParam("instance", instance);
+
+        ac.putParam("instType", instType);
+        
+        this.getActionEngineMgr().getActionEngine("RuntimeNotifyActionEngine").execute(expr.getExprAdaptorId(), ac);
+        
+        return (String) ac.getParam("instance");
     }
     
     /**
@@ -720,8 +757,15 @@ public class StrategyJudgement extends AbstractComponent {
     }
 
     private class JudgeResult {
+        
+        private NotifyStrategy stra;
 
         private List<ConditionResult> crs = new ArrayList<>();
+
+        public void setStrategy(NotifyStrategy stra) {
+            
+            this.stra = stra;
+        }
 
         public void add(ConditionResult cr) {
 
@@ -753,7 +797,7 @@ public class StrategyJudgement extends AbstractComponent {
 
                     if (result == null) {
                         if (log.isTraceEnable()) {
-                            log.warn(this, "JsHelper eval Exception: script=" + script);
+                            log.warn(this, "JsHelper eval Exception: script=" + script + ", StrategyDesc=" + stra.getDesc() + ", StrategyName=" + stra.getName());
                         }
                         continue;
                     }
@@ -810,7 +854,10 @@ public class StrategyJudgement extends AbstractComponent {
                 }
             }
             else if (NotifyStrategy.Type.TIMER.toString().equals(m.get("type"))) {
-
+                
+                if(!"true".equals(m.get("fire"))) {
+                    description="false";
+                }
                 if (m.get("expectedValue").contains("#")) {
                     double expectedValue = Double
                             .parseDouble(m.get("expectedValue").substring(m.get("expectedValue").indexOf('#') + 1));
@@ -821,11 +868,11 @@ public class StrategyJudgement extends AbstractComponent {
                             String.valueOf(actualValue)) : "false";
                 }
                 else {
-                    description = ("true".equals(m.get("fire"))) ? String.format(
+                    description = String.format(
                             "%s在%s至%s时间段的%s值%s比%s至%s%s%s%s，当前值：%s。上期值：%s，本期值：%s", m.get("metric"), m.get("time_from"),
                             m.get("time_to"), readable.get(m.get("downsample")), m.get("tag"), m.get("last_time_from"),
                             m.get("last_time_to"),
-                            (m.get("upperORlower").equals("upper") && !m.get("expectedValue").contains("-"))
+                            (("upper").equals(m.get("upperORlower")) && !m.get("expectedValue").contains("-"))
                                     || (m.get("upperORlower").equals("lower") && m.get("expectedValue").contains("-"))
                                             ? "增幅"
                                             : "降幅",
@@ -836,7 +883,7 @@ public class StrategyJudgement extends AbstractComponent {
                                     || (m.get("upperORlower").equals("lower") && !m.get("expectedValue").contains("-"))
                                             ? String.valueOf(0 - Double.parseDouble(m.get("actualValue")))
                                             : m.get("actualValue"),
-                            m.get("lastValue"), m.get("currentValue")) : "false";
+                            m.get("lastValue"), m.get("currentValue"));
                 }
             }
 
