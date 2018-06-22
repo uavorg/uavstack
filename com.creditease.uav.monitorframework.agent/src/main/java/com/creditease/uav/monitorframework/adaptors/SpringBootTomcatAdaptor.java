@@ -124,6 +124,57 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
                     });
         }
 
+     // 进行log4j2的劫持
+        else if (className.equals("org.apache.logging.log4j.core.layout.PatternLayout")) {
+            try {
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "org.apache.logging.log4j.core.layout.PatternLayout", "new LogIT()");
+            }
+            catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
+                e.printStackTrace();
+            }
+            return this.inject(className,
+                    new String[] { "com.creditease.uav.log.hook", "com.creditease.uav.log.hook.interceptors" },
+                    new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            m.insertAfter("{$_=uavLogHook.formatLog($_);}");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "toText";
+                        }
+
+                    },
+                    new AdaptorProcessor() {
+
+                    @Override
+                    public void process(CtMethod m) throws Exception {
+                        
+                        if("String".equals(m.getReturnType().getSimpleName())) {
+                            m.insertAfter("{$_=uavLogHook.formatLog($_);}");
+                        }
+                    }
+
+                    @Override
+                    public String getMethodName() {
+
+                        return "toSerializable";
+                    }
+
+            });
+        }
+
         // 进行logback的劫持
         else if (className.equals("ch.qos.logback.core.encoder.LayoutWrappingEncoder")) {
             try {
