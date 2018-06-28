@@ -48,6 +48,16 @@ import com.creditease.uav.elasticsearch.client.ESClient;
 public class HMNewLogIndexMgr extends AbstractComponent {
 
     private static final String AppLog = "applog_";
+    /**
+     * Strings longer than the ignore_above setting will not be indexed This option is also useful for protecting
+     * 
+     * against Lucene’s term byte-length limit of 32766 The value for ignore_above is the character count, but Lucene
+     * 
+     * counts bytes. If you use UTF-8 text with many non-ASCII characters, you may want to set the limit to 32766 / 3 =
+     * 
+     * 10922 since UTF-8 characters may occupy at most 3 bytes
+     */
+    private static final int IGNORE_ABOVE = 32766 / 3;
 
     private ESClient client;
 
@@ -195,6 +205,7 @@ public class HMNewLogIndexMgr extends AbstractComponent {
             Map<String, Object> sfields = new HashMap<>();
 
             sfields.put("type", "keyword");
+            sfields.put("ignore_above", IGNORE_ABOVE);
 
             mapping.put("ipport", sfields);
 
