@@ -27,7 +27,7 @@ export CLASSPATH=bin/com.creditease.uav.base-1.0-boot.jar
 echo $CLASSPATH
 javaAgent="-javaagent:../uavmof/com.creditease.uav.agent/com.creditease.uav.monitorframework.agent-1.0-agent.jar"
 javaOpts="-server -Xms256m -Xss256k -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0 -XX:CMSIncrementalDutyCycle=10 -XX:+UseParNewGC -XX:+UseCMSCompactAtFullCollection -XX:-CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=0 -XX:CMSInitiatingOccupancyFraction=70 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=."
-$executeJava $javaAgent $3 $javaOpts -XX:OnOutOfMemoryError='kill -9 %p' -DNetCardIndex=0 -DJAppID=$1 -DJAppGroup=UAV -classpath $CLASSPATH com.creditease.mscp.boot.MSCPBoot -p $2 &
+$executeJava $javaAgent $3 $javaOpts -XX:OnOutOfMemoryError='kill -9 %p' -DNetCardIndex=0 -DJAppID=$1 -DJAppGroup=UAV -Dsun.net.httpserver.maxReqTime=300 -Dsun.net.httpserver.maxRspTime=300 -classpath $CLASSPATH com.creditease.mscp.boot.MSCPBoot -p $2 &
 
 # add crontab process watcher
 if [ "$proc_watcher" == "yes" ]; then
