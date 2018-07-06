@@ -22,10 +22,12 @@ package com.creditease.monitor.captureframework;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import com.creditease.agent.helpers.DataConvertHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.uav.profiling.spi.ProfileServiceMapMgr;
 import com.creditease.uav.profiling.spi.ProfileServiceMapMgr.ServiceURLBinding;
@@ -125,7 +127,7 @@ public class MonitorUrlFilterMgr {
     public void refreshList(String listname) {
 
         String patternConfig = System.getProperty(listname);
-        if (patternConfig != null) {
+        if (!StringHelper.isEmpty(patternConfig)) {
             try {
                 Pattern pattern = Pattern.compile(patternConfig);
                 bwlistRepository.put(listname, pattern);
@@ -151,7 +153,8 @@ public class MonitorUrlFilterMgr {
             return false;
         }
 
-        if (pattern.matcher(targetUrl).matches()) {
+        Matcher m = pattern.matcher(targetUrl);
+        if (m.find()) {
             if (needCache) {
                 bwlistCacheRepository.get(listtype).put(targetUrl, true);
             }
@@ -163,6 +166,21 @@ public class MonitorUrlFilterMgr {
         }
 
         return false;
+    }
+    
+    public String getBlackWhitelistUrl(ListType listtype, String targetUrl) {
+    	// at first should be judged by isInBlackWhitelist
+    	Pattern pattern = (Pattern) bwlistRepository.get(listtype.type);
+    	if (pattern == null) {
+    		return null;
+    	}
+    	
+    	Matcher m = pattern.matcher(targetUrl);
+    	if (m.find()) {
+    		return m.group();
+    	}
+    	
+    	return null;
     }
 
     public boolean serviceValidate(String appId, String reUrl, String urlInfos[]) {

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" monitorInterval="600">
+    <Properties>
+        <Property name="LOG_HOME">${sys:catalina.home}/logs/log4j2test/</Property>
+    </Properties>
+    
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %p %c{1.} [%t] %m%n"/>
+        </Console>
+        
+        <File name="FileAppender" fileName="${LOG_HOME}file.log">
+      		<PatternLayout>
+        		<pattern>%d %p %c{1.} [%t] %m%n</pattern>
+      		</PatternLayout>
+    	</File>
+    	
+    	<RollingFile name="RollingFileAppender" fileName="${LOG_HOME}rollingfile.log"
+                     filePattern="${LOG_HOME}/rollingfile-%d{yyyy-MM-dd HH_mm_ss}.log">
+            <PatternLayout>
+        		<pattern>%d %p %c{1.} [%t] %m%n</pattern>
+      		</PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="1 MB"/>
+            </Policies>
+        </RollingFile>
+
+        <RollingRandomAccessFile name="RollingRandomAccessFileAppender" immediateFlush="true" fileName="${LOG_HOME}rollingrandomaccessfile.log"
+                                 filePattern="${LOG_HOME}/rollingrandomaccessFile-%d{yyyy-MM-dd HH_mm_ss}.log">
+            <PatternLayout>
+                <pattern>%d %p %c{1.} [%t] %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1MB"/>
+            </Policies>
+        </RollingRandomAccessFile>
+        
+    	<RandomAccessFile name="RandomAccessFileAppender" fileName="${LOG_HOME}randomaccessfile.log">
+      		<PatternLayout>
+        		<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+      		</PatternLayout>
+    	</RandomAccessFile>
+        
+        <MemoryMappedFile name="MemoryMappedFileAppender" fileName="${LOG_HOME}memorymappedfile.log">
+      		<PatternLayout>
+        		<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+      		</PatternLayout>
+    	</MemoryMappedFile>
+
+    	<Async name="AsyncAppender">
+      		<AppenderRef ref="FileAppender"/>
+        </Async>
+    </Appenders>
+    
+    <Loggers>
+        <!-- 配置日志的根节点 -->
+        <root level="DEBUG">
+            <appender-ref ref="ConsoleAppender"/>
+        </root>
+        
+        <logger name="Rolling" level="DEBUG" additivity="false">
+        	<appenderRef ref="RollingFileAppender"/>
+        </logger>
+        <logger name="RollingRandomAccess" level="DEBUG" additivity="false">
+        	<appenderRef ref="RollingRandomAccessFileAppender"/>
+        </logger>
+        <logger name="RandomAccess" level="DEBUG" additivity="false">
+        	<appenderRef ref="RandomAccessFileAppender"/>
+        </logger>
+        <logger name="MemoryMapped" level="DEBUG" additivity="false">
+        	<appenderRef ref="MemoryMappedFileAppender"/>
+        </logger>
+        <logger name="Async" level="DEBUG" additivity="false">
+        	<appenderRef ref="AsyncAppender"/>
+        </logger>
+    </Loggers>
+</Configuration>
