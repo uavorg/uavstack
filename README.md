@@ -128,9 +128,9 @@ build result
 
 # Documents
 ## UAV.Monitor+APM
-* [User Operation](https://uavorg.github.io/documents/uavdoc_useroperation/index.html)
-* [Deployment](https://uavorg.github.io/documents/uavdoc_deploydocs/index.html)
-* [Architecture](https://uavorg.github.io/documents/uavdoc_architecture/index.html)
+* [User Operation](https://uavorg.github.io/documents/uavdoc_useroperation_EN/index.html)
+* [Deployment](https://uavorg.github.io/documents/uavdoc_deploydocs_EN/index.html)
+* [Architecture](https://uavorg.github.io/documents/uavdoc_architecture_EN/index.html) 
 
 # Downloads
 ## UAV.Monitor+APM

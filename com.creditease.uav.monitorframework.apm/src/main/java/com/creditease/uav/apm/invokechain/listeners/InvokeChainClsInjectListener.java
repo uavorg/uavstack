@@ -293,7 +293,7 @@ public class InvokeChainClsInjectListener extends InterceptEventListener {
             return;
         }
 
-        if (this.injectApps.size() == 0) {
+        if (this.injectApps == null || this.injectApps.size() == 0) {
             return;
         }
 

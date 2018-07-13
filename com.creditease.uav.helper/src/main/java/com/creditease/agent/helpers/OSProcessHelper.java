@@ -20,6 +20,9 @@
 
 package com.creditease.agent.helpers;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -41,6 +44,31 @@ public class OSProcessHelper {
     public static final String MEM = "mem";
     public static final String MEMRATE = "memRate";
     public static final String CONN = "conn";
+    public static final String PROCDIR = "/proc";
+    private static double CLK_TCK = 100.0;
+
+    static {
+        if (JVMToolHelper.isLinux()) {
+            try {
+                String ret = RuntimeHelper.exec("getconf CLK_TCK");
+                if (!StringHelper.isEmpty(ret)) {
+
+                    CLK_TCK = Double.parseDouble(ret);
+                }
+            }
+            catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+
+    /**
+     * @return the cLK_CLK
+     */
+    public static double getCLK_TCK() {
+
+        return CLK_TCK;
+    }
 
     public static Map<String, Map<String, String>> getProcessInfo(String shellPath, Set<String> pids) throws Exception {
 
@@ -450,5 +478,111 @@ public class OSProcessHelper {
                 // ignore
             }
         }
+    }
+    
+    /**
+     * get Process Starttime Jiffies by pid for Linux 获取Linux的进程启动时间参数Jiffies
+     * 
+     * @param pid
+     * @return
+     */
+    private static long getProcStartTimeJiffies(String pid) {
+
+        BufferedReader bufReader = null;
+        long procStartTimeJiffi = 0;
+        try {
+            bufReader = new BufferedReader(new FileReader(PROCDIR + "/" + pid + "/stat"));
+            String line = null;
+            if ((line = bufReader.readLine()) != null) {
+                line = line.trim();
+                String[] info = line.split("\\s+");
+                procStartTimeJiffi = Long.parseLong(info[21]);
+            }
+        }
+        catch (Exception e) {
+            // ignore
+        }
+        finally {
+            if (bufReader != null) {
+                try {
+                    bufReader.close();
+                }
+                catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+        return procStartTimeJiffi;
+    }
+
+    /**
+     * get System Runnningtime for Linux 获取Linux系统已经运行的时间
+     * 
+     * @param pid
+     * @return
+     */
+    private static long getLinuxSystemRunnningTime(String pid) {
+
+        BufferedReader bufReader = null;
+        long linuxSystemRunnningTime = 0;
+        try {
+            bufReader = new BufferedReader(new FileReader(PROCDIR + "/uptime"));
+            String line = null;
+            if ((line = bufReader.readLine()) != null) {
+                line = line.trim();
+                String[] info = line.split("\\s+");
+                linuxSystemRunnningTime = (long) Double.parseDouble(info[0]);
+            }
+        }
+        catch (Exception e) {
+            // ignore
+        }
+        finally {
+            if (bufReader != null) {
+                try {
+                    bufReader.close();
+                }
+                catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+        return linuxSystemRunnningTime;
+    }
+
+    /**
+     * get Process Start time by pid for Linux and Windows 获取进程的启动时间,Linux/Windows
+     * 
+     * @param pid
+     * @return
+     */
+    public static long getProcStartTime(String pid, String shellPath) {
+
+        long procStartTime = 0;
+        if (JVMToolHelper.isWindows()) {// 获取Windows系统的进程启动时间
+            String resultString;
+            try {
+                String command = "wmic process where processid=" + pid + " get CreationDate";
+                resultString = RuntimeHelper.exeShell(command, shellPath);
+                String[] lines = resultString.split("\n");
+                int beginline = 3; // data begin at line 3
+                for (int i = beginline; i < lines.length; i++) {
+                    if (lines[i].length() == 0) {
+                        continue;
+                    }
+                    String ProcStartTimeStr = lines[i].split("\\.")[0];
+                    procStartTime = DateTimeHelper.dateFormat(ProcStartTimeStr, "yyyyMMddHHmmss").getTime();
+                }
+            }
+            catch (Exception e) {
+                // ignore
+            }
+        }
+        else {
+            // 获取Linux系统的进程启动时间
+            long procRunningTime = (long) (getLinuxSystemRunnningTime(pid) - getProcStartTimeJiffies(pid) / CLK_TCK);
+            procStartTime = System.currentTimeMillis() - procRunningTime * 1000;
+        }
+        return procStartTime;
     }
 }
