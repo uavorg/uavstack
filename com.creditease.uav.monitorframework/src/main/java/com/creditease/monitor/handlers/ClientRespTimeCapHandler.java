@@ -74,19 +74,9 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
             if (clientRequestURL.indexOf("http") == 0) {
                 clientRequestURL = rewriteHttpUrl(clientRequestURL);
             }
-            /**
-             * NOTE: if in whitelist, collect it ;
-             */
-            if (MonitorUrlFilterMgr.getInstance().isInBlackWhitelist(ListType.CLIENTURL_WHITELIST,
-                    clientRequestURL) == false) {
-
-                /**
-                 * NOTE: if in blacklist, do not collect;
-                 */
-                if (MonitorUrlFilterMgr.getInstance().isInBlackWhitelist(ListType.CLIENTURL_BLACKLIST,
-                        clientRequestURL) == true) {
-                    return;
-                }
+            
+            if(null == clientRequestURL) {
+            	return;
             }
 
             String clientId = MonitorServerUtil.getServerHostPort() + "#" + appid + "#" + clientRequestURL;
@@ -209,6 +199,27 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
         String reUrl = url.substring(st2);
 
         reUrl = MonitorServerUtil.cleanRelativeURL(reUrl);
+        String tempUrl = urlhead + reUrl;
+        
+        MonitorUrlFilterMgr mufm = MonitorUrlFilterMgr.getInstance();
+        
+        if (mufm.isInBlackWhitelist(ListType.CLIENTURL_WHITELIST,
+        		tempUrl) == false) {
+        	/**
+        	 * NOTE: if in blacklist, do not collect;
+        	 */
+        	if (mufm.isInBlackWhitelist(ListType.CLIENTURL_BLACKLIST,
+        			tempUrl) == true) {
+        		return null;
+        	}
+        	
+        }
+        
+        if (mufm.isInBlackWhitelist(ListType.CLIENTURL_WHITELIST,
+        		tempUrl) == true) {
+        	// dealing with potential concurrency problems
+        	return mufm.getBlackWhitelistUrl(ListType.CLIENTURL_WHITELIST, tempUrl);
+        }
 
         /**
          * NOTE:remove PathParam,simply assume PathParam is digit
