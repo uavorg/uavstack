@@ -28,11 +28,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.fastjson.JSON;
@@ -75,6 +77,9 @@ public class LogAgent extends AgentFeatureComponent {
 
     @SuppressWarnings("rawtypes")
     private Map<String, Map> logCfgMapping = new ConcurrentHashMap<>();
+
+    // 存储刚刚开启归集的日志文件绝对路径，用于调整文件读取开始位置
+    private Set<String> newTailFiles = Collections.synchronizedSet(new HashSet<String>());
 
     private int spantime = 100;
 
@@ -728,6 +733,11 @@ public class LogAgent extends AgentFeatureComponent {
         return LatestLogProfileDataMap;
     }
 
+    public Set<String> getNewTailFileSet() {
+
+        return newTailFiles;
+    }
+
     public AppLogPatternInfoCollection getIssueLogProfileDataMap() {
 
         return IssueLogProfileDataMap;
@@ -807,6 +817,7 @@ public class LogAgent extends AgentFeatureComponent {
             mapping.put("absPath", logPath);
             logCfgMapping.put(lcfg.getUUID(), mapping);
 
+            newTailFiles.add(new File(logPath).getAbsolutePath());
             LogFilterAndRule lfar = new DefaultLogFilterAndRule(filter, separator, JSON.parseObject(fields), 0, 0);
             RuleFilterFactory.getInstance().pubLogFilterAndRule(logPath, lfar);
         }
