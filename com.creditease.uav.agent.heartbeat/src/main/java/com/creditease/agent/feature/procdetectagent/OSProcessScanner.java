@@ -229,6 +229,11 @@ public class OSProcessScanner extends AbstractTimerWork {
                         proc = new OSProcess();
                         proc.setPid(pid);
                         proc.setName(proName);
+                      //process startTime
+                        Map <String,String> procTags = proc.getTags();
+                        String startTime =  Long.toString(OSProcessHelper.getProcStartTime(pid,shellPath));                         
+                        procTags.put("starttime", startTime);
+                        proc.setTags(procTags);
                         procs.put(pid, proc);
                     }
                     else {
@@ -298,6 +303,11 @@ public class OSProcessScanner extends AbstractTimerWork {
 
                         proc = new OSProcess();
                         proc.setPid(pid);
+                      //process startTime
+                        Map <String,String> procTags = proc.getTags();
+                        String startTime =  Long.toString(OSProcessHelper.getProcStartTime(pid,shellPath));                         
+                        procTags.put("starttime", startTime);
+                        proc.setTags(procTags);
                         procs.put(pid, proc);
                     }
                     else {

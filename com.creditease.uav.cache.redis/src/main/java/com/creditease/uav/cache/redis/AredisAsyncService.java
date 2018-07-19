@@ -116,6 +116,7 @@ public class AredisAsyncService implements CacheService {
         executor = new ThreadPoolExecutor(minConcurrent, maxConcurrent, 15, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(queueSize));
         executor.allowCoreThreadTimeOut(true);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         if (logger.isTraceEnable()) {
             logger.info(this,

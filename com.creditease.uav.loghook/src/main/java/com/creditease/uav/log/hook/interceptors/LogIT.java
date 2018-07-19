@@ -42,4 +42,19 @@ public class LogIT extends BaseComponent {
         return str;
     }
 
+    public StringBuilder formatLog(StringBuilder sb) {
+
+        if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.InvokeChainSupporter")) {
+            if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.LogTraceSupporter")) {
+                InvokeChainSpanContext context = (InvokeChainSpanContext) UAVServer.instance()
+                        .runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter", "getSpanContext");
+                // 防止调用链开启但是为空情况（如：springboot启动时）
+                if (context != null && context.getMainSpan() != null) {
+                    String traceId = context.getMainSpan().getTraceId();
+                    return new StringBuilder().append("uav_").append(traceId).append(" ").append(sb);
+                }
+            }
+        }
+        return sb;
+    }
 }
