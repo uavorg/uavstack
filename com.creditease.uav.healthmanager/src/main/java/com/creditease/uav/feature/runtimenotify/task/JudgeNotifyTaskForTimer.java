@@ -21,11 +21,13 @@
 package com.creditease.uav.feature.runtimenotify.task;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.NetworkHelper;
 import com.creditease.agent.helpers.StringHelper;
@@ -224,10 +226,14 @@ public class JudgeNotifyTaskForTimer extends JudgeNotifyCommonTask {
     }
 
     private Map<String, Object> getInfoFromSliceCache(String instance) {
+        
+        int min = Integer.parseInt(DateTimeHelper.dateFormat(new Date(), "m"));
 
+        min = min > 0 ? min - 1 : 0; 
+        
         String cacheKey = "SLICE_" + instance + "_";
-        for (int index = 0; index < 60; index++) {
-            String result = cm.lpop(RuntimeNotifyStrategyMgr.UAV_CACHE_REGION, cacheKey + index);
+        for (; min < 60; min++) {
+            String result = cm.lpop(RuntimeNotifyStrategyMgr.UAV_CACHE_REGION, cacheKey + min);
             if (result != null) {
                 Slice s = new Slice(result);
                 return s.getArgs();
