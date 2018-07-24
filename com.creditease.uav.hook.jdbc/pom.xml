@@ -46,6 +46,13 @@
 			<version>1.0.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- tomcat-jdbc -->
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-jdbc</artifactId>
+			<version>7.0.19</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/proxool/proxool -->
 		<dependency>
