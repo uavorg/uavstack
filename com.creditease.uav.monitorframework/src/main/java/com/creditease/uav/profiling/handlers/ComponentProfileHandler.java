@@ -2738,9 +2738,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             Map<String, Object> annoWebService = (Map<String, Object>) classAnnoInfo.get("javax.jws.WebService");
 
             if (null != annoWebService) {
-
                 classPath = (String) annoWebService.get("serviceName");
-
             }
 
             if (StringHelper.isEmpty(classPath)) {
