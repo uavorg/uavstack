@@ -202,7 +202,8 @@ public class NewLogDataMessageHandler implements MessageHandler {
              */
             String logFileType = logFileName;
             StringBuilder uuidStr = new StringBuilder();
-            uuidStr.append(ipport).append(mdf.getServerId()).append("-").append(appid).append("-").append(logid);
+            uuidStr.append(ipport).append(mdf.getServerId()).append("-").append(appid).append("-").append(logid)
+                    .append("-").append(lnum);
             if (line.containsKey("content")) {
                 logFileType += "_def";
                 uuidStr.append("-").append(line.get("content"));
@@ -215,7 +216,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
             }
 
             /**
-             * 保证不重复：IP+SvrID+AppID+LogFileName+日志内容（def下为content）
+             * 保证不重复：IP+SvrID+AppID+LogFileName+lineNum+日志内容（def下为content）
              */
             String uuid = EncodeHelper.encodeMD5(uuidStr.toString());
 

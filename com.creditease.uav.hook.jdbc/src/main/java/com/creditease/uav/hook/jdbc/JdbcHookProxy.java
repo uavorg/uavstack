@@ -45,6 +45,7 @@ public class JdbcHookProxy extends HookProxy {
 
     @SuppressWarnings("rawtypes")
     public JdbcHookProxy(String id, Map config) {
+
         super(id, config);
         dpInstall = new DynamicProxyInstaller();
     }
@@ -60,6 +61,7 @@ public class JdbcHookProxy extends HookProxy {
                 this.injectDriverManager(webapploader, ic);
                 this.injectDBCP2(webapploader, ic);
                 this.injectTomcatDBCP2(webapploader, ic);
+                this.injectTomcatJdbc(webapploader, ic);
                 this.injectHikari(webapploader, ic);
                 this.injectDruid(webapploader, ic);
                 break;
@@ -70,6 +72,7 @@ public class JdbcHookProxy extends HookProxy {
                 this.injectDriverManager(webapploader, ic);
                 this.injectDBCP2(webapploader, ic);
                 this.injectTomcatDBCP2(webapploader, ic);
+                this.injectTomcatJdbc(webapploader, ic);
                 this.injectHikari(webapploader, ic);
                 this.injectDruid(webapploader, ic);
                 break;
@@ -139,7 +142,7 @@ public class JdbcHookProxy extends HookProxy {
             return;
         }
 
-        if (isHookEventDone("isInjectDataSource")) {
+        if (isHookEventDone("isInjectDataSource" + resObj.hashCode())) {
             return;
         }
 
@@ -169,14 +172,14 @@ public class JdbcHookProxy extends HookProxy {
      */
     private void injectTomcatDBCP2(ClassLoader webapploader, InterceptContext ic) {
 
+        if (isHookEventDone("isInjectTomcatDBCP2")) {
+            return;
+        }
+
         try {
             webapploader.loadClass("org.apache.tomcat.dbcp.dbcp2.Constants");
         }
         catch (ClassNotFoundException e) {
-            return;
-        }
-
-        if (isHookEventDone("isInjectTomcatDBCP2")) {
             return;
         }
 
@@ -221,14 +224,14 @@ public class JdbcHookProxy extends HookProxy {
      */
     private void injectDBCP2(ClassLoader webapploader, InterceptContext ic) {
 
+        if (isHookEventDone("isInjectDBCP2")) {
+            return;
+        }
+
         try {
             webapploader.loadClass("org.apache.commons.dbcp2.Constants");
         }
         catch (ClassNotFoundException e) {
-            return;
-        }
-
-        if (isHookEventDone("isInjectDBCP2")) {
             return;
         }
 
@@ -264,6 +267,65 @@ public class JdbcHookProxy extends HookProxy {
     }
 
     /**
+     * inject TomcatJdbc, 支持7.0.19-9.0.10
+     * 
+     * @param webapploader
+     * @param ic
+     */
+    private void injectTomcatJdbc(ClassLoader webapploader, InterceptContext ic) {
+
+        if (isHookEventDone("isInjecTomcatJdbc")) {
+            return;
+        }
+
+        try {
+            webapploader.loadClass("org.apache.tomcat.jdbc.pool.jmx.ConnectionPoolMBean");
+        }
+        catch (ClassNotFoundException e) {
+            return;
+        }
+
+        final String appid = this.getAppID(ic);
+
+        final String contextPath = (String) ic.get(InterceptConstants.CONTEXTPATH);
+
+        dpInstall.setTargetClassLoader(webapploader);
+
+        dpInstall
+                .installProxy("org.apache.tomcat.jdbc.pool.DataSourceProxy",
+                        new String[] { "com.creditease.uav.hook.jdbc.interceptors",
+                                "com.creditease.uav.hook.jdbc.pools.tomcatjdbc.interceptors" },
+                        new DynamicProxyProcessor() {
+
+                            @Override
+                            public void process(DPMethod m) throws Exception {
+
+                                if ("getConnection".equals(m.getName())) {
+
+                                    dpInstall.defineLocalVal(m, "mObj", JdbcDriverIT.class);
+                                    m.insertBefore("{mObj=new JdbcDriverIT(\"" + appid
+                                            + "\");mObj.setJDBCUrl(this.getUrl());new TomcatJdbcIT(\"" + contextPath
+                                            + "\",this);}");
+                                    m.insertAfter("{$_=mObj.doProxyConnection($_);}");
+
+                                }
+                                else if ("getConnectionAsync".equals(m.getName())) {
+
+                                    dpInstall.defineLocalVal(m, "mObj", JdbcDriverIT.class);
+                                    m.insertBefore("{mObj=new JdbcDriverIT(\"" + appid
+                                            + "\");mObj.setJDBCUrl(this.getUrl());new TomcatJdbcIT(\"" + contextPath
+                                            + "\",this);}");
+                                    m.insertAfter("{$_=mObj.doAsyncProxyConnection($_);}");
+
+                                }
+                            }
+                        }, false);
+
+        // release loader
+        dpInstall.releaseTargetClassLoader();
+    }
+
+    /**
      * inject Hikari
      * 
      * @param webapploader
@@ -271,14 +333,14 @@ public class JdbcHookProxy extends HookProxy {
      */
     private void injectHikari(ClassLoader webapploader, InterceptContext ic) {
 
+        if (isHookEventDone("isInjectHikari")) {
+            return;
+        }
+
         try {
             webapploader.loadClass("com.zaxxer.hikari.HikariConfigMXBean");
         }
         catch (ClassNotFoundException e) {
-            return;
-        }
-
-        if (isHookEventDone("isInjectHikari")) {
             return;
         }
 
@@ -292,7 +354,7 @@ public class JdbcHookProxy extends HookProxy {
         dpInstall.setTargetClassLoader(webapploader);
 
         /**
-         * inject DBCP2 BasicDataSource
+         * inject HikariDataSource
          */
         dpInstall
                 .installProxy("com.zaxxer.hikari.HikariDataSource",
@@ -329,6 +391,10 @@ public class JdbcHookProxy extends HookProxy {
      */
     private void injectDruid(ClassLoader webapploader, InterceptContext ic) {
 
+        if (isHookEventDone("isInjectDruid")) {
+            return;
+        }
+
         /**
          * check if there is druid, god, so sad we are in china, we have to support alibaba druid
          */
@@ -336,10 +402,6 @@ public class JdbcHookProxy extends HookProxy {
             webapploader.loadClass("com.alibaba.druid.Constants");
         }
         catch (ClassNotFoundException e) {
-            return;
-        }
-
-        if (isHookEventDone("isInjectDruid")) {
             return;
         }
 

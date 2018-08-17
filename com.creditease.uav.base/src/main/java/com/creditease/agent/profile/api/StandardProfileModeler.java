@@ -1138,7 +1138,11 @@ public class StandardProfileModeler extends AbstractBaseAction {
 
                 Map<String, Object> annoWebService = (Map<String, Object>) compDesInfo.get("javax.jws.WebService");
 
-                String serviceName = (String) annoWebService.get("serviceName");
+                String serviceName = null;
+
+                if (null != annoWebService) {
+                    serviceName = (String) annoWebService.get("serviceName");
+                }
 
                 if (StringHelper.isEmpty(serviceName)) {
 
