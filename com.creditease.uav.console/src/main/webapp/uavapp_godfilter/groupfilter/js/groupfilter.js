@@ -174,6 +174,7 @@ function showAddDiv(){
 	$("#addEmailListName").val("");
 	DataBindClass.userEditInfo={};
 	
+	PageClass.ajaxGProfile();
 	initGroupSelect("addGroupList","save");
 	
     $("#addGroupFilterDiv").modal({backdrop: 'static', keyboard: false});
