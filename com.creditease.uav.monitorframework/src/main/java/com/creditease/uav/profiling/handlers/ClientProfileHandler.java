@@ -134,7 +134,7 @@ public class ClientProfileHandler extends BaseComponent implements ProfileHandle
 
         if (clientURL.startsWith("http")) {
             String rs = (String) context.get(ProfileConstants.PC_ARG_CLIENT_RS);
-            if(StringHelper.isNaturalNumber(rs)) {
+            if (StringHelper.isNaturalNumber(rs)) {
                 urlAttrs.put(MonitorServerUtil.getActionTag(rs), curTime);
             }
         }
@@ -147,8 +147,29 @@ public class ClientProfileHandler extends BaseComponent implements ProfileHandle
      */
     private ProfileElementInstance getTargetURIInst(URI clientTargetURI, ProfileElement elem) {
 
+        String uri = clientTargetURI.getScheme() + "://";
         String host = clientTargetURI.getHost();
-        int port = clientTargetURI.getPort();
+
+        // According the analysis function in Java.Net.URI, char '_' is treated as Illegal character in host name.
+        // It makes a URISyntaxException when parse URI string.
+        if (host == null){
+            String authority = clientTargetURI.getAuthority();
+            // if the authority part contains user info
+            int index = authority.indexOf("@");
+            if (index >= 0){
+                uri += authority.substring(index + 1);
+            }else{
+                uri += authority;
+            }
+        }
+        else{
+            uri += host;
+            int port = clientTargetURI.getPort();
+            if (port > 0){
+                uri += ":" + port;
+            }
+        }
+
         // String dnsName = null;
         //
         // if (!NetworkHelper.isIPV4(host)) {
@@ -158,12 +179,6 @@ public class ClientProfileHandler extends BaseComponent implements ProfileHandle
         // host = tmp;
         // }
         // }
-
-        String uri = clientTargetURI.getScheme() + "://" + host;
-        if (port > 0) {
-            uri += ":" + port;
-        }
-
         // http://xxxxx/yyyyy@client type
         ProfileElementInstance pei = elem.getInstance(uri);
 
