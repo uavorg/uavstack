@@ -21,55 +21,26 @@
 package com.creditease.agent.workqueue;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.creditease.agent.log.SystemLogger;
-import com.creditease.agent.log.api.ISystemLogger;
+import com.creditease.agent.spi.AbstractComponent;
 import com.creditease.agent.spi.AbstractTimerWork;
 import com.creditease.agent.spi.ITimerWorkManager;
 
-public class SystemTimerWorkMgr implements ITimerWorkManager {
+public class SystemTimerWorkMgr extends AbstractComponent implements ITimerWorkManager {
 
     private Map<String, AbstractTimerWork> timerMap = new ConcurrentHashMap<String, AbstractTimerWork>();
-    private static ISystemLogger log = SystemLogger.getLogger(SystemTimerWorkMgr.class);
-
-    @Override
-    public boolean scheduleWork(String workName, AbstractTimerWork r, Date firstDate, long period) {
-
-        if (checkNull(workName, r, firstDate, period)) {
-            return false;
-        }
-
-        Timer t = new Timer(workName, r.isDaemon());
-        r.setTimer(t);
-        r.setPeriod(period);
-        TimerTask tt = createTimerTask(workName, r);
-
-        try {
-            t.scheduleAtFixedRate(tt, firstDate, period);
-            return true;
-        }
-        catch (Exception e) {
-            log.err(this, "Timer Worker[" + r.getName() + "] starts FAIL.", e);
-        }
-
-        return false;
-    }
 
     /**
-     * @param workName
-     * @param r
-     * @param firstDate
-     * @param period
-     * @return
+     * @param cName
+     * @param feature
      */
-    private boolean checkNull(String workName, AbstractTimerWork r, Date firstDate, long period) {
+    public SystemTimerWorkMgr(String cName, String feature) {
 
-        return workName == null || "".equals(workName) || r == null || firstDate == null || period < 0;
+        super(cName, feature);
     }
 
     @Override
@@ -146,29 +117,6 @@ public class SystemTimerWorkMgr implements ITimerWorkManager {
             }
             this.timerMap.clear();
         }
-    }
-
-    @Override
-    public boolean scheduleWorkInPeriod(String workName, AbstractTimerWork r, Date firstDate, long period) {
-
-        if (checkNull(workName, r, firstDate, period)) {
-            return false;
-        }
-
-        Timer t = new Timer(workName, r.isDaemon());
-        r.setTimer(t);
-        r.setPeriod(period);
-        TimerTask tt = createTimerTask(workName, r);
-
-        try {
-            t.schedule(tt, firstDate, period);
-            return true;
-        }
-        catch (Exception e) {
-            log.err(this, "Timer Worker[" + r.getName() + "] in Period starts FAIL.", e);
-        }
-
-        return false;
     }
 
     @Override
