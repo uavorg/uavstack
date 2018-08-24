@@ -26,22 +26,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.creditease.agent.spi.AbstractComponent;
+import com.creditease.agent.log.SystemLogger;
+import com.creditease.agent.log.api.ISystemLogger;
 import com.creditease.agent.spi.AbstractTimerWork;
 import com.creditease.agent.spi.ITimerWorkManager;
 
-public class SystemTimerWorkMgr extends AbstractComponent implements ITimerWorkManager {
+public class SystemTimerWorkMgr implements ITimerWorkManager {
 
     private Map<String, AbstractTimerWork> timerMap = new ConcurrentHashMap<String, AbstractTimerWork>();
-
-    /**
-     * @param cName
-     * @param feature
-     */
-    public SystemTimerWorkMgr(String cName, String feature) {
-
-        super(cName, feature);
-    }
+    private static ISystemLogger log = SystemLogger.getLogger(SystemTimerWorkMgr.class);
 
     @Override
     public boolean scheduleWork(String workName, AbstractTimerWork r, long delay, long period) {
