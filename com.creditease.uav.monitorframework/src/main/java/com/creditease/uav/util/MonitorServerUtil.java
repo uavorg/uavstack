@@ -624,28 +624,23 @@ public class MonitorServerUtil {
         if ("".equals(contextroot)) {
             /*
              * NOTE: springboot's basePath is a random temp directory,so we use main(usually the jar name) as the appid
+             * 
              */
             if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
                     .equals(UAVServer.ServerVendor.SPRINGBOOT)) {
                 String javaCommand = System.getProperty("sun.java.command");
                 appid = javaCommand.split(" ")[0];
+            }else {
+                appid = basePath;
             }
-            else {
-                String tmp = basePath.replace("\\", "/");
-                int index = tmp.lastIndexOf("/");
-                
-                /** 
-                 * "/app/xxxxx/" remove the last "/" to get the appid 
-                 */ 
-                if (index == tmp.length() - 1) { 
-                    tmp = tmp.substring(0, tmp.length() - 1); 
-                    index = tmp.lastIndexOf("/"); 
-                }
-                appid = tmp.substring(index + 1);
-            }
+            appid = getReducedPath(appid);
         }
         else {
             appid = contextroot;
+            if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
+                    .equals(UAVServer.ServerVendor.SPRINGBOOT)) {
+                appid = getReducedPath(appid);
+            }
         }
 
         // 去除最开始的"/"
@@ -660,5 +655,22 @@ public class MonitorServerUtil {
         appid = appid.replace("/", "--").replace("\\", "--");
         
         return appid;
+    }
+    
+    /*
+     * 获取给定路径的最后以层目录
+                    例如：给定目录 abc/def/
+                    输出：def
+     */
+    private static String getReducedPath(String path) {
+        if (path == null || path.equals(""))
+            return "";
+        String reducedPath = path.replace("\\", "/");
+        int index = reducedPath.lastIndexOf("/");
+        if (index == reducedPath.length() - 1) {
+            reducedPath = reducedPath.substring(0, reducedPath.length() - 1);
+            index = reducedPath.lastIndexOf("/");
+        }
+        return reducedPath.substring(index + 1);
     }
 }

@@ -87,6 +87,23 @@ function initGroupSelect(id,type) {
 	$("#"+id).empty();
 	var opStr = new StringBuffer();
 	$.each(gorupsSet, function(index, groupName) {
+		
+		if("edit"==type){
+			/**
+			 * 编辑页面，检查是否数据为最新
+			 */
+			//授权组数据是否还存在profile授权中（JAppGroup 设置的值）
+			var existJAppGroup = PageClass.groupsMap.get(groupName);
+			if(!existJAppGroup){
+				/**
+				 * 如果已经不存在：跳过不显示，当用户编辑时，也同逻辑。
+				 * 
+				 * 在用户点击保存时，没显示的不会被选中，则也不会被提交，达到删除的效果。
+				 */
+				return true;
+			}
+		}
+
 
 		var isSel=false; //用户选中
 		if(DataBindClass.userEditInfo[groupName]){
@@ -157,11 +174,17 @@ function showAddDiv(){
 	$("#addEmailListName").val("");
 	DataBindClass.userEditInfo={};
 	
-	PageClass.ajaxGProfile("addGroupList","save");
+	PageClass.ajaxGProfile();
+	initGroupSelect("addGroupList","save");
+	
     $("#addGroupFilterDiv").modal({backdrop: 'static', keyboard: false});
     
 };
 function showEditDiv(id){
+
+	PageClass.ajaxGProfile();
+	
+
 	//init
 	$("#editTrTitle").hide();
 	$("#editTrBody").hide();
@@ -183,6 +206,18 @@ function showEditDiv(id){
 			var groupListStr = {};
 			//填充选中数据
 			$.each(obj.groupList,function(groupName,ctrlAuthorObj){
+
+				//授权组数据是否还存在profile授权中（JAppGroup 设置的值）
+				var existJAppGroup = PageClass.groupsMap.get(groupName);
+				if(!existJAppGroup){
+					/**
+					 * 跳过不显示，当用户编辑时，也同逻辑。
+					 * 
+					 * 在用户点击保存时，没显示的不会被选中，则也不会被提交，达到删除的效果。
+					 */
+					return true;
+				}
+
 				DataBindClass.addGroupInfo(groupName); // 数据填充
 				var ctrlStr = new StringBuffer();
 				$.each(ctrlAuthorObj,function(ctrlName,ctrlValue){
@@ -225,7 +260,9 @@ function showEditSaveButton(obj){
 	console.log(obj);
 	$("#showTr").hide();
 	$("#editGroupList").empty(); //提前做处理，提高用户体验
-	PageClass.ajaxGProfile("editGroupList","edit");
+	
+	PageClass.ajaxGProfile();
+	initGroupSelect("editGroupList","edit");
 	
 	$("#editTrTitle").show();
 	$("#editTrBody").show();
@@ -307,6 +344,7 @@ function loadListData(reset){
 //TODO 页面与后台交互类
 PageClass = {
 	groups : new Set(),     //所有group数据
+	groupsMap : new Map(),     //所有group数据(key value 形式)
 	emailList:null,         //所有列表数据(含映射group)
 	pageEmailList : [],     //当前页面的列表数据(含映射group),页面手动分页
 	submitParam : {
@@ -336,10 +374,10 @@ PageClass = {
 			}
 		});
 	},
-	ajaxGProfile : function(selectId,type) {
+	ajaxGProfile : function() {
 		AjaxHelper.call({
 			url : "../../rs/godeye/filter/profile/q/cache",
-			async : true,
+			async : false,
 			cache : false,
 			type : "GET",
 			dataType : "html",
@@ -348,7 +386,6 @@ PageClass = {
 					result = eval("(" + result + ")");
 					result = eval("(" + result["rs"] + ")");
 					PageClass.setGroups(result);
-					initGroupSelect(selectId,type);
 				} else {
 					console.log("result is empty");
 				}
@@ -422,11 +459,14 @@ PageClass = {
 	},
 	setGroups : function(profileObj) {
 		PageClass.groups.clear();
+		
+		PageClass.groupsMap.clear();
 		for ( var key in profileObj) {
 			var index = key.indexOf("@");
 			if (index > 0) {
 				var groupName = key.substring(0, index);
 				PageClass.groups.add(groupName);
+				PageClass.groupsMap.set(groupName,"existJAppGroup");
 			}
 		}
 	},

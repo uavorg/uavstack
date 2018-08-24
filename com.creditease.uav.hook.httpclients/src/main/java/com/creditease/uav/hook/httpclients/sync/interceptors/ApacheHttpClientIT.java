@@ -117,6 +117,11 @@ public class ApacheHttpClientIT extends BaseComponent {
         httpAction = rl.getMethod();
         targetURl = rl.getUri();
 
+        // 部分HttpRequest中没有ip:port，需要从httpHost中拿到再拼接
+        if (!targetURl.startsWith("http")) {
+            targetURl = target.toURI() + targetURl;
+        }
+
         Map<String, Object> params = new HashMap<String, Object>();
 
         params.put(CaptureConstants.INFO_CLIENT_REQUEST_URL, targetURl);
