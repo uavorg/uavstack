@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import javax.naming.RefAddr;
 import javax.naming.Reference;
@@ -137,6 +138,31 @@ public class JdbcDriverIT extends BaseComponent {
 
     }
 
+    @SuppressWarnings("rawtypes")
+    private class FutureProxyInvokeProcessor extends JDKProxyInvokeProcessor<Future> {
+
+        @Override
+        public void preProcess(Future t, Object proxy, Method method, Object[] args) {
+
+            // ignore
+        }
+
+        @Override
+        public void catchInvokeException(Future t, Object proxy, Method method, Object[] args, Throwable e) {
+
+            // ignore
+        }
+
+        @Override
+        public Object postProcess(Object res, Future t, Object proxy, Method method, Object[] args) {
+
+            if (method.getName().equals("get")) {
+                return doProxyConnection(res);
+            }
+            return res;
+        }
+    }
+
     /**
      * 
      * ConnectionProxy description: to install Statement Proxy
@@ -213,6 +239,7 @@ public class JdbcDriverIT extends BaseComponent {
         }
 
         public StatementProxy(String action, String sql) {
+
             this.sql = sql;
             this.action = action;
         }
@@ -392,6 +419,7 @@ public class JdbcDriverIT extends BaseComponent {
     private String targetServer = "unknown";
 
     public JdbcDriverIT(String appid) {
+
         this.appid = appid;
     }
 
@@ -549,15 +577,15 @@ public class JdbcDriverIT extends BaseComponent {
         }
         return action;
     }
-    
+
     private boolean startsWithIgnoreCase(String str, String prefix) {
 
-        str=str.trim();
-        if(str.length()<prefix.length()) {
+        str = str.trim();
+        if (str.length() < prefix.length()) {
             return false;
         }
-        str=str.substring(0, prefix.length());
-        
+        str = str.substring(0, prefix.length());
+
         return str.equalsIgnoreCase(prefix);
     }
 
@@ -591,6 +619,16 @@ public class JdbcDriverIT extends BaseComponent {
         Connection p = JDKProxyInvokeUtil.newProxyInstance(cl, connInterfaces,
                 new JDKProxyInvokeHandler<Connection>(conn, new ConnectionProxy()));
         return p;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Future doAsyncProxyConnection(Object res) {
+
+        Future f = (Future) res;
+
+        f = JDKProxyInvokeUtil.newProxyInstance(this.getClass().getClassLoader(), new Class<?>[] { Future.class },
+                new JDKProxyInvokeHandler<Future>(f, new FutureProxyInvokeProcessor()));
+        return f;
     }
 
     private void findSqlConnectionClass(String clsName, ClassLoader cl, Set<Class<?>> connectionInterfaces) {

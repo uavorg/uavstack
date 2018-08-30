@@ -698,7 +698,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 String[] paths = StringHelper.tokenizeToStringArray(springConfigLocations.get(0),
                         CONFIG_LOCATION_DELIMITERS);
                 for (String path : paths) {
-                    files.addAll(getFileLocation(webAppRoot, path));
+                    files.addAll(getFileLocation(webAppRoot, path, null));
                 }
             }
 
@@ -732,7 +732,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
                         String importFileRelativePath = importFilePathPart1 + "/" + importFilePathPart2;
 
-                        importfile.addAll(getFileLocation(webAppRoot, importFileRelativePath));
+                        importfile.addAll(getFileLocation(webAppRoot, importFileRelativePath, importFilePathPart2));
                     }
                 }
                 catch (IOException e) {
@@ -945,7 +945,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
          * @param filepath
          * @return
          */
-        private List<String> getFileLocation(String webAppRoot, String path) {
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+		private List<String> getFileLocation(String webAppRoot, String path, String importFilePathPart2) {
 
             List<String> absPaths = new ArrayList<String>();
             ClassLoader webappclsLoader = (ClassLoader) this.getContext().get(InterceptContext.class)
@@ -979,6 +980,20 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             File location = null;
             if (resources != null) {
+            	if (importFilePathPart2 != null) {
+            		try {
+            			// spring: if resource belongs to ClassPathResource or its subclass, try loading "org.springframework.core.io.ClassPathResource" and get resources again,
+            			// in case that files cannot be found in relative path "path". 
+            			Class cpRes = webappclsLoader.loadClass("org.springframework.core.io.ClassPathResource");
+            			if(cpRes != null && cpRes.isAssignableFrom(resources[0].getClass())) {
+            				resources = (Object[]) ReflectionHelper.invoke(SPRING_ResourcePatternResolver_CLASSNAME, resourceloader,
+            						"getResources", new Class[] { String.class }, new String[] { importFilePathPart2 }, webappclsLoader);
+            			}
+            		}
+            		catch (ClassNotFoundException e1) {
+            			// ignore
+            		}
+            	}
                 for (Object resource : resources) {
                     try {
                         location = (File) ReflectionHelper.invoke(SPRING_RESOURCE_CLASSNAME, resource, "getFile", null,
@@ -2722,7 +2737,9 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             Map<String, Object> annoWebService = (Map<String, Object>) classAnnoInfo.get("javax.jws.WebService");
 
-            classPath = (String) annoWebService.get("serviceName");
+            if (null != annoWebService) {
+                classPath = (String) annoWebService.get("serviceName");
+            }
 
             if (StringHelper.isEmpty(classPath)) {
 

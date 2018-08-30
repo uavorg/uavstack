@@ -376,6 +376,11 @@ public class ApacheAsyncHttpClientIT extends BaseComponent {
             RequestLine rl = hr.getRequestLine();
             httpAction = rl.getMethod();
             targetURL = rl.getUri();
+            
+            // 部分HttpRequest中没有ip:port，需要从httpHost中拿到再拼接
+            if (!targetURL.startsWith("http")) {
+                targetURL = requestProducer.getTarget().toURI() + targetURL;
+            }
         }
         catch (IOException e) {
             // ignore thie exception

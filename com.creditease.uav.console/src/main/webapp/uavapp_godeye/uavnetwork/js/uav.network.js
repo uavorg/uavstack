@@ -1692,7 +1692,11 @@ var mvcObj={
 			var isWatching=false;
 			
 			if (undefined!=tags) {
-			
+
+				if(undefined!=tags["starttime"]) {
+					var startTime = parseFloat(tags["starttime"]);
+					str+= "<div class=\"kv\"><div class=\"kvField\">启动时间<span>：<span class='kvSubValue'>"+TimeHelper.getTime(startTime)+"</span></div></div>";
+				}			
 				str+= "<div class=\"kv\"><div class=\"kvField\">属性<span>：</span></div>";
 				
 				for(var key in tags) {
