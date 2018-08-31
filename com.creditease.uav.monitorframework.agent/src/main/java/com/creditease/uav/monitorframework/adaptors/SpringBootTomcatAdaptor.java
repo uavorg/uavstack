@@ -87,14 +87,14 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
                             aa.addLocalVar(m, "mObj",
                                     "com.creditease.uav.monitorframework.agent.interceptor.SpringBootTomcatIT");
-                            m.insertAfter("{mObj=new SpringBootTomcatIT(\"" + mofRoot
+                            m.insertBefore("{mObj=new SpringBootTomcatIT(\"" + mofRoot
                                     + "\"); mObj.installMOF(getClassLoader());}");
                         }
 
                         @Override
                         public String getMethodName() {
 
-                            return "prepareEnvironment";
+                            return "createApplicationContext";
                         }
 
                     });
