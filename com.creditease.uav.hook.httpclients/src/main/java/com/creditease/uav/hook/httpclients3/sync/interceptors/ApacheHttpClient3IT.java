@@ -101,6 +101,11 @@ public class ApacheHttpClient3IT extends BaseComponent {
         try {
             httpAction = method.getName();
             targetURL = method.getURI().toString();
+
+            // HttpMethod中可能不包含ip:port，需要从httpHost中拿到再拼接
+            if (!targetURL.startsWith("http")) {
+                targetURL = hostconfig.getHostURL() + targetURL;
+            }
         }
         catch (URIException e) {
             // ignore

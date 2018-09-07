@@ -73,7 +73,7 @@ public class ClientSpanInvokeChainHandler extends InvokeChainCapHandler {
         /**
          * store span in thread local for DoCap
          */
-        String storeKey = url + "@" + span.getSpanId();
+        String storeKey = url + "@" + span.getSpanId() + "@" + Thread.currentThread().getName();
 
         this.spanFactory.setSpanToContext(storeKey, span);
 

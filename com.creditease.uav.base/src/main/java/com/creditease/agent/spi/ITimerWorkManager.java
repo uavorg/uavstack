@@ -20,16 +20,11 @@
 
 package com.creditease.agent.spi;
 
-import java.util.Date;
 import java.util.Map;
 
 public interface ITimerWorkManager {
 
     public boolean scheduleWork(String workName, AbstractTimerWork r, long delay, long period);
-
-    public boolean scheduleWork(String workName, AbstractTimerWork r, Date firstDate, long period);
-
-    public boolean scheduleWorkInPeriod(String workName, AbstractTimerWork r, Date firstDate, long period);
 
     public boolean scheduleWorkInPeriod(String workName, AbstractTimerWork r, long delay, long period);
 

@@ -26,12 +26,15 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HostNewworkInfo {
 
     private static List<InetAddress> ips;
 
+    private static Map<String, List<InetAddress>> nameIPsMap = new HashMap<String, List<InetAddress>>();
     private List<InetAddress> readInfo(String name) {
 
         List<InetAddress> ipList = new ArrayList<InetAddress>();
@@ -76,7 +79,11 @@ public class HostNewworkInfo {
 
     public List<InetAddress> getIPs(String name) {
 
-        return this.readInfo(name);
+        if (!nameIPsMap.containsKey(name)) {
+
+            nameIPsMap.put(name, this.readInfo(name));
+        }
+        return nameIPsMap.get(name);
     }
 
     public List<InetAddress> getIPs() {

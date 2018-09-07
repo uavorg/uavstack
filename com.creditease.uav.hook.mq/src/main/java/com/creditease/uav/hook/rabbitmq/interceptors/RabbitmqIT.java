@@ -292,8 +292,8 @@ public class RabbitmqIT extends BaseComponent {
                         && props.getHeaders().containsKey(InvokeChainConstants.PARAM_MQHEAD_SPANINFO)) {
                     params.put(InvokeChainConstants.PARAM_MQHEAD_SPANINFO,
                             props.getHeaders().get(InvokeChainConstants.PARAM_MQHEAD_SPANINFO) + "");
-                    params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, url);
                 }
+                params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, url);
 
                 // register adapter
                 UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter",

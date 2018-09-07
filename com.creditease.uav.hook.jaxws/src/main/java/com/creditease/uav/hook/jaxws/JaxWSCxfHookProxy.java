@@ -104,7 +104,7 @@ public class JaxWSCxfHookProxy extends HookProxy {
                     @Override
                     public void process(DPMethod m) throws Exception {
 
-                        if ("create".equals(m.getName())) {
+                        if ("create".equals(m.getName()) && m.getParameterTypes().length == 0) {
 
                             dpInstall.defineLocalVal(m, "mObj", JaxWSCxfHookIT.class);
                             m.insertBefore("{mObj=new JaxWSCxfHookIT(\"" + appid + "\");}");

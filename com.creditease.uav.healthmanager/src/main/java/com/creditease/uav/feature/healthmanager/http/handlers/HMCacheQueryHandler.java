@@ -344,28 +344,23 @@ public class HMCacheQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
 
             List<String> keys = cm.getHashKeys("store.region.uav", cacheKey);
             List<String> targets = new ArrayList<String>();
-            if ("appgroup".equals(filterKey)) {
-                for (String key : keys) {
-                    String keyCheck = key.substring(0, key.indexOf("@"));
-                    for (String vString : fValues) {
-                        if (vString.equals(keyCheck)) {
-                            targets.add(key);
-                        }
-                    }
 
+            for (String key : keys) {
+
+                String keyCheck = "";
+                if ("appgroup".equals(filterKey)) {
+                    keyCheck = key.substring(0, key.indexOf("@"));
                 }
-            }
-            else if ("appurl".equals(filterKey)) {
-
-                for (String key : keys) {
-                    String keyCheck = key.substring(key.indexOf("@") + 1);
-                    for (String vString : fValues) {
-                        if (vString.equals(keyCheck)) {
-                            targets.add(key);
-                        }
-                    }
-
+                else if ("appurl".equals(filterKey)) {
+                    keyCheck = key.substring(key.indexOf("@") + 1);
                 }
+
+                for (String vString : fValues) {
+                    if (vString.equals(keyCheck)) {
+                        targets.add(key);
+                    }
+                }
+
             }
 
             String[] tkeys = new String[targets.size()];
