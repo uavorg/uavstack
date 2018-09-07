@@ -80,8 +80,9 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
 
         String urlInfo = bf.toString();
 
-        if (!MonitorServerUtil.isIncludeMonitorURLForService(urlInfo)
-                && !MonitorServerUtil.isIncludeMonitorURLForPage(urlInfo)) {
+        if ((!MonitorServerUtil.isIncludeMonitorURLForService(urlInfo)
+                && !MonitorServerUtil.isIncludeMonitorURLForPage(urlInfo))
+                || "/com.creditease.uav".equals(getReqContextPath(request))) {
             return;
         }
 
@@ -142,6 +143,20 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
     @Override
     protected void doResponse(HttpServletRequest request, HttpServletResponse response, InterceptContext ic) {
 
+		StringBuffer bf = request.getRequestURL();
+
+        if (bf == null) {
+            return;
+        }
+
+        String urlInfo = bf.toString();
+
+        if ((!MonitorServerUtil.isIncludeMonitorURLForService(urlInfo)
+                && !MonitorServerUtil.isIncludeMonitorURLForPage(urlInfo))
+                || "/com.creditease.uav".equals(getReqContextPath(request))) {
+            return;
+        }
+	
         Map<String, Object> params = new HashMap<String, Object>();
 
         params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, request.getRequestURL().toString());
@@ -170,16 +185,34 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
             return response.getStatus();
         }
         catch (Error e) {
-            Object resp = ReflectionHelper.getField(response.getClass(), response, "response");
 
-            if (resp != null) {
-                Object result = ReflectionHelper.invoke("org.apache.catalina.connector.Response", resp, "getStatus",
-                        null, null, response.getClass().getClassLoader());
-
-                return (Integer) result;
+            Object resp = response;
+            // 重调用链开启后这里的response是RewriteIvcResponseWrapper
+            if ("com.creditease.uav.apm.RewriteIvcResponseWrapper".equals(response.getClass().getName())) {
+                resp = ReflectionHelper.getField(response.getClass(), response, "response");
+                if (resp == null) {
+                    return 0;
+                }
             }
 
-            return 0;
+            if (resp == null) {
+                return 0;
+            }
+            Object result = null;
+            // for tomcat 6.0.4x
+            if ("org.apache.catalina.connector.ResponseFacade".equals(resp.getClass().getName())) {
+                resp = ReflectionHelper.getField(resp.getClass(), resp, "response");
+                if (resp != null) {
+                    result = ReflectionHelper.invoke(resp.getClass().getName(), resp, "getStatus", null, null,
+                            response.getClass().getClassLoader());
+                }
+            }
+
+            if (result == null) {
+                return 0;
+            }
+
+            return (Integer) result;
         }
     }
 
