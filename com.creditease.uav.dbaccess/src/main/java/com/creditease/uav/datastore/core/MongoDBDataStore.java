@@ -60,6 +60,7 @@ import com.mongodb.client.result.UpdateResult;
 public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
 
     public MongoDBDataStore(DataStoreConnection connectObj, DataStoreAdapter adaptor, String feature) {
+
         super(connectObj, adaptor, feature);
     }
 
@@ -242,6 +243,7 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
         BasicDBObject query = new BasicDBObject();// output
 
         Map findparmes = (Map) queryparmes.get(DataStoreProtocol.WHERE);
+        String strLimit = String.valueOf(queryparmes.get(DataStoreProtocol.LIMIT));
         QueryStrategy qry = new QueryStrategy();
         Map express = new LinkedHashMap();
         express.put(DataStoreProtocol.FIND, findparmes);
@@ -254,6 +256,9 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
         log.info(this, "MongoDBDataStore countAction toJson : " + query.toJson());
 
         long countN = collection.count(query);
+        if (!StringHelper.isEmpty(strLimit) && countN > Long.parseLong(strLimit)) {
+            countN = Long.parseLong(strLimit);
+        }
         Map<String, Object> item = new LinkedHashMap<String, Object>();
         item.put(DataStoreProtocol.COUNT, countN);
         List<Map> res = new ArrayList<Map>();
@@ -395,7 +400,7 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
         Document sorts = new Document();
         Document filterBson = new Document();
 
-        filterBson.append("_id", 0);
+        // filterBson.append("_id", 0); //代码含义：查询返回结果中，不包含mongodb的_id字段
 
         if (!StringHelper.isEmpty(fileds)) {
             String[] filters = fileds.split(";");
@@ -418,7 +423,6 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
         if (!StringHelper.isEmpty(pageindex)) {
             pageIndex = Integer.parseInt(pageindex);
         }
-
         if (!StringHelper.isEmpty(pagesize)) {
             pageSize = Integer.parseInt(pagesize);
         }
@@ -448,7 +452,6 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
         }
 
         return queryResultFormat(cursor, false);
-
     }
 
     @SuppressWarnings("rawtypes")
@@ -459,10 +462,18 @@ public class MongoDBDataStore extends AbstractDataStore<MongoDatabase> {
             Document doc = cursor.next();
             Map<String, Object> docInfo = new LinkedHashMap<String, Object>();
             for (String key : doc.keySet()) {
+                if ("_id".equals(key) && doc.getObjectId("_id") != null) {
+                    /**
+                     * _id 是mongodb的对象，只获取_id的ObjectId String值（返回数据）
+                     */
+                    docInfo.put("_id", doc.getObjectId("_id").toString());
+                    continue;
+                }
                 docInfo.put(key, doc.get(key));
             }
             results.add(docInfo);
         }
+        cursor.close();
 
         /*
          * 在做计数时，如果没有数据，find会返回{count=0}，而aggregate什么都不返回 为了保证输出结果统一，做了一下适配

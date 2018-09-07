@@ -20,10 +20,14 @@
 
 package com.creditease.agent.workqueue;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.Future;
 
 import com.creditease.agent.spi.AbstractComponent;
-import com.creditease.agent.spi.AbstractPartitionJob;
 import com.creditease.agent.spi.IForkjoinWorker;
 
 /**
@@ -43,12 +47,48 @@ public class SystemForkjoinWorker extends AbstractComponent implements IForkjoin
     }
 
     /*
+     * invokeAll方法
+     */
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) {
+
+        return executor.invokeAll(tasks);
+    }
+
+    /*
      * submit方法
      */
     @Override
-    public void submitTask(AbstractPartitionJob task) {
+    public <T> ForkJoinTask<T> submit(ForkJoinTask<T> task) {
 
-        executor.submit(task);
+        return executor.submit(task);
+    }
+
+    /*
+     * submit方法
+     */
+    @Override
+    public <T> ForkJoinTask<T> submit(Callable<T> task) {
+
+        return executor.submit(task);
+    }
+
+    /*
+     * submit方法
+     */
+
+    @Override
+    public <T> ForkJoinTask<T> submit(Runnable task, T result) {
+
+        return executor.submit(task, result);
+    }
+
+    /*
+     * submit方法
+     */
+    @Override
+    public ForkJoinTask<?> submit(Runnable task) {
+
+        return executor.submit(task);
     }
 
     /*
@@ -66,36 +106,36 @@ public class SystemForkjoinWorker extends AbstractComponent implements IForkjoin
      * parallelism level of this pool
      */
     @Override
-    public void getParallelism() {
+    public int getParallelism() {
 
-        executor.getParallelism();
+        return executor.getParallelism();
     }
 
     /*
      * Returns an estimate of the number of worker threads
      */
     @Override
-    public void getRunningThreadCount() {
+    public int getRunningThreadCount() {
 
-        executor.getRunningThreadCount();
+        return executor.getRunningThreadCount();
     }
 
     /*
      * Returns the number of worker threads
      */
     @Override
-    public void getPoolSize() {
+    public int getPoolSize() {
 
-        executor.getPoolSize();
+        return executor.getPoolSize();
     }
 
     /*
      * Returns the number of queued tasks
      */
     @Override
-    public void getQueuedTaskCount() {
+    public long getQueuedTaskCount() {
 
-        executor.getQueuedTaskCount();
+        return executor.getQueuedTaskCount();
     }
 
     /*

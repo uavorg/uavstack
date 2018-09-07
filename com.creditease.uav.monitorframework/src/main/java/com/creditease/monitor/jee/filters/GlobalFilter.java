@@ -25,6 +25,7 @@ import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -80,7 +81,23 @@ public class GlobalFilter implements Filter {
             try {
                 chain.doFilter(tmpRequest, tmpResponse);
             }
-            catch (Throwable e) {
+            // 使用tomcat的处理方式，只要存在异常则将异常记录并且将状态置为500
+            catch (ServletException e) {
+                tmpRequest.setAttribute(RequestDispatcher.ERROR_EXCEPTION, e);
+                tmpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                inteceptResponse(iSupport, context);
+                throw e;
+            }
+            catch (IOException e) {
+                tmpRequest.setAttribute(RequestDispatcher.ERROR_EXCEPTION, e);
+                tmpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                inteceptResponse(iSupport, context);
+                throw e;
+            }
+            catch (Exception e) {
+                // 最终以RuntimeException形式进行抛出，有可能会造成exception类型偏差，但从tomcat源码中可见所有类型的exception都会执行相同的逻辑，故在此处进行标记但仍进行RuntimeException抛出
+                tmpRequest.setAttribute(RequestDispatcher.ERROR_EXCEPTION, e);
+                tmpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 inteceptResponse(iSupport, context);
                 throw new RuntimeException(e);
             }

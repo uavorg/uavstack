@@ -85,11 +85,21 @@ public class GUISSOLdapClient extends GUISSOClient {
             String ldapConUrl = ldapConfig.get("url");
             String ldapConUser = ldapConfig.get("user");
             String ldapConPassWord = ldapConfig.get("password");
+            String ldapTimeout = ldapConfig.get("timeout");
             param.put(Context.PROVIDER_URL, ldapConUrl + ldapConBasedn);
             param.put(Context.SECURITY_PRINCIPAL, ldapConUser);
             param.put(Context.SECURITY_CREDENTIALS, ldapConPassWord);
             param.put(Context.SECURITY_AUTHENTICATION, "simple");
             param.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+            param.put("com.sun.jndi.ldap.connect.timeout", ldapTimeout);
+            param.put("com.sun.jndi.ldap.read.timeout", ldapTimeout);
+
+            /**
+             * ldap以下字段转码需要特殊处理：不显示乱码，但也不会显示为可识别的string,以binary string显示
+             */
+            param.put("java.naming.ldap.attributes.binary",
+                    "msExchMailboxGuid objectSid objectGUID msExchMailboxSecurityDescriptor ");
+
 
             ldapParams.put(action, param);
         }
@@ -146,32 +156,46 @@ public class GUISSOLdapClient extends GUISSOClient {
 
         boolean result = false;
         String action = "login";
+        LdapContext newContext = null;
         try {
             initLdapContext(action);
-            LdapContext ldapCtx = ldapContexts.get(action);
+            Properties actionParam = ldapParams.get(action);
 
-            ldapCtx.addToEnvironment(Context.SECURITY_PRINCIPAL, loginId);
-            ldapCtx.addToEnvironment(Context.SECURITY_CREDENTIALS, password);
+            // 替换参数，账号密码验证
+            actionParam.put(Context.SECURITY_PRINCIPAL, loginId);
+            actionParam.put(Context.SECURITY_CREDENTIALS, password);
             // 密码验证,不报错则为验证成功
-            ldapCtx.reconnect(null);
+            newContext = new InitialLdapContext(actionParam, null);
             result = true;
-            loggerInfo("LDAP信息", "校验", "成功", loginId);
+            loggerInfo("LDAP信息", "登陆校验", "成功", loginId);
         }
         catch (AuthenticationException e) {
-            // 此异常为用户验证失败，因此不做ldapContext清除
-            loggerError("LDAP信息校验", loginId + " (业务意义为验证失败,异常信息可以忽略)", e);
+            // 此异常为用户验证失败
+            loggerInfo("LDAP信息", "登陆校验", "失败", loginId);
         }
         catch (Exception e1) {
             loggerError("LDAP信息校验", loginId, e1);
             clearLdapContext(action);
+        }
+        finally {
+
+            try {
+                if (null != newContext) {
+                    newContext.close();
+                }
+            }
+            catch (NamingException e) {
+                loggerError("LDAP信息校验,链接关闭", loginId, e);
+            }
         }
 
         return result;
 
     }
 
-    private List<SearchResult> ldapApiQuery(String action, String name, String filter) {
+    private List<SearchResult> ldapApiQuery(String name, String filter) {
 
+        String action = "query";
         String logMsg = action + " " + filter;
         List<SearchResult> result = new ArrayList<SearchResult>();
         try {
@@ -180,6 +204,7 @@ public class GUISSOLdapClient extends GUISSOClient {
 
             SearchControls constraints = new SearchControls();
             constraints.setSearchScope(SearchControls.SUBTREE_SCOPE);
+            
             NamingEnumeration<SearchResult> en = ldapCtx.search(name, filter, constraints);
 
             // means all nodes
@@ -230,20 +255,29 @@ public class GUISSOLdapClient extends GUISSOClient {
             return Collections.emptyMap();
         }
 
-        String action = "login";
         String filter = primaryKey + "=" + loginId;
 
-        List<SearchResult> sResultList = ldapApiQuery(action, "", filter);
-        // filter userPrincipalName= 只能查询到一个结果
-        SearchResult sResult = sResultList.get(0);
-
-        String groupIdStr = formatGroupId(sResult);
-        String emailListStr = formatEmailList(sResult);
-
+        int retry = Integer.parseInt(ldapConfig.get("retry"));
+        List<SearchResult> sResultList = new ArrayList<SearchResult>();
+        do {
+            sResultList = ldapApiQuery("", filter);
+            retry--;
+        }
+        while ((sResultList.isEmpty() && retry > 0));
+        
         Map<String, String> result = new HashMap<String, String>();
-        result.put("loginId", loginId);
-        result.put("groupId", groupIdStr);
-        result.put("emailList", emailListStr);
+        if (!sResultList.isEmpty()) {
+
+            // filter userPrincipalName= 只能查询到一个结果
+            SearchResult sResult = sResultList.get(0);
+
+            String groupIdStr = formatGroupId(sResult);
+            String emailListStr = formatEmailList(sResult);
+
+            result.put("loginId", loginId);
+            result.put("groupId", groupIdStr);
+            result.put("emailList", emailListStr);
+        }
 
         return result;
     }
@@ -261,17 +295,22 @@ public class GUISSOLdapClient extends GUISSOClient {
 
         String userQueryField = ldapConfig.get("userQueryField");
 
-        String email1 = email + suffix;
-
-        String filter = "(|(" + userCNField + "=" + email + ")(" + userQueryField + "=" + email + ")(" + userQueryField
-                + "=" + email1 + "))";
-
-        String action = "query";
+        String email1=email.indexOf("@") >0?email:email+suffix;
+        
+        String primaryKey = ldapConfig.get("primaryKey");
+ 
+        /**
+         * "|"或 聚集操作   
+         * primaryKey  采用userPrincipalName字段查询  带后缀的账号
+         * userCNField  CN中文名查询   
+         */  
+        String filter = "(|("+primaryKey + "=" +email1+")(" + userCNField + "=" + email + "))";
+ 
         /**
          * 查询ldap 获取list信息
          */
         List<Map<String, String>> result = new ArrayList<Map<String, String>>();
-        List<SearchResult> sResultList = ldapApiQuery(action, "", filter);
+        List<SearchResult> sResultList = ldapApiQuery("", filter);
         if (sResultList.isEmpty()) {
             Map<String, String> msg = new HashMap<String, String>();
             msg.put("msg", "email query,result is empty.");
@@ -283,13 +322,12 @@ public class GUISSOLdapClient extends GUISSOClient {
             /**
              * 遍历格式化用户信息
              */
-            Map<String, String> emailInfoMap = formatEmailInfo(sResult, userQueryField);
             String groupIdStr = formatGroupId(sResult);
             String emailListStr = formatEmailList(sResult);
 
+            Map<String, String> emailInfoMap = formatEmailInfo(sResult, userQueryField);
             Map<String, String> info = new HashMap<String, String>();
-            info.put("email", emailInfoMap.get("email"));
-            info.put("name", emailInfoMap.get("name"));
+            info.putAll(emailInfoMap);
             info.put("groupId", groupIdStr);
             info.put("emailList", emailListStr);
 
@@ -307,7 +345,6 @@ public class GUISSOLdapClient extends GUISSOClient {
     public Map<String, Object> getEmailListByQuery(String email) {
 
         Map<String, Object> result = new LinkedHashMap<String, Object>();
-        String action = "query";
         String filter = "";
         String suffix = ldapConfig.get("suffix");
         try {
@@ -320,8 +357,12 @@ public class GUISSOLdapClient extends GUISSOClient {
             filter = "(|(" + groupCNField + "=" + email + ")(" + groupQueryField + "=" + email + ")(" + groupQueryField
                     + "=" + email1 + "))";
 
-            List<SearchResult> sResultList = ldapApiQuery(action, "", filter);
+            List<SearchResult> sResultList = ldapApiQuery("", filter);
             // filter 只能查询到一个结果
+            if (sResultList.isEmpty()) {
+                result.put("msg", "result is empty.");
+                return result;
+            }
             SearchResult sResult = sResultList.get(0);
             if (null == sResult) {
                 result.put("msg", "emailList query,result is empty.");
@@ -346,7 +387,7 @@ public class GUISSOLdapClient extends GUISSOClient {
 
         }
         catch (Exception e) {
-            clearLdapContext(action);
+            clearLdapContext("query");
             logger.err(this, e.getMessage(), e);
         }
         return result;
@@ -481,6 +522,8 @@ public class GUISSOLdapClient extends GUISSOClient {
                 if ("cn".equals(attrId)) {
                     result.put("name", attrValue);
                 }
+
+                result.put(attrId, attrValue);
             }
 
         }

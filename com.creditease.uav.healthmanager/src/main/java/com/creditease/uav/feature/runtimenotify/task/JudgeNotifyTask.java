@@ -133,7 +133,7 @@ public class JudgeNotifyTask extends JudgeNotifyCommonTask {
              * Step 5: if fire the event, build notification event
              */
             if (result != null && !result.isEmpty()) {
-                NotificationEvent event = this.newNotificationEvent(result, stra.getConvergences());
+                NotificationEvent event = this.newNotificationEvent(result, stra);
 
                 // get context
                 putContext(event);
@@ -152,7 +152,7 @@ public class JudgeNotifyTask extends JudgeNotifyCommonTask {
             }
         }
         catch (Exception e) {
-            log.err(this, "JudgeNotifyTask RUN FAIL.", e);
+            log.err(this, "JudgeNotifyTask RUN FAIL." + " StrategyDesc=" + stra.getDesc() + ", StrategyName=" + stra.getName() + "\n", e);
         }
 
         if (log.isDebugEnable()) {
@@ -188,7 +188,7 @@ public class JudgeNotifyTask extends JudgeNotifyCommonTask {
      * 
      * @return
      */
-    private NotificationEvent newNotificationEvent(Map<String, String> result, List<String> convergences) {
+    private NotificationEvent newNotificationEvent(Map<String, String> result, NotifyStrategy stra) {
 
         String ip = this.curSlice.getMdf().getIP();
         String host = this.curSlice.getMdf().getHost();
@@ -215,10 +215,11 @@ public class JudgeNotifyTask extends JudgeNotifyCommonTask {
         NotificationEvent ne = new NotificationEvent(NotificationEvent.EVENT_RT_ALERT_THRESHOLD, title, description,
                 curSlice.getTime(), ip, host);
 
-        // add appgroup
         ne.addArg("appgroup", appgroup);
+        ne.addArg("strategydesc", stra.getDesc());
 
         // 兼容不存在convergences属性的旧预警策略
+        List<String> convergences = stra.getConvergences();
         if(convergences == null || convergences.size() == 0 ) {
             return ne;
         }

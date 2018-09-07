@@ -20,16 +20,17 @@
 
 package com.creditease.uav.datastore.mongo;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.bson.types.ObjectId;
+
 import com.creditease.agent.log.SystemLogger;
 import com.creditease.agent.log.api.ISystemLogger;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 
 /**
  * @author pengfei
@@ -60,13 +61,20 @@ public interface MongodbImplStrategy {
                 String key = (String) iter.next();
                 Object value = expressions.get(key);
 
+                if ("_id".equals(key)) {
+                    /**
+                     * 使用api 按id查询格式必须是： _id:string
+                     */
+                    value = new ObjectId(value.toString());
+                }
+
                 if (value instanceof Map) {
                     RGLStrategy rgl = new RGLStrategy();
                     rgl.concretProcessor(key, expressions, set);
 
                 }
                 else if (value instanceof List) {
-                    if ("or".equals(key)) {
+                    if (key.startsWith("or")) {
                         ORStrategy or = new ORStrategy();
                         or.concretProcessor(key, expressions, set);
 
@@ -124,7 +132,7 @@ public interface MongodbImplStrategy {
         @Override
         public void concretProcessor(Object expKey, Map expValue, BasicDBObject set) {
 
-            List<DBObject> orList = new ArrayList<DBObject>();
+            BasicDBList orList = new BasicDBList();
             List<Map> orListMap = (List<Map>) expValue.get(expKey);
             for (int i = 0; i < orListMap.size(); i++) {
                 Map expression = orListMap.get(i);
@@ -146,7 +154,14 @@ public interface MongodbImplStrategy {
                 }
                 orList.add(sub);
             }
-            set.append("$or", orList);
+
+            // 多个or之间为and关系
+            BasicDBList andList = (BasicDBList) set.get("$and");
+            if (andList == null) {
+                andList = new BasicDBList();
+            }
+            andList.add(new BasicDBObject("$or", orList));
+            set.append("$and", andList);
         }
     }
 

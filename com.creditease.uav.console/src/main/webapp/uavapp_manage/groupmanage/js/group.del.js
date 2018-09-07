@@ -1,16 +1,16 @@
 var delmodalConfig = {
-    groupid:0,
+		id:0,
     head:"提示",
     content:"",
     callback:"clickSureCallback()"
 };
 
 function clickSureCallback(){
-    delGroup_RESTClient(delmodalConfig.groupid);
+    delGroup_RESTClient(delmodalConfig.id);
 }
 
 function userDelete(id){
-    delmodalConfig.groupid=id;
+    delmodalConfig.id=id;
     delmodalConfig.content="是否确定删除[<span style='color: red'>"+id+"</span>]";
     showConfirm(delmodalConfig);
 }

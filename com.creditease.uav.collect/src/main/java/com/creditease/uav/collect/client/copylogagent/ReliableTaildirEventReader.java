@@ -219,12 +219,16 @@ public class ReliableTaildirEventReader {
     /**
      * @param f
      * @param inodeCurrent
+     * @throws IOException
      */
-    private void removeInvalidTFInode(File f, long inodeCurrent) {
+    private void removeInvalidTFInode(File f, long inodeCurrent) throws IOException {
         for (Long inodeKey : tailFiles.keySet()) {
             TailFile tf = tailFiles.get(inodeKey);
             if (tf.getPath().equals(f.getAbsolutePath()) && inodeKey != inodeCurrent) {
                 tailFiles.remove(inodeKey);
+                if (tf.getRaf() != null) {
+                    tf.getRaf().close();
+                }
             }
         }
     }

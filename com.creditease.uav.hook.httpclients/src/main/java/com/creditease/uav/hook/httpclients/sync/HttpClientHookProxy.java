@@ -98,14 +98,14 @@ public class HttpClientHookProxy extends HookProxy {
         dpInstall.setTargetClassLoader(webapploader);
 
         /**
-         * install proxy to AbstractHttpClient before 4.3
+         * install proxy to AbstractHttpClient
          */
         dpInstall.installProxy("org.apache.http.impl.client.AbstractHttpClient",
                 new String[] { "com.creditease.uav.hook.httpclients.sync.interceptors" }, new DynamicProxyProcessor() {
 
                     @Override
                     public void process(DPMethod m) throws Exception {
-
+                        //before 4.3
                         if ("execute".equals(m.getName())) {
                             if (m.getParameterTypes().length == 3
                                     && m.getReturnType().getSimpleName().equals("HttpResponse")) {
@@ -114,6 +114,13 @@ public class HttpClientHookProxy extends HookProxy {
                                 m.insertAfter("{ApacheHttpClientIT.end(new Object[]{$_});}");
                                 dpInstall.addCatch(m, "ApacheHttpClientIT.end(new Object[]{$e});");
                             }
+                        
+                        //after 4.3
+                        }else if ("doExecute".equals(m.getName())) {
+                        
+                           m.insertBefore("{ApacheHttpClientIT.start(\"" + appid + "\",new Object[]{$1,$2,$3});}");
+                           m.insertAfter("{ApacheHttpClientIT.end(new Object[]{$_});}");
+                           dpInstall.addCatch(m, "ApacheHttpClientIT.end(new Object[]{$e});");                           
                         }
                     }
                 }, false);

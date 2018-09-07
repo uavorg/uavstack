@@ -116,6 +116,7 @@ public class AredisAsyncService implements CacheService {
         executor = new ThreadPoolExecutor(minConcurrent, maxConcurrent, 15, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<Runnable>(queueSize));
         executor.allowCoreThreadTimeOut(true);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         if (logger.isTraceEnable()) {
             logger.info(this,
@@ -142,10 +143,6 @@ public class AredisAsyncService implements CacheService {
              * 只等待10s，超过则认为Redis不可用
              */
             futures = client.submitCommands(commands1).get(10, TimeUnit.SECONDS);
-
-            if (logger.isDebugEnable()) {
-                logger.debug(this, "Redis操作" + JSONHelper.toString(commands) + "已提交");
-            }
 
             result = new Object[futures.length];
             for (int i = 0; i < futures.length; i++) {
@@ -202,9 +199,7 @@ public class AredisAsyncService implements CacheService {
                 fhandler.process(fcommands, infos, e);
             }
         }, true, false);
-        if (logger.isDebugEnable()) {
-            logger.debug(this, "Redis操作" + JSONHelper.toString(commands) + "已提交");
-        }
+
     }
 
     private AsyncRedisClient getAredisClient() {

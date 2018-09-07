@@ -46,7 +46,18 @@
 	    <servlet-name>Log4jTest</servlet-name>
 	    <url-pattern>/Log4jTest</url-pattern>
     </servlet-mapping>
-	
+
+    <servlet>
+		<description></description>
+		<display-name>Log4j2Test</display-name>
+		<servlet-name>Log4j2Test</servlet-name>
+		<servlet-class>com.creditease.monitorframework.fat.Log4j2Test</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Log4j2Test</servlet-name>
+		<url-pattern>/Log4j2Test</url-pattern>
+	</servlet-mapping>
+
 	<servlet>
 		<description></description>
 		<display-name>TestServiceServlet</display-name>

@@ -74,19 +74,9 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
             if (clientRequestURL.indexOf("http") == 0) {
                 clientRequestURL = rewriteHttpUrl(clientRequestURL);
             }
-            /**
-             * NOTE: if in whitelist, collect it ;
-             */
-            if (MonitorUrlFilterMgr.getInstance().isInBlackWhitelist(ListType.CLIENTURL_WHITELIST,
-                    clientRequestURL) == false) {
-
-                /**
-                 * NOTE: if in blacklist, do not collect;
-                 */
-                if (MonitorUrlFilterMgr.getInstance().isInBlackWhitelist(ListType.CLIENTURL_BLACKLIST,
-                        clientRequestURL) == true) {
-                    return;
-                }
+            
+            if(null == clientRequestURL) {
+                return;
             }
 
             String clientId = MonitorServerUtil.getServerHostPort() + "#" + appid + "#" + clientRequestURL;
@@ -118,12 +108,14 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
 
             String action = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_ACTION);
             Integer rc = (Integer) context.get(CaptureConstants.INFO_CLIENT_RESPONSECODE);
+            String rs = (String) context.get(CaptureConstants.INFO_CLIENT_RESPONSESTATE);
             String type = (String) context.get(CaptureConstants.INFO_CLIENT_TYPE);
             String server = (String) context.get(CaptureConstants.INFO_CLIENT_TARGETSERVER);
 
             pc.put(ProfileConstants.PC_ARG_CLIENT_URL, clientRequestURL);
             pc.put(ProfileConstants.PC_ARG_CLIENT_ACTION, action);
             pc.put(ProfileConstants.PC_ARG_CLIENT_RC, rc);
+            pc.put(ProfileConstants.PC_ARG_CLIENT_RS, rs);
             pc.put(ProfileConstants.PC_ARG_CLIENT_TYPE, type);
             pc.put(ProfileConstants.PC_ARG_CLIENT_TARGETSERVER, server);
 
@@ -148,6 +140,7 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
          */
         String action = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_ACTION);
         Integer rc = (Integer) context.get(CaptureConstants.INFO_CLIENT_RESPONSECODE);
+        String clientRequestURL = (String) context.get(CaptureConstants.INFO_CLIENT_REQUEST_URL);
 
         if (rc != null && rc == -1) {
             inst.increValue(CaptureConstants.MEI_ERROR);
@@ -159,6 +152,13 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
             }
             else if (rc == -1) {
                 inst.increValue(MonitorServerUtil.getActionErrorTag(action));
+            }
+        }
+
+        if (clientRequestURL.startsWith("http")) {
+            String rs = (String) context.get(CaptureConstants.INFO_CLIENT_RESPONSESTATE);
+            if(StringHelper.isNaturalNumber(rs)) {
+                inst.increValue(MonitorServerUtil.getActionTag(rs));
             }
         }
     }
@@ -199,23 +199,52 @@ public class ClientRespTimeCapHandler extends ServerEndRespTimeCapHandler {
         String reUrl = url.substring(st2);
 
         reUrl = MonitorServerUtil.cleanRelativeURL(reUrl);
+        String tempUrl = urlhead + reUrl;
+        
+        MonitorUrlFilterMgr mufm = MonitorUrlFilterMgr.getInstance();
+        
+        if (mufm.isMatchingUrlByType(ListType.CLIENTURL_WHITELIST, tempUrl) == false) {
+
+            /**
+             * NOTE: if in ignorelist, do not collect;
+             */
+            if (mufm.isMatchingUrlByType(ListType.CLIENTURL_IGNORELIST, tempUrl) == true) {
+                return null;
+            }
+
+        }
+        
+        if (mufm.isMatchingUrlByType(ListType.CLIENTURL_WHITELIST, tempUrl) == true) {
+            // dealing with potential concurrency problems
+            return mufm.getMatchingUrlByType(ListType.CLIENTURL_WHITELIST, tempUrl);
+        }
 
         /**
          * NOTE:remove PathParam,simply assume PathParam is digit
          */
-        String args[] = reUrl.split("/");
 
         int endIndex = 0;
-        for (int i = 1; i < args.length; i++) {
-            try {
-                Long.parseLong(args[i]);
+        boolean isNum = true;
+        int i;
+        for (i = 1; i < reUrl.length(); i++) {
+            if (reUrl.charAt(i) == '/') {
+                if (isNum) {
+                    break;
+                }
+                else {
+                    isNum = true;
+                    endIndex = i;
+                }
             }
-            catch (NumberFormatException e) {
-                endIndex += (args[i].length() + 1);
-                continue;
-            }
-            break;
+            else if (isNum) {
+                if (reUrl.charAt(i) < '0' || reUrl.charAt(i) > '9') {
+                    isNum = false;
 
+                }
+            }
+        }
+        if (i == reUrl.length() && !isNum) {
+            endIndex = i;
         }
         reUrl = reUrl.substring(0, endIndex);
 

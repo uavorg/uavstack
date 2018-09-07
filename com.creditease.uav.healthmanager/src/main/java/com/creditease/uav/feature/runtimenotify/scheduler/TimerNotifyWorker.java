@@ -27,7 +27,7 @@ import com.creditease.agent.spi.I1NQueueWorker;
 import com.creditease.uav.feature.RuntimeNotifyCatcher;
 import com.creditease.uav.feature.runtimenotify.NotifyStrategy;
 import com.creditease.uav.feature.runtimenotify.task.JudgeNotifyTask;
-import com.creditease.uav.feature.runtimenotify.task.JudgeNotifyTimerTask;
+import com.creditease.uav.feature.runtimenotify.task.JudgeNotifyTaskForTimer;
 
 /**
  * 
@@ -56,7 +56,7 @@ public class TimerNotifyWorker extends AbstractTimerWork {
             }
             I1NQueueWorker n1nqw = get1NQueueWorkerMgr().getQueueWorker(this.feature,
                     RuntimeNotifyCatcher.QWORKER_NAME);
-            n1nqw.put(new JudgeNotifyTimerTask(JudgeNotifyTask.class.getSimpleName(), feature,
+            n1nqw.put(new JudgeNotifyTaskForTimer(JudgeNotifyTask.class.getSimpleName(), feature,
                     System.currentTimeMillis(), stra));
 
         }

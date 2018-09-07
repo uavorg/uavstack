@@ -929,6 +929,10 @@ public class DateTimeHelper {
         }
     };
 
+    @Deprecated
+    /**
+     * 线程不安全，性能消耗大，不建议使用
+     */
     public static Date convertToDate(String input) {
 
         Date date = null;

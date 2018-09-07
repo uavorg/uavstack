@@ -22,10 +22,12 @@ package com.creditease.monitor.captureframework;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import com.creditease.agent.helpers.DataConvertHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.monitor.UAVServer;
 import com.creditease.uav.profiling.spi.ProfileServiceMapMgr;
 import com.creditease.uav.profiling.spi.ProfileServiceMapMgr.ServiceURLBinding;
@@ -33,9 +35,9 @@ import com.creditease.uav.profiling.spi.ProfileServiceMapMgr.ServiceURLBinding;
 public class MonitorUrlFilterMgr {
 
     public enum ListType {
-        SERVERURL_BLACKLIST("com.creditease.uav.monitorfilter.serverurl.blacklist"), SERVERURL_WHITELIST(
-                "com.creditease.uav.monitorfilter.serverurl.whitelist"), CLIENTURL_BLACKLIST(
-                        "com.creditease.uav.monitorfilter.clienturl.blacklist"), CLIENTURL_WHITELIST(
+        SERVERURL_IGNORELIST("com.creditease.uav.monitorfilter.serverurl.ignorelist"), SERVERURL_WHITELIST(
+                "com.creditease.uav.monitorfilter.serverurl.whitelist"), CLIENTURL_IGNORELIST(
+                        "com.creditease.uav.monitorfilter.clienturl.ignorelist"), CLIENTURL_WHITELIST(
                                 "com.creditease.uav.monitorfilter.clienturl.whitelist");
 
         private String type;
@@ -77,10 +79,10 @@ public class MonitorUrlFilterMgr {
 
     public void init() {
 
-        // init blackwhitelist regex pattern
-        refreshList(ListType.SERVERURL_BLACKLIST.type);
+        // init ignorelist and whitelist regex pattern
+        refreshList(ListType.SERVERURL_IGNORELIST.type);
         refreshList(ListType.SERVERURL_WHITELIST.type);
-        refreshList(ListType.CLIENTURL_BLACKLIST.type);
+        refreshList(ListType.CLIENTURL_IGNORELIST.type);
         refreshList(ListType.CLIENTURL_WHITELIST.type);
 
         profileValidate = DataConvertHelper
@@ -89,16 +91,16 @@ public class MonitorUrlFilterMgr {
         needCache = DataConvertHelper.toBoolean(System.getProperty("com.creditease.uav.monitorfilter.needcache"),
                 false);
 
-        // init blackwhitelist cache
+        // init ignorelist and whitelist cache
         if (needCache) {
 
             bwlistCacheRepository = new HashMap<ListType, LRUCache<String, Boolean>>(8);
 
             bwlistCacheRepository
-                    .put(ListType.SERVERURL_BLACKLIST,
+                    .put(ListType.SERVERURL_IGNORELIST,
                             new LRUCache<String, Boolean>(DataConvertHelper.toInt(
                                     System.getProperty(
-                                            "com.creditease.uav.monitorfilter.serverurl.blacklist.cachesize"),
+                                            "com.creditease.uav.monitorfilter.serverurl.ignorelist.cachesize"),
                                     cacheSize)));
             bwlistCacheRepository
                     .put(ListType.SERVERURL_WHITELIST,
@@ -107,10 +109,10 @@ public class MonitorUrlFilterMgr {
                                             "com.creditease.uav.monitorfilter.serverurl.whitelist.cachesize"),
                                     cacheSize)));
             bwlistCacheRepository
-                    .put(ListType.CLIENTURL_BLACKLIST,
+                    .put(ListType.CLIENTURL_IGNORELIST,
                             new LRUCache<String, Boolean>(DataConvertHelper.toInt(
                                     System.getProperty(
-                                            "com.creditease.uav.monitorfilter.clienturl.blacklist.cachesize"),
+                                            "com.creditease.uav.monitorfilter.clienturl.ignorelist.cachesize"),
                                     cacheSize)));
             bwlistCacheRepository
                     .put(ListType.CLIENTURL_WHITELIST,
@@ -125,7 +127,7 @@ public class MonitorUrlFilterMgr {
     public void refreshList(String listname) {
 
         String patternConfig = System.getProperty(listname);
-        if (patternConfig != null) {
+        if (!StringHelper.isEmpty(patternConfig)) {
             try {
                 Pattern pattern = Pattern.compile(patternConfig);
                 bwlistRepository.put(listname, pattern);
@@ -137,7 +139,7 @@ public class MonitorUrlFilterMgr {
 
     }
 
-    public boolean isInBlackWhitelist(ListType listtype, String targetUrl) {
+    public boolean isMatchingUrlByType(ListType listtype, String targetUrl) {
 
         if (needCache) {
             Boolean result = bwlistCacheRepository.get(listtype).get(targetUrl);
@@ -151,7 +153,8 @@ public class MonitorUrlFilterMgr {
             return false;
         }
 
-        if (pattern.matcher(targetUrl).matches()) {
+        Matcher m = pattern.matcher(targetUrl);
+        if (m.find()) {
             if (needCache) {
                 bwlistCacheRepository.get(listtype).put(targetUrl, true);
             }
@@ -163,6 +166,22 @@ public class MonitorUrlFilterMgr {
         }
 
         return false;
+    }
+    
+    public String getMatchingUrlByType(ListType listtype, String targetUrl) {
+
+        // at first should be judged by isInIgnoreWhitelist
+        Pattern pattern = (Pattern) bwlistRepository.get(listtype.type);
+        if (pattern == null) {
+            return null;
+        }
+
+        Matcher m = pattern.matcher(targetUrl);
+        if (m.find()) {
+            return m.group();
+        }
+
+        return null;
     }
 
     public boolean serviceValidate(String appId, String reUrl, String urlInfos[]) {
