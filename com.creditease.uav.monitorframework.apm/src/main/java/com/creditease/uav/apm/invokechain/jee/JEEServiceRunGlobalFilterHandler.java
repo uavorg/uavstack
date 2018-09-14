@@ -80,8 +80,9 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
 
         String urlInfo = bf.toString();
 
-        if (!MonitorServerUtil.isIncludeMonitorURLForService(urlInfo)
-                && !MonitorServerUtil.isIncludeMonitorURLForPage(urlInfo)) {
+        if ((!MonitorServerUtil.isIncludeMonitorURLForService(urlInfo)
+                && !MonitorServerUtil.isIncludeMonitorURLForPage(urlInfo))
+                || "/com.creditease.uav".equals(getReqContextPath(request))) {
             return;
         }
 
@@ -142,6 +143,20 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
     @Override
     protected void doResponse(HttpServletRequest request, HttpServletResponse response, InterceptContext ic) {
 
+		StringBuffer bf = request.getRequestURL();
+
+        if (bf == null) {
+            return;
+        }
+
+        String urlInfo = bf.toString();
+
+        if ((!MonitorServerUtil.isIncludeMonitorURLForService(urlInfo)
+                && !MonitorServerUtil.isIncludeMonitorURLForPage(urlInfo))
+                || "/com.creditease.uav".equals(getReqContextPath(request))) {
+            return;
+        }
+	
         Map<String, Object> params = new HashMap<String, Object>();
 
         params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, request.getRequestURL().toString());

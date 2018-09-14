@@ -20,23 +20,37 @@
 
 package com.creditease.agent.spi;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.Future;
+
 public interface IForkjoinWorker {
 
     public String getName();
 
     public String getFeature();
 
-    public void submitTask(AbstractPartitionJob task);
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks);
+
+    public <T> ForkJoinTask<T> submit(ForkJoinTask<T> task);
+
+    public <T> ForkJoinTask<T> submit(Callable<T> task);
+
+    public <T> ForkJoinTask<T> submit(Runnable task, T result);
+
+    public ForkJoinTask<?> submit(Runnable task);
 
     public void shutdown();
 
-    public void getParallelism();
+    public int getParallelism();
 
-    public void getRunningThreadCount();
+    public int getRunningThreadCount();
 
-    public void getPoolSize();
+    public int getPoolSize();
 
-    public void getQueuedTaskCount();
+    public long getQueuedTaskCount();
 
     @Override
     public String toString();
