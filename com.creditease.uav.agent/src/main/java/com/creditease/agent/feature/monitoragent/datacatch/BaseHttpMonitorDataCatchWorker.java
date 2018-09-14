@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -121,6 +122,18 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
                 }
             }
 
+            // up to date SystemProperties
+            String getSysUrl = this.appServerInfo.getJVMAccessURL() + "jvm?action=getSystemPro";
+            String data = accessData(getSysUrl, null);
+            @SuppressWarnings("unchecked")
+            Map<String, String> p = JSONHelper.toObject(data, Map.class);
+
+            Properties sysPro = new Properties();
+            if (!p.isEmpty()) {
+                sysPro.putAll(p);
+                this.appServerInfo.setSystemProperties(sysPro);
+            }
+            
             // get all profile's MBean
             MonitorDataFrame pmdf = new MonitorDataFrame(this.getWorkerId(), "P", timeFlag);
             pmdf.addExt("pid", pid);
@@ -152,6 +165,9 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
         catch (IOException e) {
             // if connect fails, try process detecting
             doHealthReaction();
+        }
+        catch (Exception e) {
+            log.err(this, "up to date SystemProperties failed", e);
         }
     }
 
