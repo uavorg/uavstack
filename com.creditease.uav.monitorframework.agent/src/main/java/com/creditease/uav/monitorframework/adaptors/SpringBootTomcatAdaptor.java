@@ -20,10 +20,42 @@
 
 package com.creditease.uav.monitorframework.adaptors;
 
+import com.creditease.agent.helpers.ReflectionHelper;
+
 import javassist.ClassPool;
 import javassist.CtMethod;
 
 public class SpringBootTomcatAdaptor extends AbstractAdaptor {
+
+    private String springBootVersion = "";
+
+    private void getSpringBootVersion(ClassLoader clsLoader, String className) {
+
+        if (!"".equals(springBootVersion) || clsLoader == null) {
+            return;
+        }
+
+        /**
+         * NOTE:this class is used to detect springboot version. it exists in all versions of springboot, and we
+         * probably will never inject this class.
+         */
+        String versionDetectClassName = "org.springframework.boot.Banner";
+
+        if (versionDetectClassName.equals(className)) {
+            return;
+        }
+
+        Class<?> springBootVersionDetectClass = ReflectionHelper.tryLoadClass(versionDetectClassName, clsLoader);
+
+        if (springBootVersionDetectClass == null) {
+            return;
+        }
+
+        Package pkg = springBootVersionDetectClass.getPackage();
+        String version = (pkg != null) ? pkg.getImplementationVersion() : null;
+        springBootVersion = (version != null) ? version : "UnKnownVersion";
+        System.out.println("MOF.ApplicationVersion=SpringBoot " + springBootVersion);
+    }
 
     @Override
     public byte[] onStartup(ClassLoader clsLoader, String uavMofRoot, String className) {
@@ -104,6 +136,8 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
 
     @Override
     public byte[] onLoadClass(ClassLoader clsLoader, final String uavMofRoot, String className) {
+
+        getSpringBootVersion(clsLoader, className);
 
         this.addClassPath(clsLoader);
 
@@ -243,8 +277,13 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
                         public void process(CtMethod m) throws Exception {
 
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
-                            m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"server.context-path\"),this.getEnvironment().getProperty(\"spring.application.name\"),this);mObj.onSpringBeanRegist(new Object[]{this,this.getEnvironment().getProperty(\"server.context-path\")});}");
+                            String contextPathKey = springBootVersion.startsWith("2") ? "server.servlet.context-path"
+                                    : "server.context-path";
+                            String sb = "{mObj = new SpringBootTomcatPlusIT();"
+                                    + "mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"spring.application.name\"),this);"
+                                    + "mObj.onSpringBeanRegist(new Object[]{this,this.getEnvironment().getProperty(\""
+                                    + contextPathKey + "\")});}";
+                            m.insertBefore(sb);
                             m.insertAfter("{mObj.onSpringFinishRefresh(this);}");
 
                         }
