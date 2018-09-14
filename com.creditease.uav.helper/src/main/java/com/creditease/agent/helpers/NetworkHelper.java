@@ -448,4 +448,10 @@ public class NetworkHelper {
 
         return hni.getIPs();
     }
+
+    public static String getNetCardInfo() {
+
+        HostNewworkInfo hni = new HostNewworkInfo();
+        return JSONHelper.toString(hni.getNetCardInfo());
+    }
 }
