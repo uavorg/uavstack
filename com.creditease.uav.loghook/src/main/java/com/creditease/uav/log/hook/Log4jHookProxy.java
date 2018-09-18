@@ -26,13 +26,11 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import org.apache.log4j.Appender;
+import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.FileAppender;
-import org.apache.log4j.HTMLLayout;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.TTCCLayout;
 import org.apache.log4j.spi.LoggerRepository;
 
 import com.creditease.monitor.UAVServer;
@@ -56,6 +54,7 @@ public class Log4jHookProxy extends HookProxy {
 
     @SuppressWarnings("rawtypes")
     public Log4jHookProxy(String id, Map config) {
+
         super(id, config);
         dpInstall = new DynamicProxyInstaller();
     }
@@ -122,17 +121,17 @@ public class Log4jHookProxy extends HookProxy {
         String appid = (String) (interceptContext.get(InterceptConstants.CONTEXTPATH));
 
         // figureout root logger
-        figureoutLogConfiguration(logger4j.getRootLogger(), list, appid);
-		
-        // figureour norootlogger		
-		LoggerRepository lr = null;
+        list.addAll(figureoutLogConfiguration(logger4j.getRootLogger(), appid));
+
+        // figureour norootlogger
+        LoggerRepository lr = null;
         try {
-           lr = logger4j.getLoggerRepository();
+            lr = logger4j.getLoggerRepository();
         }
         catch (NoSuchMethodError err) {
-           // for log4j-over-slf4j, doesn't have this method
-           return;
-		}
+            // for log4j-over-slf4j, doesn't have this method
+            return;
+        }
 
         Enumeration logEnum = lr.getCurrentLoggers();
 
@@ -140,69 +139,66 @@ public class Log4jHookProxy extends HookProxy {
 
             Logger sLogger = (Logger) logEnum.nextElement();
 
-            figureoutLogConfiguration(sLogger, list, appid);
+            list.addAll(figureoutLogConfiguration(sLogger, appid));
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void figureoutLogConfiguration(Logger Logger, LinkedList<LogProfileInfo> list, String appid) {
+    private LinkedList<LogProfileInfo> figureoutLogConfiguration(Logger Logger, String appid) {
+        
+        LinkedList<LogProfileInfo> logProfiles = new LinkedList<LogProfileInfo>();
 
         Enumeration<Appender> appenders = Logger.getAllAppenders();
-
         while (appenders != null && appenders.hasMoreElements()) {
 
-            LogProfileInfo logProfileInfo = new LogProfileInfo();
-
-            if (appid != null) {
-                logProfileInfo.setAppId(appid);
-            }
-
-            logProfileInfo.setLogType(LogProfileInfo.LogType.Log4j);
-
-            Map<String, String> attributes = new HashMap<String, String>();
-
-            attributes.put(LogProfileInfo.ENGINE, "log4j");
-
             Appender appender = appenders.nextElement();
-
-            if (!(appender instanceof FileAppender)) {
-                continue;
+            if (appender instanceof FileAppender) {
+                logProfiles.add(getAppenderInfo((FileAppender)appender, appid));
             }
-
-            FileAppender fileAppender = (FileAppender) appender;
-
-            Layout layout = fileAppender.getLayout();
-
-            if (null != layout) {
-
-                if (layout instanceof PatternLayout) {
-                    PatternLayout patternLayout = (PatternLayout) fileAppender.getLayout();
-                    attributes.put(LogProfileInfo.PATTERN, patternLayout.getConversionPattern());
-                }
-                else if (layout instanceof HTMLLayout) {
-                    attributes.put(LogProfileInfo.PATTERN, "HTMLLayout");
-                }
-                else if (layout instanceof SimpleLayout) {
-                    attributes.put(LogProfileInfo.PATTERN, "SimpleLayout");
-                }
-                else if (layout instanceof TTCCLayout) {
-                    attributes.put(LogProfileInfo.PATTERN, "TTCCLayout");
+            else if(appender instanceof AsyncAppender) {
+                Enumeration<Appender> ads = ((AsyncAppender) appender).getAllAppenders();
+                while(ads != null && ads.hasMoreElements()) {
+                    Appender ap = ads.nextElement();
+                    if(ap instanceof FileAppender) {
+                        logProfiles.add(getAppenderInfo((FileAppender)ap, appid));
+                    }
                 }
             }
-
-            boolean useBuffIO = fileAppender.getBufferedIO();
-
-            if (useBuffIO == true) {
-                attributes.put(LogProfileInfo.BUFFER_SIZE, String.valueOf(fileAppender.getBufferSize()));
-                attributes.put(LogProfileInfo.BUFFRT_IO, String.valueOf(useBuffIO));
-            }
-
-            logProfileInfo.setFilePath(fileAppender.getFile());
-            logProfileInfo.setAttributes(attributes);
-
-            list.add(logProfileInfo);
-
         }
+        
+        return logProfiles;
+    }
+    
+    private LogProfileInfo getAppenderInfo(FileAppender fileAppender, String appid) {
+
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(LogProfileInfo.ENGINE, "log4j");
+        
+        Layout layout = fileAppender.getLayout();
+        if (null != layout) {
+            if (layout instanceof PatternLayout) {
+                PatternLayout patternLayout = (PatternLayout) fileAppender.getLayout();
+                attributes.put(LogProfileInfo.PATTERN, patternLayout.getConversionPattern());
+            }
+            else {
+                attributes.put(LogProfileInfo.PATTERN, layout.getClass().getSimpleName());
+            }
+        }
+
+        boolean useBuffIO = fileAppender.getBufferedIO();
+        if (useBuffIO == true) {
+            attributes.put(LogProfileInfo.BUFFER_SIZE, String.valueOf(fileAppender.getBufferSize()));
+            attributes.put(LogProfileInfo.BUFFRT_IO, String.valueOf(useBuffIO));
+        }
+        
+        LogProfileInfo logProfileInfo = new LogProfileInfo();
+        logProfileInfo.setAppId(appid);
+        logProfileInfo.setFilePath(fileAppender.getFile());
+        logProfileInfo.setAttributes(attributes);
+        logProfileInfo.setLogType(LogProfileInfo.LogType.Log4j);
+
+        return logProfileInfo;
+
     }
 
     private void InsertIntercept(HookContext context, ClassLoader webapploader) {

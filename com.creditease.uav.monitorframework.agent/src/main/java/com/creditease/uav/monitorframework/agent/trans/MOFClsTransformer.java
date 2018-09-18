@@ -42,6 +42,8 @@ public class MOFClsTransformer implements ClassFileTransformer {
         // SpringBoot
         adaptors.put("org/springframework/boot/loader/Launcher",
                 "com.creditease.uav.monitorframework.adaptors.SpringBootTomcatAdaptor");
+        adaptors.put("org/springframework/boot/loader/PropertiesLauncher",
+                "com.creditease.uav.monitorframework.adaptors.SpringBootTomcatAdaptor");
         adaptors.put("org/springframework/boot/SpringApplication",
                 "com.creditease.uav.monitorframework.adaptors.SpringBootTomcatAdaptor");
 
@@ -58,6 +60,7 @@ public class MOFClsTransformer implements ClassFileTransformer {
     // private Method generalOnLoadClassMethod;
 
     public MOFClsTransformer(ClassLoader mofLoader, String uavMORoot, String agentArgs) {
+
         System.out.println("<------------MOF Agent------------->");
         System.out.println("MOF.AgentArgs=" + agentArgs);
         System.out.println("MOF.Root=" + uavMORoot);

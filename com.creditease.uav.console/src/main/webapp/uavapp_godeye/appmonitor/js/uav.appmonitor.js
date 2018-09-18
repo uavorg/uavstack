@@ -3672,8 +3672,21 @@ var mvcObj={
 			
 			var appInstMO=app.mdata("monitor.app")[appInstId];
 			
+			var id=appInstMO["appgroup"]+"@"+appInstId;
+			if(id.indexOf("---")>0){
+				
+				id=id.substring(0,id.indexOf("---"));
+				if(id.lastIndexOf("/")<id.length-1){
+					id=id+"/";
+				}
+			}
+			
+			var appInfo={id:id,instid:appInstId,isJse:isJse,backWndId:"AppChartWnd"};
+			
+			var appInfoStr=StringHelper.obj2str(appInfo);
+			
 			sb.append("<div class='indexItem'>");
-			sb.append("<div class='indexItemHead'><span class='indexItemTag'>"+appInstPO["name"]+"</span><span class='indexItemId'>"+appInstPO["instid"]+"</span></div>");
+			sb.append("<div class='indexItemHead'><span class='indexItemTag'>"+appInstPO["name"]+"</span><span class='indexItemId' onclick='javascript:app.controller.showWindow("+appInfoStr+",\"AppInstChartWnd\",\"buildAppInstChart\",\"runAppInstChart\")'>"+appInstPO["instid"]+"</span></div>");
 			sb.append("<div class='indexItemContent'>");
 			
 			// JSE 

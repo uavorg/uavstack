@@ -25,8 +25,8 @@ package com.creditease.monitor.captureframework.spi;
  */
 public class CaptureConstants {
 
-    // 1 day ttl for tmax, tmin
-    public final static long MEI_INST_TTL = 24 * 3600 * 1000;
+    // 1 hour ttl for tmax, tmin
+    public final static long MEI_INST_TTL = 1 * 3600 * 1000;
 
     // default monitor id
     public final static String MONITOR_SERVER = "server";

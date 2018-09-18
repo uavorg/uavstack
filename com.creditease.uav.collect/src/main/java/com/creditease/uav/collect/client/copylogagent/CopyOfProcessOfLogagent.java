@@ -137,7 +137,7 @@ public class CopyOfProcessOfLogagent {
                 job.put("reader", reader);
                 job.put("TailLogcomp", this);
 
-                executor.submitTask(job);
+                executor.submit(job);
 
                 job.waitAllTaskDone();
 

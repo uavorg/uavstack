@@ -65,14 +65,14 @@ public class AbsServerRespTimeCapHandler {
             /**
              * NOTE: for no-http
              */
-            if (rtCode==-1) {
+            if (rtCode == -1) {
                 inst.increValue(CaptureConstants.MEI_ERROR);
-                respCode="Err";
+                respCode = "Err";
             }
-            else if (rtCode==1) {
-                respCode="OK";
+            else if (rtCode == 1) {
+                respCode = "OK";
             }
-            
+
             inst.increValue(CaptureConstants.MEI_RC + respCode);
         }
     }
@@ -103,14 +103,18 @@ public class AbsServerRespTimeCapHandler {
                 MonitorElementInstance.CompareSetOperation.MAX);
 
         /**
-         * NOTE: tmax, tmin, 每24小时会自动RESET，避免一个巨大的tmax或一个很小的tmin
+         * NOTE: tmax, tmin, 每1小时会自动RESET，避免一个巨大的tmax或一个很小的tmin
          */
         if (isMax == true) {
 
             inst.setValue(CaptureConstants.MEI_RESP_MAXTIME_ST, end);
         }
         else {
-            long tmax_st = (Long) inst.getValue(CaptureConstants.MEI_RESP_MAXTIME_ST);
+            Object tmaxSt = inst.getValue(CaptureConstants.MEI_RESP_MAXTIME_ST);
+            if (tmaxSt == null) {
+                return;
+            }
+            long tmax_st = (Long) tmaxSt;
 
             if (end - tmax_st > CaptureConstants.MEI_INST_TTL) {
                 inst.setValue(CaptureConstants.MEI_RESP_MAXTIME, new AtomicLong(respTime));
@@ -126,9 +130,13 @@ public class AbsServerRespTimeCapHandler {
             inst.setValue(CaptureConstants.MEI_RESP_MINTIME_ST, end);
         }
         else {
-            long tmax_st = (Long) inst.getValue(CaptureConstants.MEI_RESP_MINTIME_ST);
+            Object tminSt = inst.getValue(CaptureConstants.MEI_RESP_MINTIME_ST);
+            if (tminSt == null) {
+                return;
+            }
+            long tmin_st = (Long) tminSt;
 
-            if (end - tmax_st > CaptureConstants.MEI_INST_TTL) {
+            if (end - tmin_st > CaptureConstants.MEI_INST_TTL) {
                 inst.setValue(CaptureConstants.MEI_RESP_MINTIME, new AtomicLong(respTime));
                 inst.setValue(CaptureConstants.MEI_RESP_MINTIME_ST, end);
             }
