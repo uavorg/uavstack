@@ -184,4 +184,21 @@ public class DefaultLogFilterAndRule implements LogFilterAndRule {
         return version;
     }
 
+    /**
+     * @return the filterPattern
+     */
+    public Pattern getFilterPattern() {
+
+        return filterPattern;
+    }
+
+    /**
+     * @param filterPattern
+     *            the filterPattern to set
+     */
+    public void setFilterPattern(Pattern filterPattern) {
+
+        this.filterPattern = filterPattern;
+    }
+
 }

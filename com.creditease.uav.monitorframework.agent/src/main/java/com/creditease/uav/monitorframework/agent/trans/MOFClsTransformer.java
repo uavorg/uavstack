@@ -42,6 +42,8 @@ public class MOFClsTransformer implements ClassFileTransformer {
         // SpringBoot
         adaptors.put("org/springframework/boot/loader/Launcher",
                 "com.creditease.uav.monitorframework.adaptors.SpringBootTomcatAdaptor");
+        adaptors.put("org/springframework/boot/loader/PropertiesLauncher",
+                "com.creditease.uav.monitorframework.adaptors.SpringBootTomcatAdaptor");
         adaptors.put("org/springframework/boot/SpringApplication",
                 "com.creditease.uav.monitorframework.adaptors.SpringBootTomcatAdaptor");
 
@@ -58,6 +60,7 @@ public class MOFClsTransformer implements ClassFileTransformer {
     // private Method generalOnLoadClassMethod;
 
     public MOFClsTransformer(ClassLoader mofLoader, String uavMORoot, String agentArgs) {
+
         System.out.println("<------------MOF Agent------------->");
         System.out.println("MOF.AgentArgs=" + agentArgs);
         System.out.println("MOF.Root=" + uavMORoot);
@@ -110,7 +113,9 @@ public class MOFClsTransformer implements ClassFileTransformer {
             try {
                 Class adptCls = this.mofLoader.loadClass(adaptorClass);
 
-                adaptorInst = adptCls.newInstance();
+                // adaptorInst = adptCls.newInstance();
+                // jdk9中newInstance被deprecate，建议使用如下方式：
+                adaptorInst = adptCls.getDeclaredConstructor().newInstance();
 
                 Method onStartupMethod = adptCls.getMethod("onStartup",
                         new Class[] { ClassLoader.class, String.class, String.class });

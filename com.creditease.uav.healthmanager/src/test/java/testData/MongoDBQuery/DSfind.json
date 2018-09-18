@@ -19,13 +19,36 @@
  */
 
 { 
-    "where":{
-      "inst#id":"webapp",           
-      "inst#values#value":"Tomcat Documentation"
-      },
-    "fields":"appid;ip",
-    "pageindex":"1",
-    "pagesize":"10",   
-    "sort":"_id",
-    "sortorder":"1"
+	"where":{
+		"fields":"appid;ip",
+		"pageindex":"1",
+		"pagesize":"10",
+		"sort":{
+			"values":"_id",
+			"sortorder":"1"
+		},
+		"regex":{
+			"title":"github"
+		},
+		"or1":[
+			{
+				"regex":{
+					"ip":"127.0.0*"
+				}
+			},
+			{
+				"regex":{
+					"description":"master"
+				}
+			}
+		],
+		"or2":[
+			{
+				"appgroup":"UAV"
+			},
+			{
+				"appgroup":"SMS"
+			}
+		]
+	}
 }

@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -98,9 +99,11 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
 
             long timeFlag = (System.currentTimeMillis() / 10) * 10;
 
+            String pid = this.cName.substring("MO-".length() > this.cName.length() ? 0 : 3);
             // get all monitor's MBean
             MonitorDataFrame mdf = new MonitorDataFrame(this.getWorkerId(), "M", timeFlag);
-
+            mdf.addExt("pid", pid);
+            
             needProcessCheck = doCaptureMonitorData(timeFlag, mdf);
 
             // if needProcessCheck is still true, need see if the appserver is still alive
@@ -119,9 +122,22 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
                 }
             }
 
+            // up to date SystemProperties
+            String getSysUrl = this.appServerInfo.getJVMAccessURL() + "jvm?action=getSystemPro";
+            String data = accessData(getSysUrl, null);
+            @SuppressWarnings("unchecked")
+            Map<String, String> p = JSONHelper.toObject(data, Map.class);
+
+            Properties sysPro = new Properties();
+            if (!p.isEmpty()) {
+                sysPro.putAll(p);
+                this.appServerInfo.setSystemProperties(sysPro);
+            }
+            
             // get all profile's MBean
             MonitorDataFrame pmdf = new MonitorDataFrame(this.getWorkerId(), "P", timeFlag);
-
+            pmdf.addExt("pid", pid);
+            
             needProcessCheck = doCaptureProfileData(timeFlag, pmdf);
 
             // if needProcessCheck is still true, need see if the appserver is still alive
@@ -149,6 +165,9 @@ public abstract class BaseHttpMonitorDataCatchWorker extends BaseMonitorDataCatc
         catch (IOException e) {
             // if connect fails, try process detecting
             doHealthReaction();
+        }
+        catch (Exception e) {
+            log.err(this, "up to date SystemProperties failed", e);
         }
     }
 

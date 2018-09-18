@@ -54,10 +54,12 @@ import com.creditease.agent.ConfigurationManager;
 import com.creditease.agent.feature.LogAgent;
 import com.creditease.agent.feature.logagent.api.LogFilterAndRule;
 import com.creditease.agent.feature.logagent.event.Event;
+import com.creditease.agent.feature.logagent.far.DefaultLogFilterAndRule;
 import com.creditease.agent.feature.logagent.objects.LogDataElement;
 import com.creditease.agent.feature.logagent.objects.LogDataFrame;
 import com.creditease.agent.feature.logagent.objects.LogPatternInfo;
 import com.creditease.agent.helpers.NetworkHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.log.api.ISystemLogger;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.agent.monitor.api.NotificationEvent;
@@ -285,7 +287,7 @@ public class TaildirLogComponent extends AbstractComponent {
                     job.put("reader", reader);
                     job.put("TailLogcomp", this);
 
-                    executor.submitTask(job);
+                    executor.submit(job);
 
                     job.waitAllTaskDone();
 
@@ -374,6 +376,15 @@ public class TaildirLogComponent extends AbstractComponent {
     public void tailFileCommon(TailFile tf, boolean backoffWithoutNL, Map<TailFile, List<Map>> serverlogs)
             throws IOException, InterruptedException {
 
+        LogFilterAndRule main = RuleFilterFactory.getInstance().getLogFilterAndRule(tf.getPath());
+
+        if (main instanceof DefaultLogFilterAndRule) {
+            DefaultLogFilterAndRule defaultMain = (DefaultLogFilterAndRule) main;
+            if (StringHelper.isEmpty(defaultMain.getFilterPattern().pattern())) {
+                log.info(this, tf.getPath() + " collection not enable!");
+                return;
+            }
+        }
         long current = System.currentTimeMillis();
         boolean isEvents = false;
         // while (true) {
@@ -385,7 +396,6 @@ public class TaildirLogComponent extends AbstractComponent {
         }
 
         try {
-            LogFilterAndRule main = RuleFilterFactory.getInstance().getLogFilterAndRule(tf.getPath());
             List<LogFilterAndRule> aids = RuleFilterFactory.getInstance().getAidLogFilterAndRuleList(tf.getPath());
             List<Map> datalog = RuleFilterFactory.getInstance().createChain(reader, batchSize)
                     .setMainLogFilterAndRule(main).setAidLogFilterAndRuleList(aids).doProcess(events, backoffWithoutNL);

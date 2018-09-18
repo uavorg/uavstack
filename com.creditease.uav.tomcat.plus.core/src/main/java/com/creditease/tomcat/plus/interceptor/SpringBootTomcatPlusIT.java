@@ -47,7 +47,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     /**
      * startUAVServer
      */
-    public void startServer(String port, String contextPath, String appName, Object arg) {
+    public void startServer(String port, String appName, Object arg) {
 
         if(!isWebServerContext(arg)) {
             return;
@@ -58,7 +58,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
         // start Monitor Server when server starts
         UAVServer.instance().start(new Object[] { UAVServer.ServerVendor.SPRINGBOOT });
         // set appid
-        setAppid(contextPath);
+        //setAppid(contextPath);
         // set the connector port
         UAVServer.instance().putServerInfo(CaptureConstants.INFO_APPSERVER_LISTEN_PORT,
                 DataConvertHelper.toInt(port, 8080));
@@ -73,10 +73,19 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
      * 
      * @param contextPath
      */
+    @Deprecated
     public void setAppid(String contextPath) {
 
         if (contextPath == null || "/".equals(contextPath)) {
             contextPath = "";
+        }else{
+            contextPath = contextPath.replace("\\", "/");
+            int index = contextPath.lastIndexOf("/");
+            if (index == contextPath.length() - 1){
+                contextPath = contextPath.substring(0, contextPath.length() - 1);
+                index = contextPath.lastIndexOf("/");
+            }
+            contextPath = contextPath.substring(index + 1);
         }
 
         System.setProperty("com.creditease.uav.appid", MonitorServerUtil.getApplicationId(contextPath, ""));
