@@ -21,17 +21,21 @@
 package com.creditease.uav.helpers.network;
 
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HostNewworkInfo {
 
     private static List<InetAddress> ips;
 
+    private static Map<String, List<InetAddress>> nameIPsMap = new HashMap<String, List<InetAddress>>();
     private List<InetAddress> readInfo(String name) {
 
         List<InetAddress> ipList = new ArrayList<InetAddress>();
@@ -76,7 +80,11 @@ public class HostNewworkInfo {
 
     public List<InetAddress> getIPs(String name) {
 
-        return this.readInfo(name);
+        if (!nameIPsMap.containsKey(name)) {
+
+            nameIPsMap.put(name, this.readInfo(name));
+        }
+        return nameIPsMap.get(name);
     }
 
     public List<InetAddress> getIPs() {
@@ -124,4 +132,64 @@ public class HostNewworkInfo {
 
         return null;
     }
+
+    /**
+     * @return {wlan0={101.254.182.34={bcast=101.254.182.255, mask=255.255.254.0}}}
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public Map getNetCardInfo() {
+
+        Map netCardInfos = new HashMap<String, Map<String, Map<String, String>>>();
+        Enumeration<NetworkInterface> netInterfaces;
+        try {
+            netInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (netInterfaces.hasMoreElements()) {
+                NetworkInterface ni = netInterfaces.nextElement();
+                // if (ni.isVirtual()) {
+                // continue;
+                // }
+
+                Map netCardInfo = new HashMap<String, Map<String, String>>();
+                List<InterfaceAddress> addresses = ni.getInterfaceAddresses();
+                for (InterfaceAddress ia : addresses) {
+                    if (ia.getAddress().isLoopbackAddress() || ia.getAddress().getHostAddress().indexOf(":") != -1) {
+                        continue;
+                    }
+
+                    Map ipInfo = new HashMap<String, String>();
+                    ipInfo.put("bcast", ia.getBroadcast().getHostAddress());
+                    ipInfo.put("mask", NetmaskLengthToNetmask(ia.getNetworkPrefixLength()));
+
+                    netCardInfo.put(ia.getAddress().getHostAddress(), ipInfo);
+                }
+
+                if (!netCardInfo.isEmpty()) {
+                    netCardInfos.put(ni.getName(), netCardInfo);
+                }
+            }
+        }
+        catch (SocketException e) {
+            // ignore
+        }
+
+        return netCardInfos;
+    }
+
+    // only support ipv4
+    public String NetmaskLengthToNetmask(int length) {
+
+        if (length < 0 || length > 32) {
+            return "";
+        }
+
+        int netmask = 0xFFFFFFFF << (32 - length);
+        try {
+            return InetAddress.getByAddress(new byte[] { (byte) (netmask >>> 24), (byte) (netmask >>> 16 & 0xFF),
+                    (byte) (netmask >>> 8 & 0xFF), (byte) (netmask & 0xFF) }).getHostAddress();
+        }
+        catch (UnknownHostException e) {
+            return "";
+        }
+    }
+
 }

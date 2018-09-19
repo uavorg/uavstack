@@ -98,6 +98,11 @@ public class ServerEndRespTimeCapHandler extends AbsServerRespTimeCapHandler imp
 
         if (CaptureConstants.MOELEM_SERVER_RESPTIME_SYSTEM.equals(elem.getMonitorElemId())) {
 
+            String appContext = (String) context.get(CaptureConstants.INFO_APPSERVER_CONNECTOR_CONTEXT);
+            if (!StringHelper.isEmpty(appContext) && "/com.creditease.uav".equalsIgnoreCase(appContext)) {
+                return;
+            }
+
             inst = elem.getInstance(infos[1]);
         }
         else if (CaptureConstants.MOELEM_SERVER_RESPTIME_URL.equals(elem.getMonitorElemId())) {
@@ -163,6 +168,13 @@ public class ServerEndRespTimeCapHandler extends AbsServerRespTimeCapHandler imp
 
         }
 
+        if (MonitorUrlFilterMgr.getInstance().isMatchingUrlByType(ListType.SERVERURL_IGNORELIST, infos[3]) == true
+                && MonitorUrlFilterMgr.getInstance().isMatchingUrlByType(ListType.SERVERURL_WHITELIST,
+                        infos[3]) == false) {
+            // if in Ignorelist and not in whitelist, do not collect
+            return;
+        }
+
         recordCounters(context, inst);
     }
 
@@ -181,7 +193,7 @@ public class ServerEndRespTimeCapHandler extends AbsServerRespTimeCapHandler imp
         /**
          * NOTE: if in whitelist, collect it ;
          */
-        if (MonitorUrlFilterMgr.getInstance().isInBlackWhitelist(ListType.SERVERURL_WHITELIST, reUrl) == true) {
+        if (MonitorUrlFilterMgr.getInstance().isMatchingUrlByType(ListType.SERVERURL_WHITELIST, reUrl) == true) {
 
             return true;
         }
@@ -198,7 +210,7 @@ public class ServerEndRespTimeCapHandler extends AbsServerRespTimeCapHandler imp
         /**
          * NOTE: if in blacklist, do not collect;
          */
-        if (MonitorUrlFilterMgr.getInstance().isInBlackWhitelist(ListType.SERVERURL_BLACKLIST, reUrl) == true) {
+        if (MonitorUrlFilterMgr.getInstance().isMatchingUrlByType(ListType.SERVERURL_IGNORELIST, reUrl) == true) {
 
             return false;
         }
