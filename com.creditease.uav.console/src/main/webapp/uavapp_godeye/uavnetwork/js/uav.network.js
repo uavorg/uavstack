@@ -1033,6 +1033,7 @@ var mvcObj={
 	        "os.cpu.freemem":{key:'info/os.cpu.freemem'},
 	        "os.conn.cur":{key:'info/os.conn.cur'},
 	        "os.io.disk":{key:'info/os.io.disk'},
+	        "os.netcard":{key:'info/os.netcard'},
 	        "os.java.vm":{key:'info/os.java.vm'},   
 	        "os.java.ver":{key:'info/os.java.ver'},
 	        "os.java.home":{key:'info/os.java.home'},
@@ -1882,6 +1883,9 @@ var mvcObj={
 	            "                <div class=\"kv\">" +
 	            "                    <span class=\"kvField\">磁盘</span><span>：</span>"+this.formatter.disk(resultObj) +
 	            "                </div>" +
+	            "				 <div class=\"kv\">" +
+	            "                    <span class=\"kvField\">网卡</span><span>：</span>"+this.formatter.netcard(resultObj) +
+	            "                </div>" +
 	            "                <div class=\"kv\">" +
 	            "                    <span class=\"kvField\">标签</span><span>：</span>"+resultObj["node.tags"] +
 	            "                </div>" +
@@ -1927,6 +1931,30 @@ var mvcObj={
 		    				 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+path+"</span>"+":&nbsp;使用率"+useRate+",&nbsp;使用量"+use+",&nbsp;剩余量"+free+",&nbsp;总量"+total+"</div>");		 
 		    			 }
 	    			}
+	    		 }
+	    		 
+	    		 return sb.toString();
+	    	},
+	    	netcard:function(resultObj) {
+	
+	    		 var netcardStr = resultObj["os.netcard"];
+	    		 var netcards=eval("("+netcardStr+")");
+	    		 var sb=new StringBuffer();
+	    		 
+	    		 for(netcard in netcards) {
+	    			 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+netcard+"</span>:");
+	    			 var i=0;
+	    			 for(ip in netcards[netcard]){
+	    				 var ipInfo="<span class='kvSubValue'>"+ip+"</span>";
+			    	     var mask="<span class='kvSubValue'>"+netcards[netcard][ip]["mask"]+"</span>";
+			    		 var bcast="<span class='kvSubValue'>"+netcards[netcard][ip]["bcast"]+"</span>";
+			    		 
+			    		 if(i!=0){
+			    			 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'></span> "); 
+			    		 }
+			    		 i++;
+			    		 sb.append("&nbsp;IP "+ipInfo+",&nbsp;子网掩码 "+mask+",&nbsp;广播地址 "+bcast+"</div>");
+	    			 }
 	    		 }
 	    		 
 	    		 return sb.toString();
