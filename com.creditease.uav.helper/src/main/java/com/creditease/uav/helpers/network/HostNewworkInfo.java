@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.creditease.agent.helpers.JSONHelper;
+
 public class HostNewworkInfo {
 
     private static List<InetAddress> ips;
@@ -134,12 +136,12 @@ public class HostNewworkInfo {
     }
 
     /**
-     * @return {wlan0={101.254.182.34={bcast=101.254.182.255, mask=255.255.254.0}}}
+     * @return {wlan0={ips={"192.168.1.109":{"bcast":"192.168.1.255","mask":"255.255.255.0"}}, mac=28:C6:3F:C4:29:23}}
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public Map getNetCardInfo() {
 
-        Map netCardInfos = new HashMap<String, Map<String, Map<String, String>>>();
+        Map netCardInfos = new HashMap<String, Map<String, String>>();
         Enumeration<NetworkInterface> netInterfaces;
         try {
             netInterfaces = NetworkInterface.getNetworkInterfaces();
@@ -149,7 +151,7 @@ public class HostNewworkInfo {
                 // continue;
                 // }
 
-                Map netCardInfo = new HashMap<String, Map<String, String>>();
+                Map ipInfos = new HashMap<String, Map<String, String>>();
                 List<InterfaceAddress> addresses = ni.getInterfaceAddresses();
                 for (InterfaceAddress ia : addresses) {
                     if (ia.getAddress().isLoopbackAddress() || ia.getAddress().getHostAddress().indexOf(":") != -1) {
@@ -160,10 +162,13 @@ public class HostNewworkInfo {
                     ipInfo.put("bcast", ia.getBroadcast().getHostAddress());
                     ipInfo.put("mask", NetmaskLengthToNetmask(ia.getNetworkPrefixLength()));
 
-                    netCardInfo.put(ia.getAddress().getHostAddress(), ipInfo);
+                    ipInfos.put(ia.getAddress().getHostAddress(), ipInfo);
                 }
 
-                if (!netCardInfo.isEmpty()) {
+                if (!ipInfos.isEmpty()) {
+                    Map netCardInfo = new HashMap<String, Map<String, String>>();
+                    netCardInfo.put("ips", JSONHelper.toString(ipInfos));
+                    netCardInfo.put("mac", getMacAddressAsString(ni));
                     netCardInfos.put(ni.getName(), netCardInfo);
                 }
             }
@@ -190,6 +195,36 @@ public class HostNewworkInfo {
         catch (UnknownHostException e) {
             return "";
         }
+    }
+
+    public String getMacAddressAsString(NetworkInterface ni) {
+
+        byte[] mac = null;
+        try {
+            mac = ni.getHardwareAddress();
+        }
+        catch (SocketException e) {
+            return null;
+        }
+
+        StringBuffer sb = new StringBuffer("");
+        for (int i = 0; i < mac.length; i++) {
+            if (i != 0) {
+                sb.append(":");
+            }
+
+            // 字节转换为整数
+            int temp = mac[i] & 0xff;
+            String str = Integer.toHexString(temp);
+            if (str.length() == 1) {
+                sb.append("0" + str);
+            }
+            else {
+                sb.append(str);
+            }
+        }
+
+        return sb.toString().toUpperCase();
     }
 
 }

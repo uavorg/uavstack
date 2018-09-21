@@ -1939,25 +1939,35 @@ var mvcObj={
 	
 	    		 var netcardStr = resultObj["os.netcard"];
 	    		 var netcards=eval("("+netcardStr+")");
-	    		 var sb=new StringBuffer();
+	    		 var str="";
 	    		 
 	    		 for(netcard in netcards) {
+	    			 var sb=new StringBuffer();
+		    		 var sbIps=new StringBuffer();
 	    			 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+netcard+"</span>:");
-	    			 var i=0;
-	    			 for(ip in netcards[netcard]){
-	    				 var ipInfo="<span class='kvSubValue'>"+ip+"</span>";
-			    	     var mask="<span class='kvSubValue'>"+netcards[netcard][ip]["mask"]+"</span>";
-			    		 var bcast="<span class='kvSubValue'>"+netcards[netcard][ip]["bcast"]+"</span>";
-			    		 
-			    		 if(i!=0){
-			    			 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'></span> "); 
-			    		 }
-			    		 i++;
-			    		 sb.append("&nbsp;IP "+ipInfo+",&nbsp;子网掩码 "+mask+",&nbsp;广播地址 "+bcast+"</div>");
+	    			 for(ipsOrMac in netcards[netcard]){
+	    				 if(ipsOrMac=="mac"){
+	    					 var mac="<span class='kvSubValue'>"+netcards[netcard][ipsOrMac]+"</span>";
+	    					 sb.append("&nbsp;MAC地址 "+mac+"</div>");
+	    				 }
+	    				 else{
+	    					 var ipsStr=netcards[netcard][ipsOrMac];
+	    					 var json2map=JSON.parse(netcards[netcard][ipsOrMac]);
+	    					 for(key in json2map){
+	    						 var ipInfo="<span class='kvSubValue'>"+key+"</span>";
+							     var mask="<span class='kvSubValue'>"+json2map[key]["mask"]+"</span>";
+							     var bcast="<span class='kvSubValue'>"+json2map[key]["bcast"]+"</span>";
+							    		 
+							     sbIps.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'></span> "
+							    			+"&nbsp;IP "+ipInfo+",&nbsp;子网掩码 "+mask+",&nbsp;广播地址 "+bcast+"</div>");
+	    					 }
+	    					 
+		    			 }
 	    			 }
+	    			 str+=sb.toString()+sbIps.toString();
 	    		 }
 	    		 
-	    		 return sb.toString();
+	    		 return str;
 	    	},
 	    	feature:function(f,nodeObj) {
 	    		var fts=eval("("+f+")");
