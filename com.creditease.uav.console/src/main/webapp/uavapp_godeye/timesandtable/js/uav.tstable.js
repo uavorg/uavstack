@@ -1045,10 +1045,7 @@ var PageClass = {
 		var appMetrics = $("#appmetrics").find("div");
 
 		//ID format
-		var appmetricsInstid = appurl;
-		if(appmetricsInstid.indexOf(appid) >= 0){
-			appmetricsInstid = appmetricsInstid.substring(0,appmetricsInstid.indexOf(appid)-1);
-		}
+		var appmetricsInstid = getJVMMetricsInstid(appurl,appid);
 		
 		$.each(appMetrics,function(index,obj){
 			if(obj.className.indexOf("userSelect") >=0){
@@ -2422,6 +2419,19 @@ function getClienttId(appurl,appid,ip,clientHtmlId){
 	instid =   instid +"#"+ appid +"#"+clientHtmlId;
 	return instid;
 }
+
+function getJVMMetricsInstid(appurl,appid){
+	if(appurl.indexOf(appid) >= 0){
+		return appurl.substring(0,appurl.indexOf(appid)-1);
+	}
+	
+	if(appurl.substring(appurl.length-1)=="/"){
+		return appurl.substring(0,appurl.length-1);
+	}
+	
+	return appurl;
+}
+
 function getIpByAppurl(appUrl) {
 	var ip;
 	var isJse = appUrl.indexOf("http:") == -1?true:false;
