@@ -2090,14 +2090,11 @@ function loadClientUrlChartData(url) {
 	}
 };
 
-function loadAppmetricsChartData(url) {
+function loadAppmetricsChartData() {
 	try {
 		var appurl = $("#appurlInput").val();
 		var appid = $("#appidInput").val();
-		var key = appurl;
-		if(key.indexOf(appid) >= 0){
-			key = key.substring(0,key.indexOf(appid)-1);
-		}
+		var key = getJVMMetricsInstid(appurl,appid);
 		
 		var appendDivId = "appmetrics_ChartCID";
 
