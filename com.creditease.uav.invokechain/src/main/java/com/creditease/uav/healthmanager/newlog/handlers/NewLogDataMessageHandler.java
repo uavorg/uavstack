@@ -66,7 +66,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
     }
 
     /**
-     * [ { time:1464248773620, host:"09-201211070016", ip:"127.0.0.1",
+     * [ { time:1464248773620, host:"09-201211070016", ip:"10.10.37.32",
      * svrid:"F:/testenv/apache-tomcat-7.0.65---F:/testenv/apache-tomcat-7.0.65", tag:"L", frames:{ "ccsp":[ {
      * "MEId":"log", "Instances":[ { "id":"F:/testenv/apache-tomcat-7.0.65/logs/ccsp.log", "values":{ "content":[ {
      * "content":"2016-localhost-startStop-1INFORootWebApplicationContext:initializationstarted",
@@ -221,7 +221,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
             String uuid = EncodeHelper.encodeMD5(uuidStr.toString());
 
             // 准备index，如果不存在，就创建
-            String currentIndex = indexMgr.prepareIndex(appid);
+            String currentIndex = indexMgr.prepareIndex();
 
             // 检查type是否存在，不存在就创建
             indexMgr.prepareIndexType(currentIndex, logFileType.toLowerCase());
@@ -231,6 +231,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
             /**
              * 用于区分不同机器上的应用实例
              */
+            line.put("appid", appid);
             line.put("ipport", ipport);
 
             irb.setSource(line);

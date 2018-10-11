@@ -20,24 +20,23 @@
 
 package com.creditease.uav.threadanalysis.server;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.spi.AbstractComponent;
 import com.creditease.uav.elasticsearch.client.ESClient;
+import com.creditease.uav.elasticsearch.index.ESIndexHelper;
 
 /**
  * 
  * ThreadAnalysisIndexMgr description: 用于管理线程分析的ES索引
- * 
+ *
+ * 每天自动建立一个全局索引，命名为uav_jta_yyyy-MM-dd，type为"uav_jta_table"。
  * 
  */
 public class ThreadAnalysisIndexMgr extends AbstractComponent {
 
-    public static final String JTA_DB = "uav_jta_db";
+    public static final String JTA = "jta";
     public static final String JTA_TABLE = "uav_jta_table";
 
     private ESClient client;
@@ -50,57 +49,31 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
     }
 
     /**
-     * 获取当前正在使用的索引名称
+     * 获取日期对应的索引
      * 
-     * 判断当前是属于那个周的索引，命名是以周日开头的那天日期，比如2017-06-25（周日）
-     * 
-     * 举例： 2017-06-24的数据实际是在2017-06-18（周日）的索引里面
-     * 
+     * @param date
+     *            yyyy-MM-dd
      * @return
      */
     public String getIndexByDate(String date) {
 
-        Date d = DateTimeHelper.convertToDate(date);
-
-        Calendar c = Calendar.getInstance();
-
-        c.setTime(d);
-
-        return this.getCurrentIndex(c, 0);
+        return ESIndexHelper.getIndexOfDay(JTA, date);
     }
 
     /**
-     * getCurrentIndex
-     * 
-     * @param c
-     * @param when
-     * @return
-     */
-    private String getCurrentIndex(Calendar c, int when) {
-
-        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK) - 1;
-
-        Date d = DateTimeHelper.dateAdd(DateTimeHelper.INTERVAL_DAY, c.getTime(), -dayOfWeek);
-
-        if (when != 0) {
-            d = DateTimeHelper.dateAdd(DateTimeHelper.INTERVAL_WEEK, d, when);
-        }
-
-        return JTA_DB + "_" + DateTimeHelper.toFormat("yyyy-MM-dd", d.getTime());
-    }
-
-    /**
-     * getCurrentIndex
+     * 获取当前的索引
      * 
      * @return
      */
     public String getCurrentIndex() {
 
-        return this.getCurrentIndex(Calendar.getInstance(), 0);
+        return ESIndexHelper.getIndexOfDay(JTA);
     }
 
     /**
      * 准备索引，没有就创建
+     * 
+     * @return
      */
     public String prepareIndex() {
 
@@ -118,7 +91,7 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
 
             Map<String, String> set = new HashMap<String, String>();
             set.put("index.number_of_shards", "5");
-            set.put("index.number_of_replicas", "0");
+            set.put("index.number_of_replicas", "1");
 
             /**
              * 就只有pname、info做分词，其他属性不做分词
@@ -133,7 +106,6 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
             mapping.put("appgroup", stringFields);
             mapping.put("tid", stringFields);
             mapping.put("state", stringFields);
-
             mapping.put("timeadd", stringFields);
             mapping.put("user", stringFields);
 
@@ -163,11 +135,11 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
             Map<String, Object> timestamp = new HashMap<String, Object>();
             Map<String, Object> timefields = new HashMap<String, Object>();
             Map<String, Object> longType = new HashMap<String, Object>();
-            timestamp.put("type", "date");
-            timestamp.put("fields", timefields);
-            timefields.put("long", longType);
-            longType.put("type", "long");
 
+            longType.put("type", "long");
+            timefields.put("long", longType);
+            timestamp.put("fields", timefields);
+            timestamp.put("type", "date");
             mapping.put("time", timestamp);
 
             try {
@@ -180,12 +152,22 @@ public class ThreadAnalysisIndexMgr extends AbstractComponent {
             /**
              * 变更别名到当前新的Index
              */
-            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), -1);
-            client.addIndexAlias(currentIndex, JTA_DB);
-            client.removeIndexAlias(previousIndex, JTA_DB);
+            String previousIndex = this.getPreviousIndex();
+            client.addIndexAlias(currentIndex, JTA);
+            client.removeIndexAlias(previousIndex, JTA);
         }
 
         return currentIndex;
+    }
+
+    /**
+     * 获取前一天的索引
+     * 
+     * @return
+     */
+    private String getPreviousIndex() {
+
+        return ESIndexHelper.getIndexOfDay(JTA, -1);
     }
 
 }
