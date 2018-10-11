@@ -24,7 +24,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -319,8 +318,8 @@ public class NetworkHelper {
         HostNewworkInfo hni = new HostNewworkInfo();
 
         try {
-            InetAddress ia = hni.getIPs().get(index);
-            return getMacAddressAsString(ia);
+            NetworkInterface ni = NetworkInterface.getByInetAddress(hni.getIPs().get(index));
+            return hni.getMacAddressAsString(ni);
         }
         catch (Exception e) {
             return "UNKNOWN";
@@ -333,57 +332,13 @@ public class NetworkHelper {
         HostNewworkInfo hni = new HostNewworkInfo();
 
         try {
-            InetAddress ia = hni.getIPs(cardName).get(0);
-            return getMacAddressAsString(ia);
+            NetworkInterface ni = NetworkInterface.getByInetAddress(hni.getIPs(cardName).get(0));
+            return hni.getMacAddressAsString(ni);
         }
         catch (Exception e) {
             return "UNKNOWN";
         }
 
-    }
-
-    private static String getMacAddressAsString(InetAddress ia) {
-
-        // 获取网卡，获取地址
-
-        byte[] mac = null;
-        try {
-            mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
-        }
-        catch (SocketException e) {
-            return null;
-        }
-
-        StringBuffer sb = new StringBuffer("");
-
-        for (int i = 0; i < mac.length; i++) {
-
-            if (i != 0) {
-
-                sb.append(":");
-
-            }
-
-            // 字节转换为整数
-
-            int temp = mac[i] & 0xff;
-
-            String str = Integer.toHexString(temp);
-
-            if (str.length() == 1) {
-
-                sb.append("0" + str);
-
-            }
-            else {
-
-                sb.append(str);
-
-            }
-
-        }
-
-        return sb.toString().toUpperCase();
     }
 
     /**
@@ -447,5 +402,11 @@ public class NetworkHelper {
         HostNewworkInfo hni = new HostNewworkInfo();
 
         return hni.getIPs();
+    }
+
+    public static String getNetCardInfo() {
+
+        HostNewworkInfo hni = new HostNewworkInfo();
+        return JSONHelper.toString(hni.getNetCardInfo());
     }
 }
