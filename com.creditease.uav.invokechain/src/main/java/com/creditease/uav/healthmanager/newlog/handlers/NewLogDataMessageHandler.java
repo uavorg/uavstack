@@ -66,7 +66,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
     }
 
     /**
-     * [ { time:1464248773620, host:"09-201211070016", ip:"10.10.37.32",
+     * [ { time:1464248773620, host:"09-201211070016", ip:"127.0.0.1",
      * svrid:"F:/testenv/apache-tomcat-7.0.65---F:/testenv/apache-tomcat-7.0.65", tag:"L", frames:{ "ccsp":[ {
      * "MEId":"log", "Instances":[ { "id":"F:/testenv/apache-tomcat-7.0.65/logs/ccsp.log", "values":{ "content":[ {
      * "content":"2016-localhost-startStop-1INFORootWebApplicationContext:initializationstarted",
