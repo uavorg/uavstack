@@ -47,7 +47,7 @@ public class SpringBootTomcatPlusIT extends TomcatPlusIT {
     /**
      * startUAVServer
      */
-    public void startServer(String port, String contextPath, String appName, Object arg) {
+    public void startServer(String port, String appName, Object arg) {
 
         if(!isWebServerContext(arg)) {
             return;
