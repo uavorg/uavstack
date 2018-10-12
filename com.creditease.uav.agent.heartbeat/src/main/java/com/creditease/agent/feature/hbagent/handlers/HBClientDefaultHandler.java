@@ -127,7 +127,7 @@ public class HBClientDefaultHandler extends AbstractHBClientHandler {
         }
         ni.putInfo(InfoType.OS, "io.disk", str);
 
-        // netcatd info, include name,ip,Bcast and Mask
+        // netcard info, include name,ip,Bcast and Mask
         ni.putInfo(InfoType.OS, "netcard", NetworkHelper.getNetCardInfo());
 
         // java version

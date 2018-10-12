@@ -158,7 +158,7 @@ public class SlowOperDataCollectHandler extends AbstractCollectDataHandler {
         /**
          * 获取当前正在使用的index名称
          */
-        String currentIndex = indexMgr.prepareIndex(span.getAppid());
+        String currentIndex = indexMgr.prepareIndex();
         /**
          * 准备对应type
          */

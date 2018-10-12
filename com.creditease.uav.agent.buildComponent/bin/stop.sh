@@ -2,6 +2,10 @@
 
 # del crontab
 process_flag=$1
+if [ -z "$process_flag" ]; then 
+    process_flag=uav_proc_watcher 
+fi
+
 count=`crontab -l 2>/dev/null | grep "$process_flag" | wc -l`
 if [ $count -ne 0 ]; then
     cronfile=/tmp/$process_flag".tmp"

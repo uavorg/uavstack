@@ -21,30 +21,22 @@
 package com.creditease.uav.invokechain;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.spi.AbstractComponent;
 import com.creditease.uav.elasticsearch.client.ESClient;
+import com.creditease.uav.elasticsearch.index.ESIndexHelper;
 
 /**
- * 
  * SlowOperIndexMgr description: 重调用链的索引管理
  * 
- * 重调用链的索引以应用类型区分，每个应用类型为一个重调用链索引（Index），应用类型就是appid
+ * 每天自动建立一个全局的重调用链索引，命名为uav_ivcdat_yyyy-MM-dd，type为protocolType。
  * 
- * 每个应用类型下不同的重调用链文件，以Type区分
- * 
- * 每个应用类型的重调用链索引也是按一个自然周（7天）一次切分，即每周日，产生一个新的索引来保存所有新的日志
- * 
- *
  */
 public class SlowOperIndexMgr extends AbstractComponent {
 
-    private static final String IvcDat = "ivcdat_";
+    private static final String IvcDat = "ivcdat";
 
     private ESClient client;
 
@@ -63,78 +55,35 @@ public class SlowOperIndexMgr extends AbstractComponent {
     }
 
     /**
-     * 获取当前正在使用的索引名称IvcDat_appid_所属周的周日日期
+     * 获取日期<yyyy-MM-dd>对应的索引名称
      * 
-     * 判断当前是属于那个周的索引，命名是以周日开头的那天日期，比如2017-06-25（周日）
-     * 
-     * 举例： 2017-06-24的数据实际是在2017-06-18（周日）的索引里面
-     * 
-     * @param appid
+     * @param date
+     *            yyyy-MM-dd
      * @return
      */
-    public String getIndexByDate(String date, String appid) {
+    public String getIndexByDate(String date) {
 
-        Date d = DateTimeHelper.convertToDate(date);
-
-        Calendar c = Calendar.getInstance();
-
-        c.setTime(d);
-
-        return this.getCurrentIndex(c, appid, 0);
+        return ESIndexHelper.getIndexOfDay(IvcDat, date);
     }
 
     /**
-     * getCurrentIndex
+     * 获取当前的索引
      * 
-     * @param c
-     * @param appid
-     * @param when
      * @return
      */
-    private String getCurrentIndex(Calendar c, String appid, int when) {
+    public String getCurrentIndex() {
 
-        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK) - 1;
-
-        Date d = DateTimeHelper.dateAdd(DateTimeHelper.INTERVAL_DAY, c.getTime(), -dayOfWeek);
-
-        if (when != 0) {
-            d = DateTimeHelper.dateAdd(DateTimeHelper.INTERVAL_WEEK, d, when);
-        }
-
-        return IvcDat + formatAppid(appid) + "_" + DateTimeHelper.toFormat("yyyy-MM-dd", d.getTime());
-    }
-
-    /**
-     * getCurrentIndex
-     * 
-     * @param appid
-     * @return
-     */
-    public String getCurrentIndex(String appid) {
-
-        return this.getCurrentIndex(Calendar.getInstance(), appid, 0);
-    }
-
-    /**
-     * 格式化一些不符合ES规范的字符
-     * 
-     * @param appid
-     * @return
-     */
-    private String formatAppid(String appid) {
-
-        return appid.toLowerCase().replace('.', '_');
+        return ESIndexHelper.getIndexOfDay(IvcDat);
     }
 
     /**
      * 准备索引，没有就创建
      * 
-     * @param appid
      * @return
      */
-    public String prepareIndex(String appid) {
+    public String prepareIndex() {
 
-        String currentIndex = getCurrentIndex(appid);
+        String currentIndex = getCurrentIndex();
 
         if (client.existIndex(currentIndex) == true) {
             return currentIndex;
@@ -148,7 +97,7 @@ public class SlowOperIndexMgr extends AbstractComponent {
 
             Map<String, String> set = new HashMap<String, String>();
             set.put("index.number_of_shards", "5");
-            set.put("index.number_of_replicas", "0");
+            set.put("index.number_of_replicas", "1");
 
             try {
                 client.creatIndex(currentIndex, null, set, null);
@@ -157,14 +106,12 @@ public class SlowOperIndexMgr extends AbstractComponent {
                 log.err(this, "create ES Index FAIL: ", e);
             }
 
-            String sappid = formatAppid(appid);
-
             /**
              * 变更别名到当前新的Index
              */
-            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), appid, -1);
-            client.addIndexAlias(currentIndex, IvcDat + sappid);
-            client.removeIndexAlias(previousIndex, IvcDat + sappid);
+            String previousIndex = this.getPreviousIndex();
+            client.addIndexAlias(currentIndex, IvcDat);
+            client.removeIndexAlias(previousIndex, IvcDat);
 
         }
 
@@ -194,40 +141,32 @@ public class SlowOperIndexMgr extends AbstractComponent {
             }
 
             Map<String, Map<String, Object>> mapping = new HashMap<>();
-
-            // 设置
             Map<String, Object> sfields = new HashMap<>();
 
             sfields.put("type", "keyword");
-
             mapping.put("traceid", sfields);
             mapping.put("spanid", sfields);
             mapping.put("epinfo", sfields);
+            mapping.put("appid", sfields);
 
             // 设置分词器
             Map<String, Object> multiFields = new HashMap<>();
-
-            multiFields.put("type", "text");
-
             Map<String, Object> afields = new HashMap<>();
-
-            multiFields.put("fields", afields);
-
             Map<String, String> fmapping = new HashMap<>();
-
-            afields.put("chinese", fmapping);
 
             fmapping.put("type", "text");
             fmapping.put("include_in_all", "true");
             fmapping.put("analyzer", "ik_max_word");
             fmapping.put("search_analyzer", "ik_max_word");
 
+            afields.put("chinese", fmapping);
+            multiFields.put("fields", afields);
+            multiFields.put("type", "text");
+
             /**
              * 不支持正则查询
              */
-            // afields.put("asstring", sfields);
             for (String str : fields) {
-
                 mapping.put(str, multiFields);
             }
             try {
@@ -237,5 +176,15 @@ public class SlowOperIndexMgr extends AbstractComponent {
                 log.err(this, "Set ES Index Type Mapping FAIL: ", e);
             }
         }
+    }
+
+    /**
+     * 获取前一天的索引
+     * 
+     * @return
+     */
+    private String getPreviousIndex() {
+
+        return ESIndexHelper.getIndexOfDay(IvcDat, -1);
     }
 }
