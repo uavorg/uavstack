@@ -1109,9 +1109,6 @@ var PageClass = {
 					newData.tags["ptag"]="*";
 				}
 				
-				if(metric!="tmax"&&metric!="tmin"&&metric!="tavg"){
-					newData["aggregator"]="sum";
-				}
 				resultArray.push(newData);
 			}
 		});
