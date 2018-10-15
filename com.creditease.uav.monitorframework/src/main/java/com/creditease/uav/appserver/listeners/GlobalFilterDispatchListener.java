@@ -20,6 +20,7 @@
 
 package com.creditease.uav.appserver.listeners;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -49,35 +50,42 @@ public class GlobalFilterDispatchListener extends InterceptEventListener {
             return;
         }
 
-        handlers.add(handler);
+        synchronized (this.handlers) {
+            handlers.add(handler);
 
-        int order = handler.getOrder();
+            int order = handler.getOrder();
 
-        if (order == -1) {
-            return;
-        }
-
-        /**
-         * Descend Order
-         */
-
-        Collections.sort(handlers, new Comparator<AbsGlobalFilterHandler>() {
-
-            @Override
-            public int compare(AbsGlobalFilterHandler o1, AbsGlobalFilterHandler o2) {
-
-                int gan = o1.getOrder() - o2.getOrder();
-
-                if (gan < 0) {
-                    return 1;
-                }
-                else if (gan > 0) {
-                    return -1;
-                }
-
-                return 0;
+            if (order == -1) {
+                return;
             }
-        });
+
+            /**
+             * Descend Order
+             */
+            // jdk1.7（包含1.7）及以前版本中，CopyOnWriteArrayList默认没有实现sort方法，强行排序会出现UnsupportedOperationException。
+            // 兼容jdk1.7及以前版本，此处使用ArrayList作为临时转换媒介，最后清空CopyOnWriteArrayList并重新赋值方式实现。
+            ArrayList<AbsGlobalFilterHandler> tempList = new ArrayList<AbsGlobalFilterHandler>(handlers);
+            Collections.sort(tempList, new Comparator<AbsGlobalFilterHandler>() {
+
+                @Override
+                public int compare(AbsGlobalFilterHandler o1, AbsGlobalFilterHandler o2) {
+
+                    int gan = o1.getOrder() - o2.getOrder();
+
+                    if (gan < 0) {
+                        return 1;
+                    }
+                    else if (gan > 0) {
+                        return -1;
+                    }
+
+                    return 0;
+                }
+            });
+
+            handlers.clear();
+            handlers.addAll(tempList);
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -137,8 +145,8 @@ public class GlobalFilterDispatchListener extends InterceptEventListener {
          * JEE Application uses HttpServletRequest
          */
         else {
-            StringBuffer urlSB = (StringBuffer) ReflectionHelper.invoke("javax.servlet.http.HttpServletRequest", httpReq,
-                    "getRequestURL", null, null);
+            StringBuffer urlSB = (StringBuffer) ReflectionHelper.invoke("javax.servlet.http.HttpServletRequest",
+                    httpReq, "getRequestURL", null, null);
             if (urlSB != null) {
                 url = urlSB.toString();
             }
