@@ -144,3 +144,26 @@ body {
 	color:#333;
 }
 /*详情页面布局 END*/
+
+/*报警level样式BEGIN*/
+
+.body_row.infomation:hover{
+	background-color : #F5F5F5;
+}
+
+.body_row.warn{
+	background-color : #fcf8e3;
+}
+
+.body_row.warn:hover{
+	background-color : #ffff75;
+}
+
+.body_row.critical{
+	background-color : #f2dede;
+}
+
+.body_row.critical:hover{
+	background-color : #ff5a5a;
+}
+/*报警level样式END*/
