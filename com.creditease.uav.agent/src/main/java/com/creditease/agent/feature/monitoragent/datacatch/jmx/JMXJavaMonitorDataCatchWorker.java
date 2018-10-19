@@ -271,6 +271,7 @@ public class JMXJavaMonitorDataCatchWorker extends BaseJMXMonitorDataCatchWorker
     private void doCaptureProfileData(long timeFlag) {
 
         MonitorDataFrame pmdf = new MonitorDataFrame(this.getWorkerId(), "P", timeFlag);
+        pmdf.addExt("pid", this.cName.substring("MO-".length() > this.cName.length() ? 0 : 3));
 
         if (state.getProfileTimestamp() == 0) {
             state.setProfileTimestamp(System.currentTimeMillis());
@@ -637,12 +638,13 @@ public class JMXJavaMonitorDataCatchWorker extends BaseJMXMonitorDataCatchWorker
 
         // build MDF
         MonitorDataFrame mdf = new MonitorDataFrame(this.getWorkerId(), "M", timeFlag);
+        mdf.addExt("pid", this.cName.substring("MO-".length() > this.cName.length() ? 0 : 3));
 
         mdf.addData("server", smr.toJSONString());
 
         // add appgroup to MDF
         mdf.addExt("appgroup", this.getAppGroup());
-
+        
         /**
          * if there is data, we handle MDF using monitor data handler to process the monitor data
          */

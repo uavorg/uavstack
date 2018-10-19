@@ -1033,6 +1033,7 @@ var mvcObj={
 	        "os.cpu.freemem":{key:'info/os.cpu.freemem'},
 	        "os.conn.cur":{key:'info/os.conn.cur'},
 	        "os.io.disk":{key:'info/os.io.disk'},
+	        "os.netcard":{key:'info/os.netcard'},
 	        "os.java.vm":{key:'info/os.java.vm'},   
 	        "os.java.ver":{key:'info/os.java.ver'},
 	        "os.java.home":{key:'info/os.java.home'},
@@ -1692,7 +1693,11 @@ var mvcObj={
 			var isWatching=false;
 			
 			if (undefined!=tags) {
-			
+
+				if(undefined!=tags["starttime"]) {
+					var startTime = parseFloat(tags["starttime"]);
+					str+= "<div class=\"kv\"><div class=\"kvField\">启动时间<span>：<span class='kvSubValue'>"+TimeHelper.getTime(startTime)+"</span></div></div>";
+				}			
 				str+= "<div class=\"kv\"><div class=\"kvField\">属性<span>：</span></div>";
 				
 				for(var key in tags) {
@@ -1878,6 +1883,9 @@ var mvcObj={
 	            "                <div class=\"kv\">" +
 	            "                    <span class=\"kvField\">磁盘</span><span>：</span>"+this.formatter.disk(resultObj) +
 	            "                </div>" +
+	            "				 <div class=\"kv\">" +
+	            "                    <span class=\"kvField\">网卡</span><span>：</span>"+this.formatter.netcard(resultObj) +
+	            "                </div>" +
 	            "                <div class=\"kv\">" +
 	            "                    <span class=\"kvField\">标签</span><span>：</span>"+resultObj["node.tags"] +
 	            "                </div>" +
@@ -1926,6 +1934,40 @@ var mvcObj={
 	    		 }
 	    		 
 	    		 return sb.toString();
+	    	},
+	    	netcard:function(resultObj) {
+	
+	    		 var netcardStr = resultObj["os.netcard"];
+	    		 var netcards=eval("("+netcardStr+")");
+	    		 var str="";
+	    		 
+	    		 for(netcard in netcards) {
+	    			 var sb=new StringBuffer();
+		    		 var sbIps=new StringBuffer();
+	    			 sb.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'>"+netcard+"</span>:");
+	    			 for(ipsOrMac in netcards[netcard]){
+	    				 if(ipsOrMac=="mac"){
+	    					 var mac="<span class='kvSubValue'>"+netcards[netcard][ipsOrMac]+"</span>";
+	    					 sb.append("&nbsp;MAC地址 "+mac+"</div>");
+	    				 }
+	    				 else{
+	    					 var ipsStr=netcards[netcard][ipsOrMac];
+	    					 var json2map=JSON.parse(netcards[netcard][ipsOrMac]);
+	    					 for(key in json2map){
+	    						 var ipInfo="<span class='kvSubValue'>"+key+"</span>";
+							     var mask="<span class='kvSubValue'>"+json2map[key]["mask"]+"</span>";
+							     var bcast="<span class='kvSubValue'>"+json2map[key]["bcast"]+"</span>";
+							    		 
+							     sbIps.append("<div class='kvField'>"+"<span class='kvSubField' style='display:inline-block;width:130px;'></span> "
+							    			+"&nbsp;IP "+ipInfo+",&nbsp;子网掩码 "+mask+",&nbsp;广播地址 "+bcast+"</div>");
+	    					 }
+	    					 
+		    			 }
+	    			 }
+	    			 str+=sb.toString()+sbIps.toString();
+	    		 }
+	    		 
+	    		 return str;
 	    	},
 	    	feature:function(f,nodeObj) {
 	    		var fts=eval("("+f+")");

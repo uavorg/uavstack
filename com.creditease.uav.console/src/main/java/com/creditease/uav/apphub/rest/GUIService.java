@@ -238,7 +238,7 @@ public class GUIService extends AppHubBaseRestService {
             userInfo.put("type", "login");
             userInfo.put("url", "");
             userInfo.put("desc", "登录成功");
-            userInfo.put("uauthemails", String.valueOf(
+            userInfo.put("authemails", String.valueOf(
                     request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.emailList")));
             userInfo.put("authsystems", String.valueOf(
                     request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.systems")));
@@ -281,7 +281,7 @@ public class GUIService extends AppHubBaseRestService {
             userInfo.put("type", "logout");
             userInfo.put("url", "");
             userInfo.put("desc", "登出成功");
-            userInfo.put("uauthemails", String.valueOf(
+            userInfo.put("authemails", String.valueOf(
                     request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.emailList")));
             userInfo.put("authsystems", String.valueOf(
                     request.getSession(false).getAttribute("apphub.gui.session.login.user.authorize.systems")));

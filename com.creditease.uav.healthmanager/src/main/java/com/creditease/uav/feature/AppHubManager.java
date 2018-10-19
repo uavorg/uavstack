@@ -60,6 +60,8 @@ public class AppHubManager extends AgentFeatureComponent {
         @SuppressWarnings({ "rawtypes", "unchecked" })
         ThreadPoolExecutor exe = new ThreadPoolExecutor(core, max, 30000, TimeUnit.MILLISECONDS,
                 new ArrayBlockingQueue(bqsize));
+        // 调用线程执行多余任务
+        exe.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         apphubManagerServerListenWorker.start(exe, port, backlog);
 
         if (log.isTraceEnable()) {

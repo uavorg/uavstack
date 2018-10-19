@@ -202,7 +202,8 @@ public class NewLogDataMessageHandler implements MessageHandler {
              */
             String logFileType = logFileName;
             StringBuilder uuidStr = new StringBuilder();
-            uuidStr.append(ipport).append(mdf.getServerId()).append("-").append(appid).append("-").append(logid);
+            uuidStr.append(ipport).append(mdf.getServerId()).append("-").append(appid).append("-").append(logid)
+                    .append("-").append(lnum);
             if (line.containsKey("content")) {
                 logFileType += "_def";
                 uuidStr.append("-").append(line.get("content"));
@@ -215,12 +216,12 @@ public class NewLogDataMessageHandler implements MessageHandler {
             }
 
             /**
-             * 保证不重复：IP+SvrID+AppID+LogFileName+日志内容（def下为content）
+             * 保证不重复：IP+SvrID+AppID+LogFileName+lineNum+日志内容（def下为content）
              */
             String uuid = EncodeHelper.encodeMD5(uuidStr.toString());
 
             // 准备index，如果不存在，就创建
-            String currentIndex = indexMgr.prepareIndex(appid);
+            String currentIndex = indexMgr.prepareIndex();
 
             // 检查type是否存在，不存在就创建
             indexMgr.prepareIndexType(currentIndex, logFileType.toLowerCase());
@@ -230,6 +231,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
             /**
              * 用于区分不同机器上的应用实例
              */
+            line.put("appid", appid);
             line.put("ipport", ipport);
 
             irb.setSource(line);

@@ -81,13 +81,15 @@ public class GodEyeRestService extends AppHubBaseRestService {
      * ===========================================回调异步 begin===================================================
      */
 
-    private class GodEyeCB implements HttpClientCallback {
+	private class CommonCB implements HttpClientCallback {
 
         private AsyncResponse response;
+        private String method;
 
-        public GodEyeCB(AsyncResponse response) {
+        public CommonCB(AsyncResponse response, String method) {
 
             this.response = response;
+            this.method = method;
         }
 
         @Override
@@ -99,102 +101,19 @@ public class GodEyeRestService extends AppHubBaseRestService {
         @Override
         public void failed(HttpClientCallbackResult result) {
 
-            response.resume(result.getReplyDataAsString());
-        }
-    }
-
-    private class LoadAppIPLinkListCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            response.resume(result.getReplyData());
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
+            String reStr = StringHelper.isEmpty(result.getReplyDataAsString())
+                    ? "GodEyeRestService " + method + " is failed."
+                    : result.getReplyDataAsString();
+            if (result.getRetCode() != HttpStatus.SC_BAD_REQUEST) {
                 /**
                  * Confusing.......
                  */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
+                logger.err(this, "GodEyeRestService " + method + " get result is failed -returnCode["
+                        + result.getRetCode() + "] and retMsg[" + reStr + "]", result.getException());
                 response.resume(reStr);
             }
-        }
-
-    }
-
-    private class LoadAppProfileListFromHttpCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class LoadUavNetworkInfoFromHttpCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
+            else {
+                response.resume(reStr + ",exception=" + result.getException());
             }
         }
     }
@@ -251,73 +170,6 @@ public class GodEyeRestService extends AppHubBaseRestService {
              * when read data from cache fails, we could change to openTSDB
              */
             loadMonitorDataFromOpenTSDB(data, response);
-        }
-    }
-
-    private class LoadMonitorDataFromOpenTSDBCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String replyData = result.getReplyDataAsString();
-            if (logger.isDebugEnable()) {
-                logger.debug(this, "LoadMonitorDataFromOpenTSDB suc,replyDataAsString:" + replyData);
-            }
-            response.resume(replyData);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class QueryAppLogCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
         }
     }
 
@@ -429,56 +281,6 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
     }
 
-    private class NoitifyQueryCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyCountQueryCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
     private class NoitifyViewCB implements HttpClientCallback {
 
         private AsyncResponse response;
@@ -507,81 +309,6 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
             logger.err(this, "预警VIEW异常: " + log + "\r\n", result.getException());
             response.resume("F");
-        }
-    }
-
-    private class NoitifyEventCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyQueryBestCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyCountQueryBestCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
         }
     }
 
@@ -755,147 +482,6 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
     }
 
-    private class DoNodeCtrlOperationCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                logger.err(this, "Ctrl Node FAIL:returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class GetMonitorViaDbaCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.info(this, resp);
-            response.resume(resp);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.err(this, resp, result.getException());
-            response.resume(resp);
-        }
-    }
-
-    private class GetSlowSQLCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.info(this, resp);
-            response.resume(resp);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.err(this, resp, result.getException());
-            response.resume(resp);
-        }
-    }
-
-    private class ListUpgradePackageCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            response.resume(result.getReplyDataAsString());
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    /**
-     * 
-     * SearchNewLogCallback description:
-     *
-     */
-    private class SearchNewLogCallback implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public SearchNewLogCallback(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            response.resume(result.getReplyData());
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                logger.err(this, "search new log result failed -returnCode[" + result.getRetCode() + "] and retMsg["
-                        + reStr + "]", result.getException());
-                response.resume(reStr);
-            }
-
-        }
-    }
-
     /**
      * ===========================================回调异步 end===================================================
      */
@@ -962,10 +548,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         message.putRequest("appgpids", data);
 
-        LoadAppIPLinkListCB callback = new LoadAppIPLinkListCB();
-        callback.setResponse(response);
-
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message,
+                new CommonCB(response, "loadAppIPLinkList"));
     }
 
     /**
@@ -1021,9 +605,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
     private void loadAppProfileListFromHttp(UAVHttpMessage message, final AsyncResponse response) {
 
-        LoadAppProfileListFromHttpCB callback = new LoadAppProfileListFromHttpCB();
-        callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
+    	this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message,
+                new CommonCB(response, "loadAppProfileListFromHttp"));
     }
 
     /**
@@ -1064,9 +647,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
     private void loadUavNetworkInfoFromHttp(UAVHttpMessage message, final AsyncResponse response) {
 
-        LoadUavNetworkInfoFromHttpCB callback = new LoadUavNetworkInfoFromHttpCB();
-        callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.hbquery.http.addr", "/hb/query", message, callback);
+    	this.doHttpPost("uav.app.godeye.hbquery.http.addr", "/hb/query", message,
+                new CommonCB(response, "loadUavNetworkInfoFromHttp"));
     }
 
     /**
@@ -1263,10 +845,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("opentsdb.query.json", data);
         message.putRequest("datastore.name", MonitorDataFrame.MessageType.Monitor.toString());
 
-        LoadMonitorDataFromOpenTSDBCB callback = new LoadMonitorDataFromOpenTSDBCB();
-        callback.setResponse(response);
-
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                new CommonCB(response, "loadMonitorDataFromOpenTSDB"));
     }
 
     /**
@@ -1325,9 +905,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("hbase.query.json", data);
         message.putRequest("datastore.name", MonitorDataFrame.MessageType.Log.toString());
 
-        QueryAppLogCB callback = new QueryAppLogCB();
-        callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                new CommonCB(response, "queryAppLog"));
 
     }
 
@@ -1395,9 +974,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
-
         List groupList = Collections.emptyList();
         boolean checkAuthor = true;
+
         if ("NOMAPPING".equals(groups)) {
             checkAuthor = false;
         }
@@ -1408,90 +987,56 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
         else {
             String[] gs = groups.split(",");
-            StringBuilder sBuilder = new StringBuilder();
-            sBuilder.append("[");
-            for (String group : gs) {
-                sBuilder.append("{");
-                sBuilder.append("\"regex\":{\"appgroup\":\"" + group + "\"}");
-                sBuilder.append("}");
-            }
-            sBuilder.append("]");
+            groupList = new ArrayList<HashMap<String, String>>();
 
-            HashMap<String, Object> or = new HashMap<String, Object>();
-            or.put("or", JSONHelper.toObjectArray(sBuilder.toString(), Map.class));
-            HashMap<String, Object> match = new HashMap<String, Object>();
-            match.put("match", or);
-            groupList = new ArrayList<HashMap<String, Object>>();
-            groupList.add(match);
+            for (String group : gs) {
+                Map temp = new HashMap<>(1);
+                temp.put("appgroup", group);
+                groupList.add(temp);
+            }
         }
         // 数据权限end
 
         if (checkAuthor) {
             // mongodb .为关键字，封装时替换为#交由后台处理
             data = data.replaceAll("\\.", "#");
-            HashMap<String, String> jsonParam = JSONHelper.toObject(data, HashMap.class);
-
-            List<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-
-            // 过滤数据,只查询最近的指定数据 begin
-            HashMap<String, Object> sortMap = new HashMap<String, Object>();
-            HashMap<String, Object> sort = new HashMap<String, Object>();
-            sort.put("values", "time");
-            sort.put("sortorder", "-1");
-            sortMap.put("sort", sort);
-            list.add(sortMap);
-
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecordMatch.put("match", firstRecord);
-            list.add(firstRecordMatch);
+            Map whereMap = new HashMap<>();
+            whereMap.put("firstrecord", "true");
 
             // 封装组合查询条件
+            HashMap<String, String> jsonParam = JSONHelper.toObject(data, HashMap.class);
             if (jsonParam.containsKey("search")) {
                 String whereStr = "[{\"regex\":{\"ip\":\"searchValue\"}},{\"regex\":{\"eventid\":\"searchValue\"}},{\"regex\":{\"title\":\"searchValue\"}},{\"regex\":{\"host\":\"searchValue\"}}]";
                 // mongodb .为关键字，封装时替换为#交由后台处理
                 String inputSearchStr = jsonParam.get("search").replaceAll("\\.", "#");
                 whereStr = whereStr.replaceAll("searchValue", inputSearchStr);
-
-                HashMap<String, Object> or = new HashMap<String, Object>();
-                or.put("or", JSONHelper.toObjectArray(whereStr, Map.class));
-                HashMap<String, Object> match = new HashMap<String, Object>();
-                match.put("match", or);
-                list.add(match);
+                whereMap.put("or1", JSONHelper.toObjectArray(whereStr, Map.class));
             }
 
-            // and
             if (!groupList.isEmpty()) {
-                list.addAll(groupList);
+                whereMap.put("or2", groupList);
             }
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
-            
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
-            // 过滤数据,只查询最近的指定数据 end
+            // 以最近触发预警记录的时间排序
+            Map sortMap = new HashMap<>();
+            sortMap.put("values", "latestrecord_ts");
+            sortMap.put("sortorder", "-1");
 
-            HashMap<String, Object> pageIndex = new HashMap<String, Object>();
-            HashMap<String, Object> pageSize = new HashMap<String, Object>();
-            pageIndex.put("pageindex", String.valueOf(jsonParam.get("pageindex")));
-            pageSize.put("pagesize", String.valueOf(jsonParam.get("pagesize")));
-            list.add(pageIndex);
-            list.add(pageSize);
+            Map map = new HashMap();
+            map.put("sort", sortMap);
+            map.put("limit", mongodbQueryRangeMap.get("limit"));
+            map.put("pageindex", String.valueOf(jsonParam.get("pageindex")));
+            map.put("pagesize", String.valueOf(jsonParam.get("pagesize")));
+            map.put("where", whereMap);
 
             // 封装http请求数据
             UAVHttpMessage message = new UAVHttpMessage();
-            message.putRequest("mgo.sql", JSONHelper.toString(list));
+            message.putRequest("mgo.sql", JSONHelper.toString(map));
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyQueryCB callback = new NoitifyQueryCB();
-            callback.setResponse(response);
-
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "noitifyQuery"));
         }
         else {
             response.resume("{\"rs\":\"[]\"}");
@@ -1507,9 +1052,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
-
         List groupList = Collections.emptyList();
         boolean checkAuthor = true;
+
         if ("NOMAPPING".equals(groups)) {
             checkAuthor = false;
         }
@@ -1520,88 +1065,49 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
         else {
             String[] gs = groups.split(",");
-            StringBuilder sBuilder = new StringBuilder();
-            sBuilder.append("[");
-            for (String group : gs) {
-                sBuilder.append("{");
-                sBuilder.append("\"regex\":{\"appgroup\":\"" + group + "\"}");
-                sBuilder.append("}");
-            }
-            sBuilder.append("]");
+            groupList = new ArrayList<HashMap<String, String>>();
 
-            HashMap<String, Object> or = new HashMap<String, Object>();
-            or.put("or", JSONHelper.toObjectArray(sBuilder.toString(), Map.class));
-            HashMap<String, Object> match = new HashMap<String, Object>();
-            match.put("match", or);
-            groupList = new ArrayList<HashMap<String, Object>>();
-            groupList.add(match);
+            for (String group : gs) {
+                Map temp = new HashMap<>(1);
+                temp.put("appgroup", group);
+                groupList.add(temp);
+            }
         }
         // 数据权限end
 
         if (checkAuthor) {
             // mongodb .为关键字，封装时替换为#交由后台处理
             data = data.replaceAll("\\.", "#");
-            HashMap<String, String> jsonParam = JSONHelper.toObject(data, HashMap.class);
-
-            List<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-
-            // 过滤数据,只查询最近的指定数据 begin
-            HashMap<String, Object> sortMap = new HashMap<String, Object>();
-            HashMap<String, Object> sort = new HashMap<String, Object>();
-            sort.put("values", "time");
-            sort.put("sortorder", "-1");
-            sortMap.put("sort", sort);
-            list.add(sortMap);
-
-            HashMap<String, Object> requestParam = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            firstRecordMatch.put("match", firstRecord);
-            list.add(firstRecordMatch);
-
-            // 过滤数据,只查询最近的指定数据 end
+            Map whereMap = new HashMap<>();
+            whereMap.put("firstrecord", "true");
 
             // 封装组合查询条件
+            HashMap<String, String> jsonParam = JSONHelper.toObject(data, HashMap.class);
             if (jsonParam.containsKey("search")) {
                 String whereStr = "[{\"regex\":{\"ip\":\"searchValue\"}},{\"regex\":{\"eventid\":\"searchValue\"}},{\"regex\":{\"title\":\"searchValue\"}},{\"regex\":{\"host\":\"searchValue\"}}]";
                 // mongodb .为关键字，封装时替换为#交由后台处理
                 String inputSearchStr = jsonParam.get("search").replaceAll("\\.", "#");
                 whereStr = whereStr.replaceAll("searchValue", inputSearchStr);
-
-                HashMap<String, Object> or = new HashMap<String, Object>();
-                or.put("or", JSONHelper.toObjectArray(whereStr, Map.class));
-                HashMap<String, Object> match = new HashMap<String, Object>();
-                match.put("match", or);
-                list.add(match);
+                whereMap.put("or1", JSONHelper.toObjectArray(whereStr, Map.class));
             }
 
-            // and
             if (!groupList.isEmpty()) {
-                list.addAll(groupList);
+                whereMap.put("or2", groupList);
             }
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
-
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
-            
-            requestParam.put("count", "true");
-            list.add(requestParam);
+            Map map = new HashMap();
+            map.put("limit", mongodbQueryRangeMap.get("limit"));
+            map.put("where", whereMap);
+            map.put("count", "true");
 
             // 封装http请求数据
             UAVHttpMessage message = new UAVHttpMessage();
-            message.putRequest("mgo.sql", JSONHelper.toString(list));
+            message.putRequest("mgo.sql", JSONHelper.toString(map));
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyCountQueryCB callback = new NoitifyCountQueryCB();
-            callback.setResponse(response);
-
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "noitifyCountQuery"));
         }
         else {
             response.resume("{'rs':'[{\"count\":15}]'}");
@@ -1669,7 +1175,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         sort.put("sortorder", "-1");
         sortMap.put("sort", sort);
         list.add(sortMap);
-        
+
         // modify start : 只返回firstrecord为true的事件id
         HashMap<String, Object> firstRecord = new HashMap<String, Object>();
         HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
@@ -1695,10 +1201,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("datastore.name", "MT_Notify");
         message.putRequest("mgo.coll.name", "uav_notify");
 
-        NoitifyEventCB callback = new NoitifyEventCB();
-        callback.setResponse(response);
-
-        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                new CommonCB(response, "noitifyEvent"));
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -1709,9 +1213,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
-
         List groupList = Collections.emptyList();
         boolean checkAuthor = true;
+
         if ("NOMAPPING".equals(groups)) {
             checkAuthor = false;
         }
@@ -1722,140 +1226,77 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
         else {
             String[] gs = groups.split(",");
-            StringBuilder sBuilder = new StringBuilder();
-            sBuilder.append("[");
-            for (String group : gs) {
-                sBuilder.append("{");
-                sBuilder.append("\"regex\":{\"appgroup\":\"" + group + "\"}");
-                sBuilder.append("}");
-            }
-            sBuilder.append("]");
+            groupList = new ArrayList<HashMap<String, String>>();
 
-            HashMap<String, Object> or = new HashMap<String, Object>();
-            or.put("or", JSONHelper.toObjectArray(sBuilder.toString(), Map.class));
-            HashMap<String, Object> match = new HashMap<String, Object>();
-            match.put("match", or);
-            groupList = new ArrayList<HashMap<String, Object>>();
-            groupList.add(match);
+            for (String group : gs) {
+                Map temp = new HashMap<>(1);
+                temp.put("appgroup", group);
+                groupList.add(temp);
+            }
         }
         // 数据权限end
 
         if (checkAuthor) {
             // mongodb .为关键字，封装时替换为#交由后台处理
             data = data.replaceAll("\\.", "#");
+            Map whereMap = new HashMap<>();
+            Map regexMap = new HashMap<>();
+
+            // 封装组合查询条件
             HashMap<String, String> jsonParam = JSONHelper.toObject(data, HashMap.class);
-
-            List<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-
-            // 过滤数据,只查询最近的指定数据 begin
-            HashMap<String, Object> sortMap = new HashMap<String, Object>();
-            HashMap<String, Object> sort = new HashMap<String, Object>();
-            sort.put("values", "time");
-            sort.put("sortorder", "-1");
-            sortMap.put("sort", sort);
-            list.add(sortMap);
-
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            firstRecordMatch.put("match", firstRecord);
-            list.add(firstRecordMatch);
-
-            // 过滤数据,只查询最近的指定数据 end
-
-            // 封装组合查询条件 list.add = and
-            if (jsonParam.containsKey("event")) {
-                HashMap<String, Object> eventMap = new HashMap<String, Object>();
-                HashMap<String, Object> eventMatch = new HashMap<String, Object>();
-                eventMap.put("eventid", jsonParam.get("event"));
-                eventMatch.put("match", eventMap);
-                list.add(eventMatch);
-            }
             if (jsonParam.containsKey("ip")) {
-                HashMap<String, Object> ipMap = new HashMap<String, Object>();
-                HashMap<String, Object> ipRegex = new HashMap<String, Object>();
-                HashMap<String, Object> ipMatch = new HashMap<String, Object>();
-                ipMap.put("ip", jsonParam.get("ip"));
-                ipRegex.put("regex", ipMap);
-                ipMatch.put("match", ipRegex);
-                list.add(ipMatch);
+                regexMap.put("ip", jsonParam.get("ip"));
             }
             if (jsonParam.containsKey("host")) {
-                HashMap<String, Object> hostMap = new HashMap<String, Object>();
-                HashMap<String, Object> hostRegex = new HashMap<String, Object>();
-                HashMap<String, Object> hostMatch = new HashMap<String, Object>();
-                hostMap.put("host", jsonParam.get("host"));
-                hostRegex.put("regex", hostMap);
-                hostMatch.put("match", hostRegex);
-                list.add(hostMatch);
+                regexMap.put("host", jsonParam.get("host"));
             }
             if (jsonParam.containsKey("description")) {
-                HashMap<String, Object> descriptionMap = new HashMap<String, Object>();
-                HashMap<String, Object> descriptionRegex = new HashMap<String, Object>();
-                HashMap<String, Object> descriptionMatch = new HashMap<String, Object>();
-                descriptionMap.put("description", jsonParam.get("description"));
-                descriptionRegex.put("regex", descriptionMap);
-                descriptionMatch.put("match", descriptionRegex);
-                list.add(descriptionMatch);
+                regexMap.put("description", jsonParam.get("description"));
             }
             if (jsonParam.containsKey("abstract")) {
-                HashMap<String, Object> abstractMap = new HashMap<String, Object>();
-                HashMap<String, Object> abstractRegex = new HashMap<String, Object>();
-                HashMap<String, Object> abstractMatch = new HashMap<String, Object>();
-                abstractMap.put("title", jsonParam.get("abstract"));
-                abstractRegex.put("regex", abstractMap);
-                abstractMatch.put("match", abstractRegex);
-                list.add(abstractMatch);
+                regexMap.put("title", jsonParam.get("abstract"));
+            }
+            if (jsonParam.containsKey("event")) {
+                whereMap.put("eventid", jsonParam.get("event"));
             }
             if (jsonParam.containsKey("startTime")) {
-                HashMap<String, Object> startTime = new HashMap<String, Object>();
-                HashMap<String, Object> startTimeRegex = new HashMap<String, Object>();
-                HashMap<String, Object> startTimeMatch = new HashMap<String, Object>();
+                Map startTime = new HashMap<>(1);
                 startTime.put("latestrecord_ts", jsonParam.get("startTime"));
-                startTimeRegex.put(">", startTime);
-                startTimeMatch.put("match", startTimeRegex);
-                list.add(startTimeMatch);
+                whereMap.put(">", startTime);
             }
             if (jsonParam.containsKey("endTime")) {
-                HashMap<String, Object> endTime = new HashMap<String, Object>();
-                HashMap<String, Object> endTimeRegex = new HashMap<String, Object>();
-                HashMap<String, Object> endTimeMatch = new HashMap<String, Object>();
+                Map endTime = new HashMap<>(1);
                 endTime.put("latestrecord_ts", jsonParam.get("endTime"));
-                endTimeRegex.put("<", endTime);
-                endTimeMatch.put("match", endTimeRegex);
-                list.add(endTimeMatch);
+                whereMap.put("<", endTime);
             }
 
             if (!groupList.isEmpty()) {
-                list.addAll(groupList);
+                whereMap.put("or", groupList);
             }
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
+            whereMap.put("firstrecord", "true");
+            whereMap.put("regex", regexMap);
 
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
+            // 以最近触发预警记录的时间排序
+            Map sortMap = new HashMap<>();
+            sortMap.put("values", "latestrecord_ts");
+            sortMap.put("sortorder", "-1");
 
-            HashMap<String, Object> pageIndex = new HashMap<String, Object>();
-            HashMap<String, Object> pageSize = new HashMap<String, Object>();
-            HashMap<String, Object> pageSortOrder = new HashMap<String, Object>();
-            pageIndex.put("pageindex", String.valueOf(jsonParam.get("pageindex")));
-            pageSize.put("pagesize", String.valueOf(jsonParam.get("pagesize")));
-            list.add(pageIndex);
-            list.add(pageSize);
-            list.add(pageSortOrder);
+            Map map = new HashMap();
+            map.put("sort", sortMap);
+            map.put("limit", mongodbQueryRangeMap.get("limit"));
+            map.put("pageindex", String.valueOf(jsonParam.get("pageindex")));
+            map.put("pagesize", String.valueOf(jsonParam.get("pagesize")));
+            map.put("where", whereMap);
 
             // 封装http请求数据
             UAVHttpMessage message = new UAVHttpMessage();
-            message.putRequest("mgo.sql", JSONHelper.toString(list));
+            message.putRequest("mgo.sql", JSONHelper.toString(map));
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyQueryBestCB callback = new NoitifyQueryBestCB();
-            callback.setResponse(response);
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "noitifyQueryBest"));
         }
 
     }
@@ -1868,9 +1309,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
-
         List groupList = Collections.emptyList();
         boolean checkAuthor = true;
+
         if ("NOMAPPING".equals(groups)) {
             checkAuthor = false;
         }
@@ -1881,135 +1322,70 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
         else {
             String[] gs = groups.split(",");
-            StringBuilder sBuilder = new StringBuilder();
-            sBuilder.append("[");
-            for (String group : gs) {
-                sBuilder.append("{");
-                sBuilder.append("\"regex\":{\"appgroup\":\"" + group + "\"}");
-                sBuilder.append("}");
-            }
-            sBuilder.append("]");
+            groupList = new ArrayList<HashMap<String, String>>();
 
-            HashMap<String, Object> or = new HashMap<String, Object>();
-            or.put("or", JSONHelper.toObjectArray(sBuilder.toString(), Map.class));
-            HashMap<String, Object> match = new HashMap<String, Object>();
-            match.put("match", or);
-            groupList = new ArrayList<HashMap<String, Object>>();
-            groupList.add(match);
+            for (String group : gs) {
+                Map temp = new HashMap<>(1);
+                temp.put("appgroup", group);
+                groupList.add(temp);
+            }
         }
         // 数据权限end
 
         if (checkAuthor) {
             // mongodb .为关键字，封装时替换为#交由后台处理
             data = data.replaceAll("\\.", "#");
+            Map whereMap = new HashMap<>();
+            Map regexMap = new HashMap<>();
+
+            // 封装组合查询条件
             HashMap<String, String> jsonParam = JSONHelper.toObject(data, HashMap.class);
-
-            List<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-
-            // 过滤数据,只查询最近的指定数据 begin
-            HashMap<String, Object> sortMap = new HashMap<String, Object>();
-            HashMap<String, Object> sort = new HashMap<String, Object>();
-            sort.put("values", "time");
-            sort.put("sortorder", "-1");
-            sortMap.put("sort", sort);
-            list.add(sortMap);
-
-            HashMap<String, Object> requestParam = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecord = new HashMap<String, Object>();
-            HashMap<String, Object> firstRecordMatch = new HashMap<String, Object>();
-            firstRecord.put("firstrecord", "true");
-            firstRecordMatch.put("match", firstRecord);
-            list.add(firstRecordMatch);
-
-            // 过滤数据,只查询最近的指定数据 end
-
-            // 封装组合查询条件 list.add = and
-            if (jsonParam.containsKey("event")) {
-                HashMap<String, Object> eventMap = new HashMap<String, Object>();
-                HashMap<String, Object> eventMatch = new HashMap<String, Object>();
-                eventMap.put("eventid", jsonParam.get("event"));
-                eventMatch.put("match", eventMap);
-                list.add(eventMatch);
-            }
             if (jsonParam.containsKey("ip")) {
-                HashMap<String, Object> ipMap = new HashMap<String, Object>();
-                HashMap<String, Object> ipRegex = new HashMap<String, Object>();
-                HashMap<String, Object> ipMatch = new HashMap<String, Object>();
-                ipMap.put("ip", jsonParam.get("ip"));
-                ipRegex.put("regex", ipMap);
-                ipMatch.put("match", ipRegex);
-                list.add(ipMatch);
+                regexMap.put("ip", jsonParam.get("ip"));
             }
             if (jsonParam.containsKey("host")) {
-                HashMap<String, Object> hostMap = new HashMap<String, Object>();
-                HashMap<String, Object> hostRegex = new HashMap<String, Object>();
-                HashMap<String, Object> hostMatch = new HashMap<String, Object>();
-                hostMap.put("host", jsonParam.get("host"));
-                hostRegex.put("regex", hostMap);
-                hostMatch.put("match", hostRegex);
-                list.add(hostMatch);
+                regexMap.put("host", jsonParam.get("host"));
             }
             if (jsonParam.containsKey("description")) {
-                HashMap<String, Object> descriptionMap = new HashMap<String, Object>();
-                HashMap<String, Object> descriptionRegex = new HashMap<String, Object>();
-                HashMap<String, Object> descriptionMatch = new HashMap<String, Object>();
-                descriptionMap.put("description", jsonParam.get("description"));
-                descriptionRegex.put("regex", descriptionMap);
-                descriptionMatch.put("match", descriptionRegex);
-                list.add(descriptionMatch);
+                regexMap.put("description", jsonParam.get("description"));
             }
             if (jsonParam.containsKey("abstract")) {
-                HashMap<String, Object> abstractMap = new HashMap<String, Object>();
-                HashMap<String, Object> abstractRegex = new HashMap<String, Object>();
-                HashMap<String, Object> abstractMatch = new HashMap<String, Object>();
-                abstractMap.put("title", jsonParam.get("abstract"));
-                abstractRegex.put("regex", abstractMap);
-                abstractMatch.put("match", abstractRegex);
-                list.add(abstractMatch);
+                regexMap.put("title", jsonParam.get("abstract"));
+            }
+            if (jsonParam.containsKey("event")) {
+                whereMap.put("eventid", jsonParam.get("event"));
             }
             if (jsonParam.containsKey("startTime")) {
-                HashMap<String, Object> startTime = new HashMap<String, Object>();
-                HashMap<String, Object> startTimeRegex = new HashMap<String, Object>();
-                HashMap<String, Object> startTimeMatch = new HashMap<String, Object>();
+                Map startTime = new HashMap<>(1);
                 startTime.put("latestrecord_ts", jsonParam.get("startTime"));
-                startTimeRegex.put(">", startTime);
-                startTimeMatch.put("match", startTimeRegex);
-                list.add(startTimeMatch);
+                whereMap.put(">", startTime);
             }
             if (jsonParam.containsKey("endTime")) {
-                HashMap<String, Object> endTime = new HashMap<String, Object>();
-                HashMap<String, Object> endTimeRegex = new HashMap<String, Object>();
-                HashMap<String, Object> endTimeMatch = new HashMap<String, Object>();
+                Map endTime = new HashMap<>(1);
                 endTime.put("latestrecord_ts", jsonParam.get("endTime"));
-                endTimeRegex.put("<", endTime);
-                endTimeMatch.put("match", endTimeRegex);
-                list.add(endTimeMatch);
+                whereMap.put("<", endTime);
             }
 
             if (!groupList.isEmpty()) {
-                list.addAll(groupList);
+                whereMap.put("or", groupList);
             }
 
-            HashMap<String, Object> skipMap = new HashMap<String, Object>();
-            skipMap.put("skip", mongodbQueryRangeMap.get("skip"));
-            list.add(skipMap);
+            whereMap.put("firstrecord", "true");
+            whereMap.put("regex", regexMap);
 
-            HashMap<String, Object> limitMap = new HashMap<String, Object>();
-            limitMap.put("limit", mongodbQueryRangeMap.get("limit"));
-            list.add(limitMap);
-            
-            requestParam.put("count", "true");
-            list.add(requestParam);
+            Map map = new HashMap();
+            map.put("limit", mongodbQueryRangeMap.get("limit"));
+            map.put("where", whereMap);
+            map.put("count", "true");
 
             // 封装http请求数据
             UAVHttpMessage message = new UAVHttpMessage();
-            message.putRequest("mgo.sql", JSONHelper.toString(list));
+            message.putRequest("mgo.sql", JSONHelper.toString(map));
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyCountQueryBestCB callback = new NoitifyCountQueryBestCB();
-            callback.setResponse(response);
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "noitifyCountQueryBest"));
         }
 
     }
@@ -2160,10 +1536,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
                     + DateTimeHelper.toStandardDateFormat(timeStamp));
         }
 
-        DoNodeCtrlOperationCB callback = new DoNodeCtrlOperationCB();
-        callback.setResponse(response);
-
-        this.doHttpPost(nodeUrl, null, msg, callback);
+        this.doHttpPost(nodeUrl, null, msg, new CommonCB(response, "doNodeCtrlOperation"));
     }
 
     // ----------------------------------------- database info -------------------------------------
@@ -2173,22 +1546,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
     public void getMonitorViaDba(String data, @Suspended AsyncResponse response) {
 
         logger.info(this, data);
-        GetMonitorViaDbaCB callback = new GetMonitorViaDbaCB();
-        callback.setResponse(response);
-
-        doHttpPost("uav.app.godeye.database.http.addr", "/graph/history", data, callback);
-    }
-
-    @POST
-    @Path("monitor/q/slowsql")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void getSlowSQL(String data, @Suspended AsyncResponse response) {
-
-        logger.info(this, data);
-        GetSlowSQLCB callback = new GetSlowSQLCB();
-        callback.setResponse(response);
-
-        doHttpPost("uav.app.godeye.database.http.addr", "/top/sql/count", data, callback);
+        doHttpPost("uav.app.godeye.database.http.addr", "/graph/history", data,
+                new CommonCB(response, "getMonitorViaDba"));
     }
 
     // -----------------------------------------filter begin -------------------------------------
@@ -2420,10 +1779,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         logger.info(this, "http get node/upgrade/list/" + softwareId);
 
-        ListUpgradePackageCB callback = new ListUpgradePackageCB();
-        callback.setResponse(resp);
         doHttpPost("uav.app.upgrade.server.http.addr", "/uav/upgrade?target=list&softwareId=" + softwareId, "",
-                callback);
+                new CommonCB(resp, "listUpgradePackage"));
         return null;
     }
 
@@ -2442,7 +1799,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        doHttpPost("uav.app.hm.newlog.http.addr", "/newlog/q", msg, new SearchNewLogCallback(resp));
+        doHttpPost("uav.app.hm.newlog.http.addr", "/newlog/q", msg, new CommonCB(resp, "searchNewLog"));
     }
     // ---------------------------------------新日志服务接口 END-------------------------------------
 
@@ -2488,7 +1845,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request,
+                new CommonCB(resp, "saveFeedback"));
     }
 
     @SuppressWarnings("unchecked")
@@ -2533,7 +1891,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request,
+                new CommonCB(resp, "queryFeedback"));
     }
 
     @SuppressWarnings("unchecked")
@@ -2572,8 +1931,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("mrd.data", JSONHelper.toString(mapParam));
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
-
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
+        
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request,
+                new CommonCB(resp, "queryFeedbackCount"));
 
     }
     // ---------------------------------------反馈建议 END-----------------------------------

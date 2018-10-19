@@ -113,8 +113,9 @@ public class ThreadAnalysisSupporter extends Supporter {
         // 端口号
         String port = UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_LISTEN_PORT) + "";
 
-        String jdkBinPath = getJdkBinPath();
-        if (!IOHelper.exists(jdkBinPath)) {
+        boolean isWin = JVMToolHelper.isWindows();
+        String jstackPath = getJdkJstackPath(isWin);
+        if (null == jstackPath) {
             // 如果没有获取到java_home，返回结果
             return "ERR:NO JDK";
         }
@@ -130,13 +131,12 @@ public class ThreadAnalysisSupporter extends Supporter {
         String file = fileBase + "/" + name;
 
         // 生成线程分析结果文件需要执行的命令
-        boolean isWin = JVMToolHelper.isWindows();
         if (isWin) {
-            cmd = jdkBinPath + "/jstack " + pid + " >> " + file;
+            cmd = jstackPath + " " + pid + " >> " + file;        
         }
         else {
-            cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jdkBinPath
-                    + "/jstack " + pid + " >>  " + file;
+            cmd = " top -Hp " + pid + " bn 1 > " + file + " && echo '=====' >> " + file + " && " + jstackPath 
+                    + " " + pid + " >>  " + file;
         }
 
         // 生成线程分析文件即将开始运行，在日志中记录开始运行记录
@@ -223,5 +223,47 @@ public class ThreadAnalysisSupporter extends Supporter {
         }
         // 获取java_home bin的路径
         return javahome + "../bin";
+    }
+    
+    private String findJstackPath(String findPath, Boolean isWindow) {
+        
+        File findDir = new File(findPath);
+        File[] files = findDir.listFiles();
+        for (File file : files) {
+            if (file.isDirectory() && file.getName().toLowerCase().contains("jdk")) {
+                String tmpPath = file.getAbsolutePath() + "/bin/" + "jstack";
+                if(isWindow) {
+                    tmpPath += ".exe";
+                }
+                File tmpFile = new File(tmpPath);
+                if(tmpFile.exists()) {
+                    return tmpPath;
+                }
+            }
+        }
+        return null;
+    }
+    
+    private String getJdkJstackPath(boolean isWin) {
+
+        // 获取java_home路径
+        String javahome = System.getProperty("java.home");
+        // 路径是否由“/”结束，没有则添加
+        if (!javahome.endsWith("/")) {
+            javahome = javahome + "/";
+        }
+        
+        // 获取java_home bin的路径
+        String jstackPath = javahome + "../bin/" + "jstack";
+        if(isWin) {
+            jstackPath += ".exe";
+        }
+        if(IOHelper.exists(jstackPath)) {
+            return jstackPath;
+        }
+
+        // jre平级目录下寻找jdk
+        String findJdkPath = javahome + "../";
+        return findJstackPath(findJdkPath, isWin);      
     }
 }

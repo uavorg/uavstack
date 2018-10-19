@@ -21,33 +21,29 @@
 package com.creditease.uav.healthmanager.newlog;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.creditease.agent.helpers.DateTimeHelper;
 import com.creditease.agent.spi.AbstractComponent;
 import com.creditease.uav.elasticsearch.client.ESClient;
+import com.creditease.uav.elasticsearch.index.ESIndexHelper;
 
 /**
- * 
  * HMNewLogIndexMgr description: 日志索引的管理
  * 
- * 日志的索引以应用类型区分，每个应用类型为一个日志索引（Index），应用类型就是appid
+ * 每天自动建立一个全局索引，命名为uav_applog_yyyy-MM-dd，type与日志文件名相关。
  * 
- * 每个应用类型下不同的日志文件，以Type区分
- * 
- * 每个应用类型的日志索引也是按一个自然周（7天）一次切分，即每周日，产生一个新的索引来保存所有新的日志
- * 
- * 实际从实时运维角度日志也是时效性高，对时间跨度范围查询要求不高，只有在统计的时候才需要
- * 
- * 便于对不同的应用类型进行日志清理的策略
- *
  */
 public class HMNewLogIndexMgr extends AbstractComponent {
 
-    private static final String AppLog = "applog_";
+    private static final String AppLog = "applog";
+    /**
+     * Strings longer than the ignore_above setting will not be indexed This option is also useful for protecting
+     * against Lucene’s term byte-length limit of 32766 The value for ignore_above is the character count, but Lucene
+     * counts bytes. If you use UTF-8 text with many non-ASCII characters, you may want to set the limit to 32766 / 3 =
+     * 10922 since UTF-8 characters may occupy at most 3 bytes
+     */
+    private static final int IGNORE_ABOVE = 32766 / 3;
 
     private ESClient client;
 
@@ -59,78 +55,35 @@ public class HMNewLogIndexMgr extends AbstractComponent {
     }
 
     /**
-     * 获取当前正在使用的索引名称AppLog_<appid>_<所属周的周日日期>
+     * 获取日期对应的索引
      * 
-     * 判断当前是属于那个周的索引，命名是以周日开头的那天日期，比如2017-06-25（周日）
-     * 
-     * 举例： 2017-06-24的数据实际是在2017-06-18（周日）的索引里面
-     * 
-     * @param appid
+     * @param date
+     *            yyyy-MM-dd
      * @return
      */
-    public String getIndexByDate(String date, String appid) {
+    public String getIndexByDate(String date) {
 
-        Date d = DateTimeHelper.convertToDate(date);
-
-        Calendar c = Calendar.getInstance();
-
-        c.setTime(d);
-
-        return this.getCurrentIndex(c, appid, 0);
+        return ESIndexHelper.getIndexOfDay(AppLog, date);
     }
 
     /**
-     * getCurrentIndex
+     * 获取当前的索引
      * 
-     * @param c
-     * @param appid
-     * @param when
      * @return
      */
-    private String getCurrentIndex(Calendar c, String appid, int when) {
+    public String getCurrentIndex() {
 
-        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK) - 1;
-
-        Date d = DateTimeHelper.dateAdd(DateTimeHelper.INTERVAL_DAY, c.getTime(), -dayOfWeek);
-
-        if (when != 0) {
-            d = DateTimeHelper.dateAdd(DateTimeHelper.INTERVAL_WEEK, d, when);
-        }
-
-        return AppLog + formatAppid(appid) + "_" + DateTimeHelper.toFormat("yyyy-MM-dd", d.getTime());
-    }
-
-    /**
-     * 格式化一些不符合ES规范的字符
-     * 
-     * @param appid
-     * @return
-     */
-    private String formatAppid(String appid) {
-
-        return appid.toLowerCase().replace('.', '_');
-    }
-
-    /**
-     * getCurrentIndex
-     * 
-     * @param appid
-     * @return
-     */
-    public String getCurrentIndex(String appid) {
-
-        return this.getCurrentIndex(Calendar.getInstance(), appid, 0);
+        return ESIndexHelper.getIndexOfDay(AppLog);
     }
 
     /**
      * 准备索引，没有就创建
      * 
-     * @param appid
      * @return
      */
-    public String prepareIndex(String appid) {
+    public String prepareIndex() {
 
-        String currentIndex = getCurrentIndex(appid);
+        String currentIndex = getCurrentIndex();
 
         if (client.existIndex(currentIndex) == true) {
             return currentIndex;
@@ -143,8 +96,8 @@ public class HMNewLogIndexMgr extends AbstractComponent {
             }
 
             Map<String, String> set = new HashMap<String, String>();
-            set.put("index.number_of_shards", "2");
-            set.put("index.number_of_replicas", "0");
+            set.put("index.number_of_shards", "5");
+            set.put("index.number_of_replicas", "1");
 
             try {
                 client.creatIndex(currentIndex, null, set, null);
@@ -153,14 +106,12 @@ public class HMNewLogIndexMgr extends AbstractComponent {
                 log.err(this, "create ES Index FAIL: ", e);
             }
 
-            String sappid = formatAppid(appid);
-
             /**
              * 变更别名到当前新的Index
              */
-            String previousIndex = this.getCurrentIndex(Calendar.getInstance(), appid, -1);
-            client.addIndexAlias(currentIndex, AppLog + sappid);
-            client.removeIndexAlias(previousIndex, AppLog + sappid);
+            String previousIndex = this.getPreviousIndex();
+            client.addIndexAlias(currentIndex, AppLog);
+            client.removeIndexAlias(previousIndex, AppLog);
 
         }
 
@@ -170,12 +121,12 @@ public class HMNewLogIndexMgr extends AbstractComponent {
     /**
      * 检查type是否存在，如果不存在就创建Mapping
      * 
-     * @param appid
+     * @param index
      * @param type
      */
-    public void prepareIndexType(String appid, String type) {
+    public void prepareIndexType(String index, String type) {
 
-        boolean check = client.existType(appid, type);
+        boolean check = client.existType(index, type);
 
         if (check == true) {
             return;
@@ -183,44 +134,40 @@ public class HMNewLogIndexMgr extends AbstractComponent {
 
         synchronized (this) {
 
-            check = client.existType(appid, type);
+            check = client.existType(index, type);
 
             if (check == true) {
                 return;
             }
 
             Map<String, Map<String, Object>> mapping = new HashMap<>();
+            Map<String, Object> fields = new HashMap<>();
 
-            // 设置
-            Map<String, Object> sfields = new HashMap<>();
-
-            sfields.put("type", "keyword");
-
-            mapping.put("ipport", sfields);
+            fields.put("type", "keyword");
+            mapping.put("ipport", fields);
+            mapping.put("appid", fields);
 
             // 设置分词器
             Map<String, Object> multiFields = new HashMap<>();
-
-            multiFields.put("type", "text");
-
             Map<String, Object> afields = new HashMap<>();
-
-            multiFields.put("fields", afields);
-
             Map<String, String> fmapping = new HashMap<>();
-
-            afields.put("chinese", fmapping);
+            Map<String, Object> sfields = new HashMap<>();
 
             fmapping.put("type", "text");
             fmapping.put("include_in_all", "true");
             fmapping.put("analyzer", "ik_max_word");
             fmapping.put("search_analyzer", "ik_max_word");
 
+            sfields.put("type", "keyword");
+            sfields.put("ignore_above", IGNORE_ABOVE);
+
             /**
              * field: astring, 可以按字符串匹配
              */
             afields.put("asstring", sfields);
-
+            afields.put("chinese", fmapping);
+            multiFields.put("fields", afields);
+            multiFields.put("type", "text");
             mapping.put("content", multiFields);
 
             /**
@@ -229,18 +176,29 @@ public class HMNewLogIndexMgr extends AbstractComponent {
             Map<String, Object> timestamp = new HashMap<>();
             Map<String, Object> timefields = new HashMap<>();
             Map<String, Object> longType = new HashMap<>();
-            mapping.put("l_timestamp", timestamp);
-            timestamp.put("type", "date");
-            timestamp.put("fields", timefields);
-            timefields.put("long", longType);
+
             longType.put("type", "long");
+            timefields.put("long", longType);
+            timestamp.put("fields", timefields);
+            timestamp.put("type", "date");
+            mapping.put("l_timestamp", timestamp);
 
             try {
-                client.setIndexTypeMapping(appid, type.toLowerCase(), mapping);
+                client.setIndexTypeMapping(index, type.toLowerCase(), mapping);
             }
             catch (IOException e) {
                 log.err(this, "Set ES Index Type Mapping FAIL: ", e);
             }
         }
+    }
+
+    /**
+     * 获取前一天的索引
+     * 
+     * @return
+     */
+    private String getPreviousIndex() {
+
+        return ESIndexHelper.getIndexOfDay(AppLog, -1);
     }
 }

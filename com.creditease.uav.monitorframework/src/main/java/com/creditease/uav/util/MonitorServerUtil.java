@@ -39,6 +39,23 @@ import com.creditease.monitor.captureframework.spi.MonitorElementInstance;
 
 public class MonitorServerUtil {
 
+    public enum AppIDPolicy {
+
+        Default("default"), Custom("custom"), Suffix("suffix");
+
+        private String policy;
+
+        private AppIDPolicy(String s) {
+            this.policy = s;
+        }
+        
+        @Override
+        public String toString() {
+            
+            return this.policy;
+        }
+    }
+
     /**
      * 
      * OracleTokenBuffer description: 解析Oracle数据库连接字符串，God
@@ -302,7 +319,10 @@ public class MonitorServerUtil {
     }
 
     /**
-     * get application id through context root or basePath
+     * get application id through context root or basePath and JAppID
+     * 
+     * Don't use Custom Policy when there are multiple apps in the server.
+     * Beause AppID for all apps is the same.
      * 
      * @param contextroot
      * @param basePath
@@ -310,56 +330,39 @@ public class MonitorServerUtil {
      */
     public static String getApplicationId(String contextroot, String basePath) {
 
-        String appid = "";
-
-        if ("".equals(contextroot)) {
-
-            /*
-             * NOTE: springboot's basePath is a random temp directory,so we use main(usually the jar name) as the appid
-             */
-            if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
-                    .equals(UAVServer.ServerVendor.SPRINGBOOT)) {
-
-                String javaCommand = System.getProperty("sun.java.command");
-
-                appid = javaCommand.split(" ")[0];
-
-            }
-            else {
-                String tmp = basePath.replace("\\", "/");
-                int index = tmp.lastIndexOf("/");
-                
-                /** 
-                 * "/app/xxxxx/" remove the last "/" to get the appid 
-                 */ 
-                if (index == tmp.length() - 1) { 
-                    tmp = tmp.substring(0, tmp.length() - 1); 
-                    index = tmp.lastIndexOf("/"); 
-                }
-
-                appid = tmp.substring(index + 1);
-            }
+        String appid = System.getProperty("JAppID");
+        String policy = System.getProperty("JAppIDPolicy");
+        AppIDPolicy ap;
+        
+        if(!StringHelper.isEmpty(appid)) {
+            // 过滤JAppID配置的特殊字符
+            appid = appid.replace("/", "").replace("\\", "");
+        }
+        
+        if (StringHelper.isEmpty(appid) || StringHelper.isEmpty(policy) || policy.equals("default") || 
+                "/com.creditease.uav".equals(contextroot)) {
+            ap = AppIDPolicy.Default;
+        }
+        else if (policy.equals("custom")) {
+            ap = AppIDPolicy.Custom;
+        }
+        else if (policy.equals("suffix")) {
+            ap = AppIDPolicy.Suffix;
         }
         else {
-            appid = contextroot;
+            ap = AppIDPolicy.Default;
         }
 
-        // 去除最开始的"/"
-        if (appid.indexOf("/") == 0) {
-            appid = appid.substring(1);
+        switch (ap) {
+            case Default:
+                return getDefaultApplicationId(contextroot, basePath);
+            case Custom:
+                return appid;
+            case Suffix:
+                return getDefaultApplicationId(contextroot, basePath) + "__" + appid;
+            default:
+                return getDefaultApplicationId(contextroot, basePath);
         }
-        /**
-         * tomcat等容器在配置了多层虚拟路径以后，appid会存在特殊字符"/"，如：
-         * <Context docBase="/data/source" path="/test/test" reloadable="true" /> 由于存在使用appid创建文件的情况，此处统一将特殊字符进行转义
-         */
-        if (appid.indexOf("/") > -1) {
-            appid = appid.replace("/", "--");
-        }
-        if (appid.indexOf("\\") > -1) {
-            appid = appid.replace("\\", "--");
-        }
-
-        return appid;
     }
 
     /**
@@ -466,7 +469,7 @@ public class MonitorServerUtil {
      */
     public static String cleanIplnkTargetURL(String iplinkTargetUrl) {
 
-        if (!StringHelper.isEmpty(iplinkTargetUrl)&&iplinkTargetUrl.contains("\"")) {
+        if (!StringHelper.isEmpty(iplinkTargetUrl) && iplinkTargetUrl.contains("\"")) {
             iplinkTargetUrl = iplinkTargetUrl.replace("\"", "");
         }
         return iplinkTargetUrl;
@@ -566,6 +569,10 @@ public class MonitorServerUtil {
 
         // mysql
         if (oriJDBCURI.indexOf("mysql") > -1) {
+            if (oriJDBCURI.indexOf("?") > -1) {
+
+                oriJDBCURI = oriJDBCURI.substring(0, oriJDBCURI.indexOf("?"));
+            }
             return oriJDBCURI;
         }
         // oracle
@@ -614,4 +621,60 @@ public class MonitorServerUtil {
         return inst;
     }
 
+    private static String getDefaultApplicationId(String contextroot, String basePath) {
+
+        String appid = "";
+
+        if ("".equals(contextroot)) {
+            /*
+             * NOTE: springboot's basePath is a random temp directory,so we use main(usually the jar name) as the appid
+             * 
+             */
+            if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
+                    .equals(UAVServer.ServerVendor.SPRINGBOOT)) {
+                String javaCommand = System.getProperty("sun.java.command");
+                appid = javaCommand.split(" ")[0];
+            }else {
+                appid = basePath;
+            }
+            appid = getReducedPath(appid);
+        }
+        else {
+            appid = contextroot;
+            if (UAVServer.instance().getServerInfo(CaptureConstants.INFO_APPSERVER_VENDOR)
+                    .equals(UAVServer.ServerVendor.SPRINGBOOT)) {
+                appid = getReducedPath(appid);
+            }
+        }
+
+        // 去除最开始的"/"
+        if (appid.indexOf("/") == 0) {
+            appid = appid.substring(1);
+        }
+        
+        /**
+         * tomcat等容器在配置了多层虚拟路径以后，appid会存在特殊字符"/"，如：
+         * <Context docBase="/data/source" path="/test/test" reloadable="true" /> 由于存在使用appid创建文件的情况，此处统一将特殊字符进行转义
+         */
+        appid = appid.replace("/", "--").replace("\\", "--");
+        
+        return appid;
+    }
+    
+    /*
+     * 获取给定路径的最后以层目录
+                    例如：给定目录 abc/def/
+                    输出：def
+     */
+    private static String getReducedPath(String path) {
+        if (path == null || path.equals(""))
+            return "";
+        String reducedPath = path.replace("\\", "/");
+        int index = reducedPath.lastIndexOf("/");
+        if (index == reducedPath.length() - 1) {
+            reducedPath = reducedPath.substring(0, reducedPath.length() - 1);
+            index = reducedPath.lastIndexOf("/");
+        }
+        return reducedPath.substring(index + 1);
+    }
 }

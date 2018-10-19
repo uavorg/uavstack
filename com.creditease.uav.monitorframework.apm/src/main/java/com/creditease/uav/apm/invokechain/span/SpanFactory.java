@@ -20,8 +20,8 @@
 
 package com.creditease.uav.apm.invokechain.span;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
@@ -99,7 +99,7 @@ public class SpanFactory {
         @Override
         protected Map<String, Span> initialValue() {
 
-            return new HashMap<String, Span>();
+            return new ConcurrentHashMap<String, Span>();
         }
     };
 

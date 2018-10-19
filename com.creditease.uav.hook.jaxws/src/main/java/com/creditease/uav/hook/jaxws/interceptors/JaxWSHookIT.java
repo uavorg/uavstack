@@ -324,7 +324,7 @@ public class JaxWSHookIT extends BaseComponent {
 
     private String appid;
 
-    private JaxWSHookHandler handler;
+    protected JaxWSHookHandler handler;
 
     public JaxWSHookIT(String appid) {
         this.appid = appid;
@@ -341,6 +341,10 @@ public class JaxWSHookIT extends BaseComponent {
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T getPort(T t, Service s, Object[] args) {
+        
+        if (JDKProxyInvokeUtil.isJDKProxy(t)) {
+            return t;
+        }
 
         Class<T> clz = null;
         if (Class.class.isAssignableFrom(args[0].getClass())) {

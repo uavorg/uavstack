@@ -119,7 +119,7 @@ public class RabbitmqIT extends BaseComponent {
                     && method.getExceptionTypes()[0].getName().equals(IOException.class.getName())) {
                 String methodName = method.getName();
                 String queueName = null;
-                if (queueNameIndex.containsKey(methodName) && args.length != 0) {
+                if (queueNameIndex.containsKey(methodName) && (args != null && args.length != 0)) {
 
                     queueName = (String) args[queueNameIndex.get(methodName)];
                     if (isTempQueue(queueName)) {
@@ -201,7 +201,7 @@ public class RabbitmqIT extends BaseComponent {
                 return false;
             }
             String methodName = method.getName();
-            if (queueNameIndex.containsKey(methodName) && args.length != 0) {
+            if (queueNameIndex.containsKey(methodName) && (args != null && args.length != 0)) {
 
                 if (isTempQueue((String) args[queueNameIndex.get(methodName)])) {
                     return false;
@@ -292,8 +292,8 @@ public class RabbitmqIT extends BaseComponent {
                         && props.getHeaders().containsKey(InvokeChainConstants.PARAM_MQHEAD_SPANINFO)) {
                     params.put(InvokeChainConstants.PARAM_MQHEAD_SPANINFO,
                             props.getHeaders().get(InvokeChainConstants.PARAM_MQHEAD_SPANINFO) + "");
-                    params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, url);
                 }
+                params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, url);
 
                 // register adapter
                 UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter",
