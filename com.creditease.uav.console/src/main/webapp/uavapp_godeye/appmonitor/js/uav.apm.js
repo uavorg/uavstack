@@ -534,8 +534,8 @@ function APMTool(app) {
 
 		html+="&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看最近1分钟内的服务请求\" onclick='appAPM.callIVCQuery(\"lst1min\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L1min</button>"+
 				"&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看1小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100in1hr\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100in1hr</button>" +
-		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最近100条的服务请求\"  onclick='appAPM.callIVCQuery(\"lst100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L100</button>" +
-		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看24小时内最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100</button></div></div>" ;
+		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看今日最近100条的服务请求\"  onclick='appAPM.callIVCQuery(\"lst100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>L100</button>" +
+		        "&nbsp;<button type=\"button\" class=\"btn btn-info\" title=\"查看今日最慢100条的服务请求\" onclick='appAPM.callIVCQuery(\"slow100\",{appuuid:\""+this.appInfo["appuuid"]+"\",appurl:\""+this.appInfo["appurl"]+"\",appid:\""+this.appInfo["appid"]+"\"})'>s100</button></div></div>" ;
 		
 		html+="<div  id='AppIVCWnd_TContainer' style='font-size:12px;color:black;'></div>";
 		
@@ -1279,7 +1279,7 @@ function APMTool(app) {
 				dataList=this.mainList;
 				
 				var etime=new Date().getTime();
-				var stime=etime-24*60*60000;
+				var stime=new Date(new Date().toLocaleDateString()).getTime();
 				data["request"]["appuuid"]=appuuid;
 				data["request"]["stime"]=stime+"";
 				data["request"]["etime"]=etime+"";
@@ -1291,7 +1291,7 @@ function APMTool(app) {
 				dataList=this.mainList;
 				
 				var etime=new Date().getTime();
-				var stime=etime-24*60*60000;
+				var stime=new Date(new Date().toLocaleDateString()).getTime();
 				data["request"]["appuuid"]=appuuid;
 				data["request"]["stime"]=stime+"";
 				data["request"]["etime"]=etime+"";

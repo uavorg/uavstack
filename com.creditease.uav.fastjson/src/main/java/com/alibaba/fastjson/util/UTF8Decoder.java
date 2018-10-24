@@ -27,6 +27,9 @@ import java.nio.charset.CoderResult;
  *
  */
 
+/**
+ * @deprecated
+ */
 public class UTF8Decoder extends CharsetDecoder {
 
     private final static Charset charset = Charset.forName("UTF-8");
@@ -40,7 +43,7 @@ public class UTF8Decoder extends CharsetDecoder {
     }
 
     // [C2..DF] [80..BF]
-    private static final boolean isMalformed2(int b1, int b2) {
+    private static boolean isMalformed2(int b1, int b2) {
         return (b1 & 0x1e) == 0x0 || (b2 & 0xc0) != 0x80;
     }
 
@@ -55,7 +58,7 @@ public class UTF8Decoder extends CharsetDecoder {
     // [F4] [80..8F] [80..BF] [80..BF]
     // only check 80-be range here, the [0xf0,0x80...] and [0xf4,0x90-...]
     // will be checked by Surrogate.neededFor(uc)
-    private static final boolean isMalformed4(int b2, int b3, int b4) {
+    private static boolean isMalformed4(int b2, int b3, int b4) {
         return (b2 & 0xc0) != 0x80 || (b3 & 0xc0) != 0x80 || (b4 & 0xc0) != 0x80;
     }
 
@@ -103,12 +106,14 @@ public class UTF8Decoder extends CharsetDecoder {
     private static CoderResult malformed(ByteBuffer src, int sp, CharBuffer dst, int dp, int nb) {
         src.position(sp - src.arrayOffset());
         CoderResult cr = malformedN(src, nb);
-        updatePositions(src, sp, dst, dp);
+        src.position(sp);
+        dst.position(dp);
         return cr;
     }
 
     private static CoderResult xflow(Buffer src, int sp, int sl, Buffer dst, int dp, int nb) {
-        updatePositions(src, sp, dst, dp);
+        src.position(sp);
+        dst.position(dp);
         return (nb == 0 || sl - sp < nb) ? CoderResult.UNDERFLOW : CoderResult.OVERFLOW;
     }
 
@@ -169,11 +174,11 @@ public class UTF8Decoder extends CharsetDecoder {
                 int b3 = srcArray[srcPosition + 2];
                 int b4 = srcArray[srcPosition + 3];
                 int uc = ((b1 & 0x07) << 18) | ((b2 & 0x3f) << 12) | ((b3 & 0x3f) << 06) | (b4 & 0x3f);
-                if (isMalformed4(b2, b3, b4) || !Surrogate.neededFor(uc)) {
+                if (isMalformed4(b2, b3, b4) || !((uc >= 0x10000) && (uc <= 1114111))) {
                     return malformed(src, srcPosition, dst, destPosition, 4);
                 }
-                destArray[destPosition++] = Surrogate.high(uc);
-                destArray[destPosition++] = Surrogate.low(uc);
+                destArray[destPosition++] = (char) (0xd800 | (((uc - 0x10000) >> 10) & 0x3ff));
+                destArray[destPosition++] = (char) (0xdc00 | ((uc - 0x10000) & 0x3ff));
                 srcPosition += 4;
             } else {
                 return malformed(src, srcPosition, dst, destPosition, 1);
@@ -186,30 +191,7 @@ public class UTF8Decoder extends CharsetDecoder {
         return decodeArrayLoop(src, dst);
     }
 
-    static final void updatePositions(Buffer src, int sp, Buffer dst, int dp) {
-//        src.position(sp - src.arrayOffset());
-//        dst.position(dp - dst.arrayOffset());
-      src.position(sp);
-      dst.position(dp);
-    }
 
-    private static class Surrogate {
 
-        public static final int UCS4_MIN = 0x10000;
-        public static final int UCS4_MAX = (1 << 20) + UCS4_MIN - 1;
 
-        public static boolean neededFor(int uc) {
-            return (uc >= UCS4_MIN) && (uc <= UCS4_MAX);
-        }
-
-        public static char high(int uc) {
-            assert neededFor(uc);
-            return (char) (0xd800 | (((uc - UCS4_MIN) >> 10) & 0x3ff));
-        }
-
-        public static char low(int uc) {
-            assert neededFor(uc);
-            return (char) (0xdc00 | ((uc - UCS4_MIN) & 0x3ff));
-        }
-    }
 }
