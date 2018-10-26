@@ -125,7 +125,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
 
     }
 
-    private static final String LOCK_KEY = "rtnoitify.nodeinfotimer.lock";
+    private static final String LOCK_KEY = "rtnotify.nodeinfotimer.lock";
     private static final String UAV_CACHE_REGION = "store.region.uav";
     private static final String CRASH_PROCS = "rtnotify.dead.procs";
     private static final String CRASH_PROCS_DETAIL = "rtnotify.dead.procs.detail";
@@ -657,7 +657,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
 
     private boolean isFrozen() {
 
-        String timestampStr = cm.get(UAV_CACHE_REGION, "rtnoitify.nodeinfotimer.hold");
+        String timestampStr = cm.get(UAV_CACHE_REGION, "rtnotify.nodeinfotimer.hold");
         if (timestampStr == null) {
             return false;
         }
@@ -686,7 +686,7 @@ public class NodeInfoWatcher extends AbstractTimerWork {
     private void freezeTime() {
 
         long now = System.currentTimeMillis();
-        cm.put(UAV_CACHE_REGION, "rtnoitify.nodeinfotimer.hold", now + "");
+        cm.put(UAV_CACHE_REGION, "rtnotify.nodeinfotimer.hold", now + "");
     }
 
     private void exchangeToRuntimeNotify(String mdfs) {
