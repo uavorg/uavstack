@@ -42,7 +42,7 @@ import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
 import com.creditease.uav.apm.slowoper.spi.SlowOperConstants;
 import com.creditease.uav.apm.slowoper.spi.SlowOperContext;
-import com.creditease.uav.util.TransformWapperUtil;
+import com.creditease.uav.util.TransformWrapperUtil;
 
 public class ServerSpanAdapter extends InvokeChainAdapter {
 
@@ -160,7 +160,7 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
             Object resp = response;
             // 重调用链开启时，获取到原生response
             if (HttpServletResponseWrapper.class.isAssignableFrom(response.getClass())) {
-                resp = TransformWapperUtil.moveWapper("", response);
+                resp = TransformWrapperUtil.moveWrapper("", response);
             }
             if (resp == null) {
                 return JSONHelper.toString(result);

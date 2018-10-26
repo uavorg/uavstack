@@ -39,7 +39,7 @@ import com.creditease.uav.apm.RewriteIvcResponseWrapper;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.apm.slowoper.adapter.ServerSpanAdapter;
 import com.creditease.uav.util.MonitorServerUtil;
-import com.creditease.uav.util.TransformWapperUtil;
+import com.creditease.uav.util.TransformWrapperUtil;
 
 /**
  * 
@@ -147,7 +147,7 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
     @Override
     protected void doResponse(HttpServletRequest request, HttpServletResponse response, InterceptContext ic) {
 
-        HttpServletResponse resp = TransformWapperUtil.moveWapper(RewriteIvcResponseWrapper.class.getName(),
+        HttpServletResponse resp = TransformWrapperUtil.moveWrapper(RewriteIvcResponseWrapper.class.getName(),
                (HttpServletResponse) ic.get(InterceptConstants.HTTPRESPONSE));
 		StringBuffer bf = request.getRequestURL();
 
@@ -195,7 +195,7 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
             Object resp = response;
             // 重调用链开启时，获取到原生response         
             if (HttpServletResponseWrapper.class.isAssignableFrom(response.getClass())) {          
-                    resp = TransformWapperUtil.moveWapper("", response);
+                    resp = TransformWrapperUtil.moveWrapper("", response);
             }
 
             if (resp == null) {
