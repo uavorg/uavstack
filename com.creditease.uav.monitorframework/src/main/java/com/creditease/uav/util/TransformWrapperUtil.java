@@ -25,16 +25,16 @@ import javax.servlet.http.HttpServletResponseWrapper;
 
 import com.creditease.agent.helpers.ReflectionHelper;
 
-public class TransformWapperUtil {
+public class TransformWrapperUtil {
 
     /*
-     * 为response脱壳，将Wapper脱到指定的壳，若该Wapper不包含指定的壳，则脱到原生壳为止
+     * 为response脱壳，将Wrapper脱到指定的壳，若该Wrapper不包含指定的壳，则脱到原生壳为止
      */
-    public static HttpServletResponse moveWapper(String resWapperName, HttpServletResponse response) {
+    public static HttpServletResponse moveWrapper(String resWrapperName, HttpServletResponse response) {
 
         while (HttpServletResponseWrapper.class.isAssignableFrom(response.getClass())) {
 
-            if (!resWapperName.equals(response.getClass().getName())) {
+            if (!resWrapperName.equals(response.getClass().getName())) {
 
                 response = (HttpServletResponse) ReflectionHelper.getField(response.getClass(), response, "response");
             }
