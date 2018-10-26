@@ -57,6 +57,17 @@ var listConfig = {
 			}
 			
 			return value;
+		},
+		
+		appendRowClass:function(rowData){
+			var notifyLevel = rowData['args']['notifyLevel'];
+			if (!notifyLevel){
+				return "";
+			}else if (notifyLevel === "info"){
+				return "infomation";
+			}else {
+				return notifyLevel;
+			}
 		}
 	}
 };

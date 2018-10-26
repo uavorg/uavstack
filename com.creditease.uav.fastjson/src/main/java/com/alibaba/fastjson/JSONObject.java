@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2101 Alibaba Group.
+ * Copyright 1999-2017 Alibaba Group.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,11 @@ import static com.alibaba.fastjson.util.TypeUtils.castToShort;
 import static com.alibaba.fastjson.util.TypeUtils.castToSqlDate;
 import static com.alibaba.fastjson.util.TypeUtils.castToTimestamp;
 
-import java.io.Serializable;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -60,6 +62,9 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     }
 
     public JSONObject(Map<String, Object> map){
+        if (map == null) {
+            throw new IllegalArgumentException("map is null.");
+        }
         this.map = map;
     }
 
@@ -96,7 +101,13 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     }
 
     public Object get(Object key) {
-        return map.get(key);
+        Object val = map.get(key);
+
+        if (val == null && key instanceof Number) {
+            val = map.get(key.toString());
+        }
+
+        return val;
     }
 
     public JSONObject getJSONObject(String key) {
@@ -104,6 +115,10 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
 
         if (value instanceof JSONObject) {
             return (JSONObject) value;
+        }
+
+        if (value instanceof String) {
+            return JSON.parseObject((String) value);
         }
 
         return (JSONObject) toJSON(value);
@@ -116,12 +131,29 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
             return (JSONArray) value;
         }
 
+        if (value instanceof String) {
+            return (JSONArray) JSON.parse((String) value);
+        }
+
         return (JSONArray) toJSON(value);
     }
 
     public <T> T getObject(String key, Class<T> clazz) {
         Object obj = map.get(key);
         return TypeUtils.castToJavaBean(obj, clazz);
+    }
+
+    public <T> T getObject(String key, Type type) {
+        Object obj = map.get(key);
+        return TypeUtils.cast(obj, type, ParserConfig.getGlobalInstance());
+    }
+
+    public <T> T getObject(String key, TypeReference typeReference) {
+        Object obj = map.get(key);
+        if (typeReference == null) {
+            return (T) obj;
+        }
+        return TypeUtils.cast(obj, typeReference.getType(), ParserConfig.getGlobalInstance());
     }
 
     public Boolean getBoolean(String key) {
@@ -147,11 +179,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public boolean getBooleanValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Boolean booleanVal = castToBoolean(value);
+        if (booleanVal == null) {
             return false;
         }
 
-        return castToBoolean(value).booleanValue();
+        return booleanVal.booleanValue();
     }
 
     public Byte getByte(String key) {
@@ -163,11 +196,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public byte getByteValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Byte byteVal = castToByte(value);
+        if (byteVal == null) {
             return 0;
         }
 
-        return castToByte(value).byteValue();
+        return byteVal.byteValue();
     }
 
     public Short getShort(String key) {
@@ -179,11 +213,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public short getShortValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Short shortVal = castToShort(value);
+        if (shortVal == null) {
             return 0;
         }
 
-        return castToShort(value).shortValue();
+        return shortVal.shortValue();
     }
 
     public Integer getInteger(String key) {
@@ -195,11 +230,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public int getIntValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Integer intVal = castToInt(value);
+        if (intVal == null) {
             return 0;
         }
 
-        return castToInt(value).intValue();
+        return intVal.intValue();
     }
 
     public Long getLong(String key) {
@@ -211,11 +247,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public long getLongValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Long longVal = castToLong(value);
+        if (longVal == null) {
             return 0L;
         }
 
-        return castToLong(value).longValue();
+        return longVal.longValue();
     }
 
     public Float getFloat(String key) {
@@ -227,11 +264,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public float getFloatValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Float floatValue = castToFloat(value);
+        if (floatValue == null) {
             return 0F;
         }
 
-        return castToFloat(value).floatValue();
+        return floatValue.floatValue();
     }
 
     public Double getDouble(String key) {
@@ -243,11 +281,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public double getDoubleValue(String key) {
         Object value = get(key);
 
-        if (value == null) {
+        Double doubleValue = castToDouble(value);
+        if (doubleValue == null) {
             return 0D;
         }
 
-        return castToDouble(value);
+        return doubleValue.doubleValue();
     }
 
     public BigDecimal getBigDecimal(String key) {
@@ -293,17 +332,37 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
     public Object put(String key, Object value) {
         return map.put(key, value);
     }
+    
+    public JSONObject fluentPut(String key, Object value) {
+        map.put(key, value);
+        return this;
+    }
 
     public void putAll(Map<? extends String, ? extends Object> m) {
         map.putAll(m);
+    }
+
+    public JSONObject fluentPutAll(Map<? extends String, ? extends Object> m) {
+        map.putAll(m);
+        return this;
     }
 
     public void clear() {
         map.clear();
     }
 
+    public JSONObject fluentClear() {
+        map.clear();
+        return this;
+    }
+
     public Object remove(Object key) {
         return map.remove(key);
+    }
+
+    public JSONObject fluentRemove(Object key) {
+        map.remove(key);
+        return this;
     }
 
     public Set<String> keySet() {
@@ -320,7 +379,10 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
 
     @Override
     public Object clone() {
-        return new JSONObject(new HashMap<String, Object>(map));
+        return new JSONObject(map instanceof LinkedHashMap //
+                              ? new LinkedHashMap<String, Object>(map) //
+                                  : new HashMap<String, Object>(map)
+                                  );
     }
 
     public boolean equals(Object obj) {
@@ -411,5 +473,98 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
         }
 
         throw new UnsupportedOperationException(method.toGenericString());
+    }
+
+    public Map<String, Object> getInnerMap() {
+        return this.map;
+    }
+
+
+
+    private void readObject(final java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        SecureObjectInputStream.ensureFields();
+        if (SecureObjectInputStream.fields != null && !SecureObjectInputStream.fields_error) {
+            ObjectInputStream secIn = new SecureObjectInputStream(in);
+            try {
+                secIn.defaultReadObject();
+                return;
+            } catch (java.io.NotActiveException e) {
+                // skip
+            }
+        }
+
+        in.defaultReadObject();
+        for (Entry entry : map.entrySet()) {
+            final Object key = entry.getKey();
+            if (key != null) {
+                ParserConfig.global.checkAutoType(key.getClass().getName(), null);
+            }
+
+            final Object value = entry.getValue();
+            if (value != null) {
+                ParserConfig.global.checkAutoType(value.getClass().getName(), null);
+            }
+        }
+    }
+
+    static class SecureObjectInputStream extends ObjectInputStream {
+        static Field[] fields;
+        static volatile boolean fields_error;
+
+        static void ensureFields() {
+            if (fields == null && !fields_error) {
+                try {
+                    final Field[] declaredFields = ObjectInputStream.class.getDeclaredFields();
+                    String[] fieldnames = new String[]{"bin", "passHandle", "handles", "curContext"};
+                    Field[] array = new Field[fieldnames.length];
+                    for (int i = 0; i < fieldnames.length; i++) {
+                        Field field = TypeUtils
+                                .getField(ObjectInputStream.class
+                                        , fieldnames[i]
+                                        , declaredFields
+                                );
+                        field.setAccessible(true);
+                        array[i] = field;
+                    }
+                    fields = array;
+                } catch (Throwable error) {
+                    fields_error = true;
+                }
+            }
+        }
+
+        public SecureObjectInputStream(ObjectInputStream in) throws IOException {
+            super(in);
+            try {
+                for (int i = 0; i < fields.length; i++) {
+                    final Field field = fields[i];
+                    final Object value = field.get(in);
+                    field.set(this, value);
+                }
+            } catch (IllegalAccessException e) {
+                fields_error = true;
+            }
+        }
+
+        protected Class<?> resolveClass(ObjectStreamClass desc)
+        throws IOException, ClassNotFoundException {
+            String name = desc.getName();
+            ParserConfig.global.checkAutoType(name, null);
+            return super.resolveClass(desc);
+        }
+
+        protected Class<?> resolveProxyClass(String[] interfaces)
+        throws IOException, ClassNotFoundException {
+            for (String interfacename : interfaces) {
+                //检查是否处于黑名单
+                ParserConfig.global.checkAutoType(interfacename, null);
+            }
+            return super.resolveProxyClass(interfaces);
+        }
+
+        //Hack:默认构造方法会调用这个方法，重写此方法使用反射还原部分关键属性
+        protected void readStreamHeader() throws IOException, StreamCorruptedException {
+
+        }
     }
 }

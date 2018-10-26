@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2101 Alibaba Group.
+ * Copyright 1999-2017 Alibaba Group.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,28 +96,67 @@ public enum Feature {
      * @since 1.2.5
      * 
      */
-    DisableSpecialKeyDetect
+    DisableSpecialKeyDetect,
+    
+    /**
+     * @since 1.2.9
+     */
+    UseObjectArray,
+
+    /**
+     * @since 1.2.22, 1.1.54.android
+     */
+    SupportNonPublicField,
+
+    /**
+     * @since 1.2.29
+     *
+     * disable autotype key '@type'
+     */
+    IgnoreAutoType,
+
+    /**
+     * @since 1.2.30
+     *
+     * disable field smart match, improve performance in some scenarios.
+     */
+    DisableFieldSmartMatch,
+
+    /**
+     * @since 1.2.41, backport to 1.1.66.android
+     */
+    SupportAutoType,
+
+    /**
+     * @since 1.2.42
+     */
+    NonStringKeyAsString,
+
+    /**
+     * @since 1.2.45
+     */
+    CustomMapDeserializer
     ;
 
-    private Feature(){
+    Feature(){
         mask = (1 << ordinal());
     }
 
-    private final int mask;
+    public final int mask;
 
     public final int getMask() {
         return mask;
     }
 
     public static boolean isEnabled(int features, Feature feature) {
-        return (features & feature.getMask()) != 0;
+        return (features & feature.mask) != 0;
     }
 
     public static int config(int features, Feature feature, boolean state) {
         if (state) {
-            features |= feature.getMask();
+            features |= feature.mask;
         } else {
-            features &= ~feature.getMask();
+            features &= ~feature.mask;
         }
 
         return features;
@@ -131,7 +170,7 @@ public enum Feature {
         int value = 0;
         
         for (Feature feature: features) {
-            value |= feature.getMask();
+            value |= feature.mask;
         }
         
         return value;
