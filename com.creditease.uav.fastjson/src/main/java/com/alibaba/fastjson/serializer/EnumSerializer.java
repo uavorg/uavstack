@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2101 Alibaba Group.
+ * Copyright 1999-2018 Alibaba Group.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,7 @@ public class EnumSerializer implements ObjectSerializer {
     public final static EnumSerializer instance = new EnumSerializer();
 
     public void write(JSONSerializer serializer, Object object, Object fieldName, Type fieldType, int features) throws IOException {
-        SerializeWriter out = serializer.getWriter();
-        if (object == null) {
-            serializer.getWriter().writeNull();
-            return;
-        }
-
-        Enum<?> e = (Enum<?>) object;
-        if(serializer.isEnabled(SerializerFeature.WriteEnumUsingName)){
-            serializer.write(e.name());
-        } else if (serializer.isEnabled(SerializerFeature.WriteEnumUsingToString)) {
-            serializer.write(e.toString());
-        } else {
-            out.writeInt(e.ordinal());
-        }
+        SerializeWriter out = serializer.out;
+        out.writeEnum((Enum<?>) object);
     }
 }
