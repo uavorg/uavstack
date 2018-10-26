@@ -94,7 +94,7 @@ public class NotificaitonScheduleWorker extends AbstractTimerWork implements Uni
         UAVHttpMessage request = new UAVHttpMessage();
 
         String ntfkey = "127.0.0.1@notificationEvent@NotificaitonScheduleWorker@notifytestagent@-1172353146";
-        request.putRequest("ncevent", ntfkey);
+        request.putRequest("ntfkey", ntfkey);
         String content = JSONHelper.toString(request);
         executeHttpCommand(url, content);
     }
