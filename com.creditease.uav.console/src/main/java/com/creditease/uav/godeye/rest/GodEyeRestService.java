@@ -20,7 +20,6 @@
 
 package com.creditease.uav.godeye.rest;
 
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,13 +80,15 @@ public class GodEyeRestService extends AppHubBaseRestService {
      * ===========================================回调异步 begin===================================================
      */
 
-    private class GodEyeCB implements HttpClientCallback {
+	private class CommonCB implements HttpClientCallback {
 
         private AsyncResponse response;
+        private String method;
 
-        public GodEyeCB(AsyncResponse response) {
+        public CommonCB(AsyncResponse response, String method) {
 
             this.response = response;
+            this.method = method;
         }
 
         @Override
@@ -99,102 +100,19 @@ public class GodEyeRestService extends AppHubBaseRestService {
         @Override
         public void failed(HttpClientCallbackResult result) {
 
-            response.resume(result.getReplyDataAsString());
-        }
-    }
-
-    private class LoadAppIPLinkListCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            response.resume(result.getReplyData());
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
+            String reStr = StringHelper.isEmpty(result.getReplyDataAsString())
+                    ? "GodEyeRestService " + method + " is failed."
+                    : result.getReplyDataAsString();
+            if (result.getRetCode() != HttpStatus.SC_BAD_REQUEST) {
                 /**
                  * Confusing.......
                  */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
+                logger.err(this, "GodEyeRestService " + method + " get result is failed -returnCode["
+                        + result.getRetCode() + "] and retMsg[" + reStr + "]", result.getException());
                 response.resume(reStr);
             }
-        }
-
-    }
-
-    private class LoadAppProfileListFromHttpCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class LoadUavNetworkInfoFromHttpCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
+            else {
+                response.resume(reStr + ",exception=" + result.getException());
             }
         }
     }
@@ -254,74 +172,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
     }
 
-    private class LoadMonitorDataFromOpenTSDBCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String replyData = result.getReplyDataAsString();
-            if (logger.isDebugEnable()) {
-                logger.debug(this, "LoadMonitorDataFromOpenTSDB suc,replyDataAsString:" + replyData);
-            }
-            response.resume(replyData);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class QueryAppLogCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                /**
-                 * Confusing.......
-                 */
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class NoitifyDescQueryCB implements HttpClientCallback {
+    private class NotifyDescQueryCB implements HttpClientCallback {
 
         private AsyncResponse response;
         private Long time;
@@ -410,7 +261,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
                 public void failed(HttpClientCallbackResult result) {
 
                     logger.err(this, "预警详情步骤二 result is failed :" + result.getException());
-                    String resp = "预警详情步骤二 GodEyeRestService noitifyDescQuery is failed.";
+                    String resp = "预警详情步骤二 GodEyeRestService notifyDescQuery is failed.";
                     response.resume(resp);
                 }
 
@@ -423,63 +274,13 @@ public class GodEyeRestService extends AppHubBaseRestService {
         public void failed(HttpClientCallbackResult result) {
 
             logger.err(this, "预警详情步骤一 result is failed :" + result.getException());
-            String resp = "预警详情步骤一  GodEyeRestService noitifyDescQuery is failed.";
+            String resp = "预警详情步骤一  GodEyeRestService notifyDescQuery is failed.";
             response.resume(resp);
         }
 
     }
 
-    private class NoitifyQueryCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyCountQueryCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyViewCB implements HttpClientCallback {
+    private class NotifyUpdateCB implements HttpClientCallback {
 
         private AsyncResponse response;
         private String log;
@@ -498,94 +299,19 @@ public class GodEyeRestService extends AppHubBaseRestService {
         public void completed(HttpClientCallbackResult result) {
 
             String respStr = result.getReplyDataAsString();
-            logger.info(this, "预警VIEW : " + log + ",respStr=[" + respStr + "]");
+            logger.info(this, "预警update : " + log + ",respStr=[" + respStr + "]");
             response.resume("T");
         }
 
         @Override
         public void failed(HttpClientCallbackResult result) {
 
-            logger.err(this, "预警VIEW异常: " + log + "\r\n", result.getException());
+            logger.err(this, "预警update异常: " + log + "\r\n", result.getException());
             response.resume("F");
         }
     }
 
-    private class NoitifyEventCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyQueryBestCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyCountQueryBestCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String respStr = result.getReplyDataAsString();
-            response.resume(respStr);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            logger.err(this, "GodEyeRestService noitifyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyQuery is failed.";
-            response.resume(resp);
-        }
-    }
-
-    private class NoitifyStrategyQuery implements HttpClientCallback {
+    private class NotifyStrategyQuery implements HttpClientCallback {
 
         private AsyncResponse response;
         private int pagesize;
@@ -648,13 +374,13 @@ public class GodEyeRestService extends AppHubBaseRestService {
         @Override
         public void failed(HttpClientCallbackResult result) {
 
-            logger.err(this, "GodEyeRestService noitifyStrategyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyStrategyQuery is failed.";
+            logger.err(this, "GodEyeRestService notifyStrategyQuery result is failed :" + result.getException());
+            String resp = "GodEyeRestService notifyStrategyQuery is failed.";
             response.resume(resp);
         }
     }
 
-    private class NoitifyStrategyGetCB implements HttpClientCallback {
+    private class NotifyStrategyGetCB implements HttpClientCallback {
 
         private AsyncResponse response;
 
@@ -675,14 +401,14 @@ public class GodEyeRestService extends AppHubBaseRestService {
         @Override
         public void failed(HttpClientCallbackResult result) {
 
-            logger.err(this, "GodEyeRestService noitifyStrategyQuery result is failed :" + result.getException());
-            String resp = "GodEyeRestService noitifyStrategyQuery is failed.";
+            logger.err(this, "GodEyeRestService notifyStrategyQuery result is failed :" + result.getException());
+            String resp = "GodEyeRestService notifyStrategyQuery is failed.";
             response.resume(resp);
         }
 
     }
 
-    private class NoitifyStrategyUpdateCB implements HttpClientCallback {
+    private class NotifyStrategyUpdateCB implements HttpClientCallback {
 
         private AsyncResponse response;
         private String stgyData;
@@ -718,7 +444,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         }
     }
 
-    private class NoitifyStrategyRemoveCB implements HttpClientCallback {
+    private class NotifyStrategyRemoveCB implements HttpClientCallback {
 
         private AsyncResponse response;
         private String data;
@@ -753,147 +479,6 @@ public class GodEyeRestService extends AppHubBaseRestService {
             response.resume("F");
         }
 
-    }
-
-    private class DoNodeCtrlOperationCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            InputStream input = result.getReplyData();
-            response.resume(input);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                logger.err(this, "Ctrl Node FAIL:returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    private class GetMonitorViaDbaCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.info(this, resp);
-            response.resume(resp);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.err(this, resp, result.getException());
-            response.resume(resp);
-        }
-    }
-
-    private class GetSlowSQLCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.info(this, resp);
-            response.resume(resp);
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String resp = result.getReplyDataAsString();
-            logger.err(this, resp, result.getException());
-            response.resume(resp);
-        }
-    }
-
-    private class ListUpgradePackageCB implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public void setResponse(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            response.resume(result.getReplyDataAsString());
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                logger.err(this,
-                        "get query result failed -returnCode[" + result.getRetCode() + "] and retMsg[" + reStr + "]",
-                        result.getException());
-                response.resume(reStr);
-            }
-        }
-    }
-
-    /**
-     * 
-     * SearchNewLogCallback description:
-     *
-     */
-    private class SearchNewLogCallback implements HttpClientCallback {
-
-        private AsyncResponse response;
-
-        public SearchNewLogCallback(AsyncResponse response) {
-
-            this.response = response;
-        }
-
-        @Override
-        public void completed(HttpClientCallbackResult result) {
-
-            response.resume(result.getReplyData());
-        }
-
-        @Override
-        public void failed(HttpClientCallbackResult result) {
-
-            String reStr = result.getReplyDataAsString();
-            if (result.getRetCode() == HttpStatus.SC_BAD_REQUEST) {
-                logger.err(this, "search new log result failed -returnCode[" + result.getRetCode() + "] and retMsg["
-                        + reStr + "]", result.getException());
-                response.resume(reStr);
-            }
-
-        }
     }
 
     /**
@@ -962,10 +547,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         message.putRequest("appgpids", data);
 
-        LoadAppIPLinkListCB callback = new LoadAppIPLinkListCB();
-        callback.setResponse(response);
-
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message,
+                new CommonCB(response, "loadAppIPLinkList"));
     }
 
     /**
@@ -1021,9 +604,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
     private void loadAppProfileListFromHttp(UAVHttpMessage message, final AsyncResponse response) {
 
-        LoadAppProfileListFromHttpCB callback = new LoadAppProfileListFromHttpCB();
-        callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message, callback);
+    	this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/cache/q", message,
+                new CommonCB(response, "loadAppProfileListFromHttp"));
     }
 
     /**
@@ -1064,9 +646,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
     private void loadUavNetworkInfoFromHttp(UAVHttpMessage message, final AsyncResponse response) {
 
-        LoadUavNetworkInfoFromHttpCB callback = new LoadUavNetworkInfoFromHttpCB();
-        callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.hbquery.http.addr", "/hb/query", message, callback);
+    	this.doHttpPost("uav.app.godeye.hbquery.http.addr", "/hb/query", message,
+                new CommonCB(response, "loadUavNetworkInfoFromHttp"));
     }
 
     /**
@@ -1263,10 +844,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("opentsdb.query.json", data);
         message.putRequest("datastore.name", MonitorDataFrame.MessageType.Monitor.toString());
 
-        LoadMonitorDataFromOpenTSDBCB callback = new LoadMonitorDataFromOpenTSDBCB();
-        callback.setResponse(response);
-
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                new CommonCB(response, "loadMonitorDataFromOpenTSDB"));
     }
 
     /**
@@ -1325,9 +904,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("hbase.query.json", data);
         message.putRequest("datastore.name", MonitorDataFrame.MessageType.Log.toString());
 
-        QueryAppLogCB callback = new QueryAppLogCB();
-        callback.setResponse(response);
-        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+        this.doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                new CommonCB(response, "queryAppLog"));
 
     }
 
@@ -1342,22 +920,21 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/q/desc/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyDescQuery(String data, @Suspended AsyncResponse response) throws Exception {
+    public void notifyDescQuery(String data, @Suspended AsyncResponse response) throws Exception {
 
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         Map<String, String> jsonParam = JSONHelper.toObject(data, Map.class);
-        String url = jsonParam.get("url");
+
+        String ntfkey = jsonParam.get("ntfkey");
         Long time;
         if ("link".equals(jsonParam.get("type"))) {
-            byte[] d = new BASE64DecoderUrl().decodeBuffer(url);
-            url = new String(d, "utf-8");
-            time = Long.valueOf(url.substring(url.lastIndexOf("&") + 1));
+            ntfkey = new String(new BASE64DecoderUrl().decodeBuffer(ntfkey), "utf-8");
+            time = Long.valueOf(ntfkey.substring(ntfkey.lastIndexOf("&") + 1));
+            ntfkey = ntfkey.substring(0, ntfkey.lastIndexOf("&"));
         }
         else {
-            String timeStr = url.substring(url.lastIndexOf("&") + 1);
-            time = simpleDateFormat.parse(timeStr).getTime();
+            time = simpleDateFormat.parse(jsonParam.get("time")).getTime();
         }
-        final String ntfkey = url.substring(0, url.lastIndexOf("&"));
 
         HashMap<String, Object> requestWhere = new HashMap<String, Object>();
         requestWhere.put("ntfkey", ntfkey);
@@ -1378,7 +955,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("datastore.name", "MT_Notify");
         message.putRequest("mgo.coll.name", "uav_notify");
 
-        NoitifyDescQueryCB callback = new NoitifyDescQueryCB();
+        NotifyDescQueryCB callback = new NotifyDescQueryCB();
         callback.setResponse(response);
         callback.setNtfkey(ntfkey);
         callback.setTime(time);
@@ -1391,7 +968,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/q/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyQuery(String data, @Suspended AsyncResponse response) {
+    public void notifyQuery(String data, @Suspended AsyncResponse response) {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
@@ -1456,10 +1033,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyQueryCB callback = new NoitifyQueryCB();
-            callback.setResponse(response);
-
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "notifyQuery"));
         }
         else {
             response.resume("{\"rs\":\"[]\"}");
@@ -1471,7 +1046,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/q/count/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyCountQuery(String data, @Suspended AsyncResponse response) {
+    public void notifyCountQuery(String data, @Suspended AsyncResponse response) {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
@@ -1529,10 +1104,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyCountQueryCB callback = new NoitifyCountQueryCB();
-            callback.setResponse(response);
-
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "notifyCountQuery"));
         }
         else {
             response.resume("{'rs':'[{\"count\":15}]'}");
@@ -1540,51 +1113,52 @@ public class GodEyeRestService extends AppHubBaseRestService {
     }
 
     @POST
-    @Path("notify/view/hm")
+    @Path("notify/update/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyView(String data, @Suspended AsyncResponse response) throws Exception {
+    public void notifyUpdate(String data, @Suspended AsyncResponse response) throws Exception {
 
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         @SuppressWarnings("unchecked")
         Map<String, String> jsonParam = JSONHelper.toObject(data, Map.class);
-        String url = jsonParam.get("url");
-        String time;
+        String action = jsonParam.get("action");
+        String ntfkey = jsonParam.get("ntfkey");
+        String time = jsonParam.get("time");
+
         if ("link".equals(jsonParam.get("type"))) {
-            byte[] d = new BASE64DecoderUrl().decodeBuffer(url);
-            url = new String(d, "utf-8");
-            time = url.substring(url.lastIndexOf("&") + 1);
+            ntfkey = new String(new BASE64DecoderUrl().decodeBuffer(ntfkey), "utf-8");
+            time = ntfkey.substring(ntfkey.lastIndexOf("&") + 1);
+            ntfkey = ntfkey.substring(0, ntfkey.lastIndexOf("&"));
         }
         else {
-            String timeStr = url.substring(url.lastIndexOf("&") + 1);
-            time = String.valueOf(simpleDateFormat.parse(timeStr).getTime());
+            time = String.valueOf(simpleDateFormat.parse(time).getTime());
         }
 
-        String ntfkey = url.substring(0, url.lastIndexOf("&"));
         String loginUser = "";
         HttpSession session = request.getSession(false);
         if (null != session) {
             loginUser = String.valueOf(session.getAttribute("apphub.gui.session.login.user.id"));
         }
 
-        String log = "loginUser=[" + loginUser + "],type=[" + jsonParam.get("type") + "],ntfkey=[" + ntfkey + "],time=["
-                + time + "]";
+        String log = "loginUser=[" + loginUser + "],type=[" + jsonParam.get("type") + "],action=[" + action
+                + "],ntfkey=[" + ntfkey + "],time=[" + time + "]";
 
         if (!"".equals(ntfkey) && !"undefined".equals(ntfkey)) {
             UAVHttpMessage message = new UAVHttpMessage();
-            message.putRequest("ncevent", ntfkey);
+            message.putRequest("action", action);
+            message.putRequest("ntfkey", ntfkey);
             message.putRequest("time", time);
 
-            NoitifyViewCB callback = new NoitifyViewCB();
+            NotifyUpdateCB callback = new NotifyUpdateCB();
             callback.setResponse(response);
             callback.setLog(log);
-            doHttpPost("uav.app.godeye.notify.view.http.addr", "/nc/update", message, callback);
+            doHttpPost("uav.app.godeye.notify.update.http.addr", "/nc/update", message, callback);
         }
     }
 
     @POST
     @Path("notify/q/event/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyEvent(@Suspended AsyncResponse response) throws Exception {
+    public void notifyEvent(@Suspended AsyncResponse response) throws Exception {
 
         HashMap<String, Object> requestParam = new HashMap<String, Object>();
         HashMap<String, Object> data = new HashMap<String, Object>();
@@ -1626,17 +1200,15 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("datastore.name", "MT_Notify");
         message.putRequest("mgo.coll.name", "uav_notify");
 
-        NoitifyEventCB callback = new NoitifyEventCB();
-        callback.setResponse(response);
-
-        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+        doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                new CommonCB(response, "notifyEvent"));
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @POST
     @Path("notify/q/best/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyQueryBest(String data, @Suspended AsyncResponse response) {
+    public void notifyQueryBest(String data, @Suspended AsyncResponse response) {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
@@ -1722,9 +1294,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyQueryBestCB callback = new NoitifyQueryBestCB();
-            callback.setResponse(response);
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "notifyQueryBest"));
         }
 
     }
@@ -1733,7 +1304,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/q/best/count/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyCountQueryBest(String data, @Suspended AsyncResponse response) {
+    public void notifyCountQueryBest(String data, @Suspended AsyncResponse response) {
 
         // 数据权限begin
         String groups = getUserGroupsByFilter(request);
@@ -1812,9 +1383,11 @@ public class GodEyeRestService extends AppHubBaseRestService {
             message.putRequest("datastore.name", "MT_Notify");
             message.putRequest("mgo.coll.name", "uav_notify");
 
-            NoitifyCountQueryBestCB callback = new NoitifyCountQueryBestCB();
-            callback.setResponse(response);
-            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message, callback);
+            doHttpPost("uav.app.godeye.healthmanager.http.addr", "/hm/query", message,
+                    new CommonCB(response, "notifyCountQueryBest"));
+        }
+        else {
+            response.resume("{'rs':'[{\"count\":15}]'}");
         }
 
     }
@@ -1823,7 +1396,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/q/stgy/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyStrategyQuery(String data, @Suspended AsyncResponse response) throws Exception {
+    public void notifyStrategyQuery(String data, @Suspended AsyncResponse response) throws Exception {
 
         Map<String, Object> params = JSONHelper.toObject(data, Map.class);
         int pagesize = (int) params.get("pagesize");
@@ -1835,7 +1408,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("body", JSONHelper.toString(strategyMap));
         message.setIntent("strategy.query");
 
-        NoitifyStrategyQuery callback = new NoitifyStrategyQuery();
+        NotifyStrategyQuery callback = new NotifyStrategyQuery();
         callback.setResponse(response);
         callback.setPageindex(pageindex);
         callback.setPagesize(pagesize);
@@ -1846,7 +1419,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/get/stgy/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyStrategyGet(String data, @Suspended AsyncResponse response) throws Exception {
+    public void notifyStrategyGet(String data, @Suspended AsyncResponse response) throws Exception {
 
         Map<String, String> strategyMap = new HashMap<String, String>();
         strategyMap.put("keys", data);
@@ -1855,7 +1428,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("body", JSONHelper.toString(strategyMap));
         message.setIntent("strategy.query");
 
-        NoitifyStrategyGetCB callback = new NoitifyStrategyGetCB();
+        NotifyStrategyGetCB callback = new NotifyStrategyGetCB();
         callback.setResponse(response);
         doHttpPost("uav.app.godeye.notify.strategy.http.addr", "/rtntf/oper", message, callback);
     }
@@ -1864,7 +1437,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/up/stgy/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyStrategyUpdate(String dataParam, @Suspended AsyncResponse response) throws Exception {
+    public void notifyStrategyUpdate(String dataParam, @Suspended AsyncResponse response) throws Exception {
 
         // 添加操作字段
         Map<String, Object> stgyMap = JSONHelper.toObject(dataParam, Map.class);
@@ -1887,7 +1460,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
         message.putRequest("body", stgyData);
         message.setIntent("strategy.update");
 
-        NoitifyStrategyUpdateCB callback = new NoitifyStrategyUpdateCB();
+        NotifyStrategyUpdateCB callback = new NotifyStrategyUpdateCB();
         callback.setResponse(response);
         callback.setStgyData(stgyData);
 
@@ -1898,14 +1471,14 @@ public class GodEyeRestService extends AppHubBaseRestService {
     @POST
     @Path("notify/del/stgy/hm")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void noitifyStrategyRemove(String data, @Suspended AsyncResponse response) throws Exception {
+    public void notifyStrategyRemove(String data, @Suspended AsyncResponse response) throws Exception {
 
         // 封装http请求数据
         UAVHttpMessage message = new UAVHttpMessage();
         message.putRequest("body", data);
         message.setIntent("strategy.remove");
 
-        NoitifyStrategyRemoveCB callback = new NoitifyStrategyRemoveCB();
+        NotifyStrategyRemoveCB callback = new NotifyStrategyRemoveCB();
         callback.setResponse(response);
         callback.setData(data);
 
@@ -1965,10 +1538,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
                     + DateTimeHelper.toStandardDateFormat(timeStamp));
         }
 
-        DoNodeCtrlOperationCB callback = new DoNodeCtrlOperationCB();
-        callback.setResponse(response);
-
-        this.doHttpPost(nodeUrl, null, msg, callback);
+        this.doHttpPost(nodeUrl, null, msg, new CommonCB(response, "doNodeCtrlOperation"));
     }
 
     // ----------------------------------------- database info -------------------------------------
@@ -1978,22 +1548,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
     public void getMonitorViaDba(String data, @Suspended AsyncResponse response) {
 
         logger.info(this, data);
-        GetMonitorViaDbaCB callback = new GetMonitorViaDbaCB();
-        callback.setResponse(response);
-
-        doHttpPost("uav.app.godeye.database.http.addr", "/graph/history", data, callback);
-    }
-
-    @POST
-    @Path("monitor/q/slowsql")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void getSlowSQL(String data, @Suspended AsyncResponse response) {
-
-        logger.info(this, data);
-        GetSlowSQLCB callback = new GetSlowSQLCB();
-        callback.setResponse(response);
-
-        doHttpPost("uav.app.godeye.database.http.addr", "/top/sql/count", data, callback);
+        doHttpPost("uav.app.godeye.database.http.addr", "/graph/history", data,
+                new CommonCB(response, "getMonitorViaDba"));
     }
 
     // -----------------------------------------filter begin -------------------------------------
@@ -2225,10 +1781,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         logger.info(this, "http get node/upgrade/list/" + softwareId);
 
-        ListUpgradePackageCB callback = new ListUpgradePackageCB();
-        callback.setResponse(resp);
         doHttpPost("uav.app.upgrade.server.http.addr", "/uav/upgrade?target=list&softwareId=" + softwareId, "",
-                callback);
+                new CommonCB(resp, "listUpgradePackage"));
         return null;
     }
 
@@ -2247,7 +1801,7 @@ public class GodEyeRestService extends AppHubBaseRestService {
 
         UAVHttpMessage msg = new UAVHttpMessage(data);
 
-        doHttpPost("uav.app.hm.newlog.http.addr", "/newlog/q", msg, new SearchNewLogCallback(resp));
+        doHttpPost("uav.app.hm.newlog.http.addr", "/newlog/q", msg, new CommonCB(resp, "searchNewLog"));
     }
     // ---------------------------------------新日志服务接口 END-------------------------------------
 
@@ -2293,7 +1847,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request,
+                new CommonCB(resp, "saveFeedback"));
     }
 
     @SuppressWarnings("unchecked")
@@ -2338,7 +1893,8 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
 
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request,
+                new CommonCB(resp, "queryFeedback"));
     }
 
     @SuppressWarnings("unchecked")
@@ -2377,8 +1933,9 @@ public class GodEyeRestService extends AppHubBaseRestService {
         request.putRequest("mrd.data", JSONHelper.toString(mapParam));
         request.putRequest("datastore.name", "AppHub.feedback");
         request.putRequest("mgo.coll.name", "uav_feedback");
-
-        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request, new GodEyeCB(resp));
+        
+        doHttpPost("uav.app.manage.apphubmanager.http.addr", "/ah/feedback", request,
+                new CommonCB(resp, "queryFeedbackCount"));
 
     }
     // ---------------------------------------反馈建议 END-----------------------------------
