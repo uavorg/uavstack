@@ -19,8 +19,9 @@
  */
 package com.creditease.agent.feature.notifycenter;
 
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.monitor.api.NotificationEvent;
 import com.creditease.agent.spi.AbstractComponent;
 import com.creditease.uav.cache.api.CacheManager;
@@ -32,12 +33,17 @@ import com.creditease.uav.cache.api.CacheManager;
  */
 public class NCEventStatusManager extends AbstractComponent {
     
+    private static final String NCJUDGE_PREFIX = "NCJUDGE_";
+
     private CacheManager cm;
+    private int expire;
     
     public NCEventStatusManager(String cName, String feature, CacheManager cm) {
 
         super(cName, feature);
         this.cm = cm;
+        expire = DataConvertHelper.toInt(this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.ttl"),
+                4) * 3600 * 1000;
     }
 
     /**
@@ -70,39 +76,34 @@ public class NCEventStatusManager extends AbstractComponent {
     }
     
     /**
-     * obtain the cache for the event
+     * Get the cache for the event
+     * 
      * @param eventKey
      * @return
-     * @throws RuntimeException
      */
-    public Map<String, String> obtainEventCache(String eventKey) throws RuntimeException{
+    public String getEventCache(String eventKey) throws RuntimeException {
         
-        try {
-            Map<String, String> ntfvalue = cm.getHash(NCConstant.STORE_REGION, NCConstant.STORE_KEY_NCINFO, eventKey);
-            return ntfvalue;
-        } catch (RuntimeException e) {
-            cm.del(NCConstant.STORE_REGION, eventKey);
-            throw e;
-        }
-        
+        return cm.get(NCConstant.STORE_REGION, NCJUDGE_PREFIX + eventKey);
     }
     
     /**
      * update cache after the handle of event
      * @param event
      */
-    public void updateCache(NotificationEvent event) {
+    public void updateEventCache(NotificationEvent event) {
 
         if (log.isDebugEnable()) {
             log.debug(this, "NC Update Cache: " + event.getArg(NCConstant.NTFVALUE));
         }
 
         try {
-            cm.putHash(NCConstant.STORE_REGION, NCConstant.STORE_KEY_NCINFO, event.getArg(NCConstant.NTFKEY),
+            cm.put(NCConstant.STORE_REGION, NCJUDGE_PREFIX + event.getArg(NCConstant.NTFKEY),
                     event.getArg(NCConstant.NTFVALUE));
+            // 增加过期时间后如该预警未发生报警的时间大于过期时间则该redis key消失，下次预警将被认为是新预警
+            cm.expire(NCConstant.STORE_REGION, NCJUDGE_PREFIX + event.getArg(NCConstant.NTFKEY), expire,
+                    TimeUnit.MILLISECONDS);
         }
         catch (Exception e) {
-
             log.err(this, "Error when updateCache", e);
         } finally {
             cm.del(NCConstant.STORE_REGION, event.getArg(NCConstant.NTFKEY));

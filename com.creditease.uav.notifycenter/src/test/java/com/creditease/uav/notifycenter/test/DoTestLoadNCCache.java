@@ -24,11 +24,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 
 import com.creditease.agent.ConfigurationManager;
-import com.creditease.agent.feature.notifycenter.NCConstant;
-import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.log.SystemLogger;
 import com.creditease.agent.spi.AgentFeatureComponent;
 import com.creditease.uav.cache.api.CacheManager;
@@ -42,28 +39,7 @@ public class DoTestLoadNCCache {
         SystemLogger.init("DEBUG", true, 5);
 
         CacheManager.build("localhost:6379", 5, 5, 5);
-
-        CacheManager cm = CacheManager.instance();
-
-        // testLoadAllNCInfo(cm);
-        // cleanAllNCInfo(cm);
-
         pushEventoNC();
-    }
-
-    @SuppressWarnings("unused")
-    private static void cleanAllNCInfo(CacheManager cm) {
-
-        cm.del(NCConstant.STORE_REGION, NCConstant.STORE_KEY_NCINFO);
-
-        testLoadAllNCInfo(cm);
-    }
-
-    private static void testLoadAllNCInfo(CacheManager cm) {
-
-        Map<String, String> data = cm.getHashAll(NCConstant.STORE_REGION, NCConstant.STORE_KEY_NCINFO);
-
-        System.out.println(JSONHelper.toString(data));
     }
 
     public static void pushEventoNC() {
