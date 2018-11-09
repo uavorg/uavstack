@@ -221,7 +221,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
             String uuid = EncodeHelper.encodeMD5(uuidStr.toString());
 
             // 准备index，如果不存在，就创建
-            String currentIndex = indexMgr.prepareIndex(appid);
+            String currentIndex = indexMgr.prepareIndex();
 
             // 检查type是否存在，不存在就创建
             indexMgr.prepareIndexType(currentIndex, logFileType.toLowerCase());
@@ -231,6 +231,7 @@ public class NewLogDataMessageHandler implements MessageHandler {
             /**
              * 用于区分不同机器上的应用实例
              */
+            line.put("appid", appid);
             line.put("ipport", ipport);
 
             irb.setSource(line);

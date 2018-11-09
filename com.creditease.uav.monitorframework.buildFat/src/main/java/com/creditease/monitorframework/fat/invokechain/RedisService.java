@@ -30,9 +30,13 @@ import javax.ws.rs.core.MediaType;
 import com.creditease.agent.log.SystemLogger;
 import com.creditease.uav.cache.api.CacheManager;
 import com.creditease.uav.cache.api.CacheManagerFactory;
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisConnection;
+//import com.lambdaworks.redis.RedisAsyncConnection;
+//import com.lambdaworks.redis.RedisClient;
+//import com.lambdaworks.redis.RedisConnection;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -134,7 +138,9 @@ public class RedisService {
 
         System.out.println("TEST Lettuce sync ======================================================");
         RedisClient redisClient = RedisClient.create("redis://localhost:6379/0");
-        RedisConnection<String, String> conn = redisClient.connect();
+//        RedisConnection<String, String> conn = redisClient.connect();
+        StatefulRedisConnection<String, String> connection = redisClient.connect();  // 5.0.5
+        RedisCommands<String, String> conn = connection.sync();
 
         conn.set("foo", "bar");
 
@@ -153,7 +159,8 @@ public class RedisService {
 
         conn.del("foo", "lll", "mmm");
 
-        conn.close();
+//        conn.close();
+        connection.close();
         redisClient.shutdown();
         return "lettucetest";
     }
@@ -165,7 +172,9 @@ public class RedisService {
 
         System.out.println("TEST Lettuce async ======================================================");
         RedisClient client = RedisClient.create("redis://localhost:6379/0");
-        RedisAsyncConnection<String, String> conn = client.connectAsync();
+//        RedisAsyncConnection<String, String> conn = client.connectAsync();
+        StatefulRedisConnection<String, String> connection = client.connect();  // 5.0.5
+        RedisAsyncCommands<String, String> conn = connection.async();
         conn.set("foo", "bar");
 
         conn.get("foo");
@@ -183,7 +192,8 @@ public class RedisService {
 
         conn.del("foo", "lll", "mmm");
 
-        conn.close();
+//        conn.close();
+        connection.close();
         client.shutdown();
         return "lettuce_async_test";
     }

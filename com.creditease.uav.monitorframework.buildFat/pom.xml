@@ -208,6 +208,38 @@
 			<version>4.0.0</version>
 		</dependency>
 		<dependency>
+ 			<groupId>io.lettuce</groupId>
+     		<artifactId>lettuce-core</artifactId>
+     		<version>5.0.1.RELEASE</version>
+ 			<exclusions>
+ 				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-common</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-handler</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-codec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport-native-epoll</artifactId>
+				</exclusion>
+				<!-- <exclusion> <groupId>io.reactivex</groupId> <artifactId>rxjava</artifactId> 
+					</exclusion> <exclusion> <groupId>org.latencyutils</groupId> <artifactId>LatencyUtils</artifactId> 
+					</exclusion> <exclusion> <groupId>com.google.guava</groupId> <artifactId>guava</artifactId> 
+					</exclusion> <exclusion> <groupId>org.apache.commons</groupId> <artifactId>commons-pool2</artifactId> 
+					</exclusion> -->
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>biz.paluch.redis</groupId>
 			<artifactId>lettuce</artifactId>
 			<version>3.5.0.Final</version>

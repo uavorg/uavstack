@@ -94,11 +94,16 @@ public class DynamicServletContextProcessor extends JDKProxyInvokeProcessor<Serv
 
         if (methodName.equals("addServlet")) {
 
-            servlets.add((ServletRegistration.Dynamic) res);
+            if (res != null) {
+                servlets.add((ServletRegistration.Dynamic) res);
+            }
         }
         else if (methodName.equals("addFilter")) {
 
-            filters.add((FilterRegistration.Dynamic) res);
+            // if the filter has already been registered,the res will be null;
+            if (res != null) {
+                filters.add((FilterRegistration.Dynamic) res);
+            }
         }
         else if (methodName.equals("addListener")) {
 

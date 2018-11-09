@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 import com.creditease.agent.helpers.ReflectionHelper;
 import com.creditease.agent.helpers.StringHelper;
@@ -38,6 +39,7 @@ import com.creditease.uav.apm.RewriteIvcResponseWrapper;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.apm.slowoper.adapter.ServerSpanAdapter;
 import com.creditease.uav.util.MonitorServerUtil;
+import com.creditease.uav.util.TransformWrapperUtil;
 
 /**
  * 
@@ -93,10 +95,12 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
         // 重调用链开启时添加warpper
         if (UAVServer.instance().isExistSupportor("com.creditease.uav.apm.supporters.SlowOperSupporter")) {
 
-            RewriteIvcRequestWrapper requestWrapper = new RewriteIvcRequestWrapper(request, "IVC_DAT");
+            HttpServletRequest reqs = (HttpServletRequest) context.get(InterceptConstants.HTTPREQUEST);
+            RewriteIvcRequestWrapper requestWrapper = new RewriteIvcRequestWrapper(reqs, "IVC_DAT");
             context.put(InterceptConstants.HTTPREQUEST, requestWrapper);
 
-            RewriteIvcResponseWrapper responseWrapper = new RewriteIvcResponseWrapper(response, "IVC_DAT");
+            HttpServletResponse resp = (HttpServletResponse) context.get(InterceptConstants.HTTPRESPONSE);
+            RewriteIvcResponseWrapper responseWrapper = new RewriteIvcResponseWrapper(resp, "IVC_DAT");
             context.put(InterceptConstants.HTTPRESPONSE, responseWrapper);
 
             args = new Object[] { requestWrapper, responseWrapper };
@@ -143,6 +147,8 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
     @Override
     protected void doResponse(HttpServletRequest request, HttpServletResponse response, InterceptContext ic) {
 
+        HttpServletResponse resp = TransformWrapperUtil.moveWrapper(RewriteIvcResponseWrapper.class.getName(),
+               (HttpServletResponse) ic.get(InterceptConstants.HTTPRESPONSE));
 		StringBuffer bf = request.getRequestURL();
 
         if (bf == null) {
@@ -162,9 +168,9 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
         params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_REQUEST_URL, request.getRequestURL().toString());
         params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_CONTEXT, getReqContextPath(request));
         params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_CONTEXT_REALPATH, getReqRealPath(request));
-        params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSECODE, getRespRetStatus(response));
+        params.put(CaptureConstants.INFO_APPSERVER_CONNECTOR_RESPONSECODE, getRespRetStatus(resp));
 
-        Object args[] = { request, response };
+        Object args[] = { request, resp };
 
         // invoke chain
         UAVServer.instance().runSupporter("com.creditease.uav.apm.supporters.InvokeChainSupporter", "runCap",
@@ -187,12 +193,9 @@ public class JEEServiceRunGlobalFilterHandler extends AbsJEEGlobalFilterHandler 
         catch (Error e) {
 
             Object resp = response;
-            // 重调用链开启后这里的response是RewriteIvcResponseWrapper
-            if ("com.creditease.uav.apm.RewriteIvcResponseWrapper".equals(response.getClass().getName())) {
-                resp = ReflectionHelper.getField(response.getClass(), response, "response");
-                if (resp == null) {
-                    return 0;
-                }
+            // 重调用链开启时，获取到原生response         
+            if (HttpServletResponseWrapper.class.isAssignableFrom(response.getClass())) {          
+                    resp = TransformWrapperUtil.moveWrapper("", response);
             }
 
             if (resp == null) {
