@@ -935,10 +935,36 @@ public class StandardProfileModeler extends AbstractBaseAction {
                     /**
                      * each method has Path info except only one
                      */
-                    if (methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.RequestMapping")) {
+                    if (methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.RequestMapping")
+                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PostMapping")
+                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.GetMapping")
+                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PutMapping")
+                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.DeleteMapping")
+                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PatchMapping")) {
 
                         Map<String, Object> pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
                                 .get("org.springframework.web.bind.annotation.RequestMapping");
+                        
+                        if (pathAnnoInfo == null) {
+                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                    .get("org.springframework.web.bind.annotation.PostMapping");
+                        }
+                        if (pathAnnoInfo == null) {
+                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                    .get("org.springframework.web.bind.annotation.GetMapping");
+                        }
+                        if (pathAnnoInfo == null) {
+                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                    .get("org.springframework.web.bind.annotation.PutMapping");
+                        }
+                        if (pathAnnoInfo == null) {
+                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                    .get("org.springframework.web.bind.annotation.DeleteMapping");
+                        }
+                        if (pathAnnoInfo == null) {
+                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                    .get("org.springframework.web.bind.annotation.PatchMapping");
+                        }
 
                         List<String> methodRelativePaths = (List<String>) pathAnnoInfo.get("value");
 
