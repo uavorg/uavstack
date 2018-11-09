@@ -324,7 +324,7 @@ body {
   color:#000000;
 }
 
-StgyDiv .edit-div-option:empty:before{
+.StgyDiv .edit-div-option:empty:before{
 	content: attr(placeholder);
 	color:darkgrey;
 }

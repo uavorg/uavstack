@@ -90,6 +90,53 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
+			<version>5.0.5.RELEASE</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-common</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-handler</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-codec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport-native-epoll</artifactId>
+				</exclusion>
+				<!-- 
+				<exclusion>
+					<groupId>io.reactivex</groupId>
+					<artifactId>rxjava</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.latencyutils</groupId>
+					<artifactId>LatencyUtils</artifactId>
+				</exclusion>
+				
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-pool2</artifactId>
+				</exclusion>
+				 -->
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
 			<version>4.1.6.Final</version>
@@ -144,6 +191,17 @@
                             </includes>
                         </configuration>
                     </execution>
+                    <execution>
+                         <id>lettuce5x</id>
+                         <goals><goal>jar</goal></goals>
+                         <phase>package</phase>
+                         <configuration>
+                             <classifier>lettuce5x</classifier>
+                             <includes>
+                                 <include>**/com/creditease/uav/hook/redis/lettuce5x/**</include>
+                             </includes>
+                         </configuration>
+                     </execution>
                     <execution>
                         <id>aredis</id>
                         <goals><goal>jar</goal></goals>

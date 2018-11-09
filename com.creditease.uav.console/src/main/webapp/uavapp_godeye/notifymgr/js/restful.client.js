@@ -51,9 +51,9 @@ function loadCountNotify_RestfulClient(rows){
 	});
 }
 
-function viewNotify_RestfulClient(paramObject){
+function updateNotify_RestfulClient(paramObject){
 	AjaxHelper.call({
-		url : url + "view/hm",
+		url : url + "update/hm",
 		data : JSON.stringify(paramObject),
 		async : true,
 		cache : false,
@@ -71,26 +71,24 @@ function viewNotify_RestfulClient(paramObject){
 			console.log(result);
 		}
 	});
-	
+}
 
-	function loadNotifyDesc_RestfulClient(paramObject){
-		AjaxHelper.call({
-			url : url + "q/desc/hm",
-			data : JSON.stringify(paramObject),
-			async : true,
-			cache : false,
-			type : "POST",
-			dataType : "html",
-			success : function(result) {
-				var jsonData = eval("(" + result + ")");
-				loadDescDiv("descDiv",jsonData);
-			},
-			error : function(result) {
-				console.log(result);
-			}
-		});
-	}
-
+function loadNotifyDesc_RestfulClient(paramObject){
+	AjaxHelper.call({
+		url : url + "q/desc/hm",
+		data : JSON.stringify(paramObject),
+		async : true,
+		cache : false,
+		type : "POST",
+		dataType : "html",
+		success : function(result) {
+			var jsonData = eval("(" + result + ")");
+			loadDescDiv("descDiv",jsonData);
+		},
+		error : function(result) {
+			console.log(result);
+		}
+	});
 }
 
 function getNotifyEventList_RestfulClient(){

@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2101 Alibaba Group.
+ * Copyright 1999-2018 Alibaba Group.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,10 @@ public class StringCodec implements ObjectSerializer, ObjectDeserializer {
     }
 
     public void write(JSONSerializer serializer, String value) {
-        SerializeWriter out = serializer.getWriter();
+        SerializeWriter out = serializer.out;
 
         if (value == null) {
-            if (out.isEnabled(SerializerFeature.WriteNullStringAsEmpty)) {
-                out.writeString("");
-            } else {
-                out.writeNull();
-            }
+            out.writeNull(SerializerFeature.WriteNullStringAsEmpty);
             return;
         }
 
@@ -53,7 +49,7 @@ public class StringCodec implements ObjectSerializer, ObjectDeserializer {
     @SuppressWarnings("unchecked")
     public <T> T deserialze(DefaultJSONParser parser, Type clazz, Object fieldName) {
         if (clazz == StringBuffer.class) {
-            final JSONLexer lexer = parser.getLexer();
+            final JSONLexer lexer = parser.lexer;
             if (lexer.token() == JSONToken.LITERAL_STRING) {
                 String val = lexer.stringVal();
                 lexer.nextToken(JSONToken.COMMA);
@@ -71,7 +67,7 @@ public class StringCodec implements ObjectSerializer, ObjectDeserializer {
         }
 
         if (clazz == StringBuilder.class) {
-            final JSONLexer lexer = parser.getLexer();
+            final JSONLexer lexer = parser.lexer;
             if (lexer.token() == JSONToken.LITERAL_STRING) {
                 String val = lexer.stringVal();
                 lexer.nextToken(JSONToken.COMMA);
