@@ -37,7 +37,12 @@
 		<dependency>
 			<groupId>com.creditease.moniter</groupId>
 			<artifactId>com.creditease.uav.agent.heartbeat</artifactId>
-
+			<exclusions> 
+	            <exclusion>
+					  <groupId>io.lettuce</groupId>
+					  <artifactId>lettuce-core</artifactId>
+	            </exclusion>
+	         </exclusions> 
 		</dependency>
 		<dependency>
 			<groupId>com.creditease.moniter</groupId>
