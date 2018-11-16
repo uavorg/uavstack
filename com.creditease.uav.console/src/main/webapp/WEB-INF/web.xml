@@ -236,7 +236,7 @@
 	
 	<context-param>
 		<param-name>uav.apphub.sso.implclass</param-name>
-		<param-value>com.creditease.uav.apphub.sso.GUISSOLdapClient</param-value>
+		<param-value>com.creditease.uav.apphub.sso.GUISSOSimpleClient</param-value>
 	</context-param>	
 	
 	<context-param>
