@@ -175,7 +175,7 @@
 		<param-value>http://127.0.0.1:8041,http://127.0.0.1:8041</param-value>
 	</context-param>
 	<context-param>
-		<param-name>@url:uav.app.godeye.notify.view.http.addr</param-name>
+		<param-name>@url:uav.app.godeye.notify.update.http.addr</param-name>
 		<param-value>http://127.0.0.1:9011,http://127.0.0.1:9011</param-value>
 	</context-param>
 	<context-param>

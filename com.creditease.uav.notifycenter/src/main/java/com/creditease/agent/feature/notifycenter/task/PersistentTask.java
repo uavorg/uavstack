@@ -55,13 +55,13 @@ public class PersistentTask extends Abstract1NTask {
         // 1.同步cache
         updateCache(event);
 
-        // 2. 同步Mongodb
+        // 2.同步Mongodb
         updateDatabase(event);
     }
 
     public void updateCache(NotificationEvent event) {
 
-        eventStatusManager.updateCache(event);
+        eventStatusManager.updateEventCache(event);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -103,6 +103,9 @@ public class PersistentTask extends Abstract1NTask {
         }
         if (ntfargs.get(NCConstant.COLUMN_VIEWTIME) != null) {
             set.put(NCConstant.COLUMN_VIEWTIME, ntfargs.get(NCConstant.COLUMN_VIEWTIME));
+        }
+        if (ntfargs.get(NCConstant.COLUMN_PROCESSTIME) != null) {
+            set.put(NCConstant.COLUMN_PROCESSTIME, ntfargs.get(NCConstant.COLUMN_PROCESSTIME));
         }
         if (ntfargs.get(NCConstant.COLUMN_LATESTIME) != null) {
             set.put(NCConstant.COLUMN_LATESTIME, ntfargs.get(NCConstant.COLUMN_LATESTIME));

@@ -328,13 +328,13 @@ public abstract class AbstractHttpServiceComponent2<T> extends AbstractBaseHttpS
     @Override
     public void start(int port, int backlog, int listenThreadCount, int handleThreadCount) {
 
-        start(port, backlog, listenThreadCount, handleThreadCount, false);
+        start(port, backlog, listenThreadCount, handleThreadCount, true);
     }
 
     @Override
     public void start(Executor executor, int port, int backlog) {
 
-        start(executor, port, backlog, false);
+        start(executor, port, backlog, true);
     }
 
     @Override
