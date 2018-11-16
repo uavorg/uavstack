@@ -20,6 +20,7 @@
 
 package com.creditease.uav.monitorframework.adaptors;
 
+import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -195,7 +196,7 @@ public abstract class AbstractAdaptor {
     public void installJar(ClassLoader webapploader, String jarPath, boolean isEnableInject) throws Exception {
 
         ReflectionHelper.invoke(URLClassLoader.class.getName(), webapploader, "addURL", new Class<?>[] { URL.class },
-                new Object[] { new URL("file:///" + jarPath) }, this.getClass().getClassLoader());
+                new Object[] { new File(jarPath).toURI().toURL() }, this.getClass().getClassLoader());
 
         if (isEnableInject) {
             pool.appendClassPath(jarPath);
