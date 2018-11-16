@@ -50,7 +50,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<addClasspath>true</addClasspath>
+									<addClasspath>false</addClasspath>
 								</manifest>
 								<manifestEntries>
 									<Premain-Class>
