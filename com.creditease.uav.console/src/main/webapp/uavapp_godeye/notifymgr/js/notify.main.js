@@ -47,12 +47,14 @@ var listConfig = {
 				if(value=="新预警"){
 					color  = "#EEB422";
 				}else if(value=="已查看"){
-					color = "blue";
+					color = "#800000";
 				}else if(value=="报警持续中"){
 					color  = "red";
 				}else if(value=="已查看&报警持续中"){
 					color  = "red";
-				}
+				}else if(value=="已处理"){
+					color = "#B4B4B4";
+ 				}
 				return "<span style='font-size:12px;color:"+color+";font-weight:bold;'>"+value+"</span>";
 			}
 			
@@ -139,13 +141,14 @@ function loadListData(datas, count) {
 		
 		if(obj["state"]==0){
 			obj["state"] = "新预警";
+		}else if(obj["state"]==10){
+			obj["state"] = "报警持续中";
 		}else if(obj["state"]==15){
 			obj["state"] = "已查看";
 		}else if(obj["state"]==20){
 			obj["state"] = "已查看&报警持续中";
-		}
-		else if(obj["state"]==10){
-			obj["state"] = "报警持续中";
+		}else if(obj["state"]==25){
+			obj["state"] = "已处理";
 		}
 		
 		
@@ -263,10 +266,10 @@ function searchListClear(){
 }
 
 function showDSEjectDiv(id,obj) {
+	var ntfkey = obj["id"];
 	var time = obj.getElementsByTagName('td')[5].id;
-	var url = obj["id"]+"&"+time;
-	var paramObject = {"url":url,"type":"mgr"};
-	viewNotify_RestfulClient(paramObject);
+	var paramObject = {"action":"view","ntfkey":ntfkey,"time":time,"type":"mgr"};
+	updateNotify_RestfulClient(paramObject);
 	window.winmgr.hide("notifyList");
 	window.winmgr.show("descDiv");
 }

@@ -67,21 +67,21 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
     
     
     private class NotificationConvergenceAction extends AbstractBaseAction {
-        
+
         /**
          * @param cName
          * @param feature
          * @param engine
          */
         public NotificationConvergenceAction(String cName, String feature, IActionEngine engine) {
-            
+
             super(cName, feature, engine);
         }
-        
+
         @SuppressWarnings("unchecked")
         @Override
         public void doAction(ActionContext context) throws Exception {
-            
+
             String eventKey = (String) context.getParam("eventKey");
             NotificationEvent event = (NotificationEvent) context.getParam("event");
             String stateDataStr = (String) context.getParam("stateDataStr");
@@ -103,27 +103,25 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
             }
                 
             stateData = JSONHelper.toObject(stateDataStr, Map.class);
-            
+
             if (log.isDebugEnable()) {
                 log.debug(this, "NC Event happens with stateData: "+stateDataStr);
             }
                 
             long curTime = System.currentTimeMillis();
-            
-            long viewTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_VIEWTIME), -1);
-            long firstrecordTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_FIRSTRECORDTIME), curTime);
+            long processTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_PROCESSTIME), -1);
                 
-            if (viewTime > -1) {
-                
+            if (processTime > -1) {
+
                 if (log.isDebugEnable()) {
-                    log.debug(this, "NC Convergence Event Check Result, Over View TTL: viewTTL=" + viewTTL + ",curTime - viewTime="
-                            + (curTime - viewTime));
+                    log.debug(this, "NC Convergence Event Check Result, Over Precesed TTL: processTTL=" + processTTL
+                            + ",curTime - processTime=" + (curTime - processTime));
                 }
                 
                 /**
-                 * if there is ViewTime and ViewTime exceeds ViewTTL, take this event as a newone
+                 * if there is processTime and processTime exceeds processTTL, take this event as a newone
                  */
-                if (curTime - viewTime > viewTTL) {
+                if (curTime - processTime > processTTL) {
                     stateData = playAsFirstEventRecordConvergence(event, eventKey);
                 }
                 else {
@@ -135,10 +133,9 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
                     }
                     return;
                 }
-                
-            } else if (curTime - firstrecordTime > viewTTL){
-                stateData = playAsFirstEventRecordConvergence(event, eventKey);
-            } else {
+
+            }
+            else {
                 int count = increEventCount(stateData);
                 stateData.put(NCConstant.EVENT_COUNT, count);
             }
@@ -158,16 +155,15 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
             String convergence = event.getArg("convergences");
             List<String> convs = Arrays.asList(convergence.split(","));
             String count = stateData.get(NCConstant.EVENT_COUNT) +"";
-            if (convs.contains(count)) {
-                
+            // 预警梯度收敛设为-1则每次报警触发actions
+            if (convs.contains(count) || (convs.size() == 1 && convs.get(0).equals("-1"))) {
                 if (log.isDebugEnable()) {
                     log.debug(this, "NC Convergence Event Check Result, RE-Action Notify: current event=" + count);
                 }
                 playAsReEntryRecordConvergence(event, eventKey, stateData, true);
                 addNotficationTask(event, stateData);
-                
-            } else {
-                
+            }
+            else {
                 playAsReEntryRecordConvergence(event, eventKey, stateData, false);
             }
             
@@ -175,93 +171,91 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
                 log.info(this, "NCJudgementHandler END: key=" + eventKey);
             }
         }
-        
+
         @Override
         public String getSuccessNextActionId() {
-            
+
             return null;
         }
-        
+
         @Override
         public String getFailureNextActionId() {
-            
+
             return null;
         }
-        
+
         @Override
         public String getExceptionNextActionId() {
-            
+
             return null;
         }
         
         private Map<String, Object> playAsFirstEventRecordConvergence(NotificationEvent event, String eventKey) {
-            
+
             Map<String, Object> statusSet = new LinkedHashMap<String, Object>();
-            
+
             statusSet.put(NCConstant.COLUMN_STARTTIME, event.getTime());
             statusSet.put(NCConstant.COLUMN_STATE, NCConstant.StateFlag.NEWCOME.getStatFlag());
             statusSet.put(NCConstant.COLUMN_RETRY_COUNT, 0);
             statusSet.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
-            statusSet.put(NCConstant.COLUMN_FIRSTRECORDTIME, System.currentTimeMillis());
-            
+
             // First Time NTFE take priority as the "0" Priority.
             statusSet.put(NCConstant.COLUMN_PRIORITY, 0);
             statusSet.put(NCConstant.EVENT_COUNT, 1);
-            
+
             String statusStr = JSONHelper.toString(statusSet);
-            
+
             event.addArg(NCConstant.NCFirstEvent, "true");
             event.addArg(NCConstant.NTFKEY, eventKey);
             event.addArg(NCConstant.NTFVALUE, statusStr);
-            
+
             return statusSet;
         }
         
         private void playAsReEntryRecordConvergence(NotificationEvent event, String eventKey, Map<String, Object> stateData,
                 boolean isRetry) {
-            
-            // NOTE: if the state is VIEW, the UPDATE should not be set as the latest state
+
             int curState = (int) stateData.get(NCConstant.COLUMN_STATE);
-            
+
             if (curState < StateFlag.UPDATE.getStatFlag() && !"true".equals(event.getArg(NCConstant.NCFirstEvent))) {
                 curState = StateFlag.UPDATE.getStatFlag();
                 stateData.put(NCConstant.COLUMN_STATE, curState);
             }
-            
+
             // NOTE: if the state is VIEW, for this part that means VIEW & UPDATE
             if (curState == StateFlag.VIEW.getStatFlag()) {
                 curState = StateFlag.VIEWUPDATE.getStatFlag();
                 stateData.put(NCConstant.COLUMN_STATE, curState);
             }
-            
+
             if (isRetry == true) {
                 int curRetry = (Integer) stateData.get(NCConstant.COLUMN_RETRY_COUNT) + 1;
                 stateData.put(NCConstant.COLUMN_RETRY_COUNT, curRetry);
                 stateData.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
             }
-            
+
             stateData.put(NCConstant.COLUMN_LATESTRECORDTIME, event.getTime());
-            
+
             String statusStr = JSONHelper.toString(stateData);
-            
+
             if (null == event.getArg(NCConstant.NCFirstEvent)) {
                 event.addArg(NCConstant.NCFirstEvent, "false");
             }
             event.addArg(NCConstant.NTFKEY, eventKey);
             event.addArg(NCConstant.NTFVALUE, statusStr);
-            
+
             // 持久化操作
             addPersistentTask(event);
         }
         
     }
     
-    
+
     private int retryTime = 3;
     /**
-     * NOTE: viewTTL is the time to give human to fix the issue, see we are nice as default is 4 hours
+     * NOTE: processTTL is the time to give human to fix the issue, see we are nice as default is 4 hours
      */
-    private int viewTTL = 4 * 3600 * 1000;
+    private int processTTL = 4 * 3600 * 1000;
     private long frozenTime = 300000;
     private I1NQueueWorker qworker;
     private IActionEngine engine;
@@ -275,7 +269,7 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         
         retryTime = DataConvertHelper
                 .toInt(this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.retry"), 3);
-        viewTTL = DataConvertHelper
+        processTTL = DataConvertHelper
                 .toInt(this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.ttl"), 4) * 3600 * 1000;
         frozenTime = DataConvertHelper.toLong(
                 this.getConfigManager().getFeatureConfiguration(this.feature, "nc.notify.frozenTime"), 300) * 1000;
@@ -297,7 +291,6 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
          * Step 1 generate eventKey
          **/
         String eventKey = getKeyfromNTFE(event);
-        String stateDataStr = null;
 
         if (log.isTraceEnable()) {
             log.info(this, "NCJudgementHandler START: key=" + eventKey + ",event=" + event.toJSONString());
@@ -307,7 +300,6 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
          * Step 1.1 check if there is SYNC atomic key on enevtKey
          * 
          */
-
         boolean isSYNCAtomicKey = eventStatusManager.checkSyncAtomicKey(eventKey);
         if (isSYNCAtomicKey) {
             if (log.isTraceEnable()) {
@@ -319,23 +311,8 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         /**
          * Step 2 Check if there is a cache for current event
          **/
-        try {
-            Map<String, String> ntfvalue = eventStatusManager.obtainEventCache(eventKey);
-            stateDataStr = ntfvalue.get(eventKey);
-        }
-        catch (RuntimeException e) {
-
-            if (log.isTraceEnable()) {
-                log.info(this, "NCJudgementHandler exception got RuntimeException" + e.getMessage() + " The event is: "
-                        + event.toJSONString());
-            }
-
-            return;
-        }
+        String stateDataStr = eventStatusManager.getEventCache(eventKey);
         
-        /**
-         * notification convergence
-         */
         if(!StringHelper.isEmpty(event.getArg("convergences"))) {
             
             ActionContext ac = new ActionContext();
@@ -377,30 +354,29 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         }
 
         /**
-         * Step 3 if there is ViewTime and ViewTime exceeds ViewTTL, that means human has seen this event, and ViewTTL
-         * is the timespan we give to them to fix the issue, if reach ViewTTL, that may mean the issue is not fixed or
-         * may be a new issue, anyway, we will take current event as NEWCOME. then a new first event record is
-         * generated, it is the split line to the previous first event record
+         * Step 3 if there is processTime and processTime exceeds processTTL, that means human has seen this event, and
+         * processTTL is the timespan we give to them to fix the issue, if reach processTTL, that may mean the issue is
+         * not fixed or may be a new issue, anyway, we will take current event as NEWCOME. then a new first event record
+         * is generated, it is the split line to the previous first event record
          */
         long curTime = System.currentTimeMillis();
+        long processTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_PROCESSTIME), -1);
 
-        long viewTime = DataConvertHelper.toLong(stateData.get(NCConstant.COLUMN_VIEWTIME), -1);
-
-        if (viewTime > -1) {
+        if (processTime > -1) {
 
             if (log.isDebugEnable()) {
-                log.debug(this, "NC Event Check Result, Over View TTL: viewTTL=" + viewTTL + ",curTime - viewTime="
-                        + (curTime - viewTime));
+                log.debug(this, "NC Event Check Result, Over process TTL: processTTL=" + processTTL
+                        + ",curTime - processTime=" + (curTime - processTime));
             }
 
             /**
-             * if over viewTTL, take this as a new event record
+             * if over processTTL, take this as a new event record
              */
-            if (curTime - viewTime > viewTTL) {
+            if (curTime - processTime > processTTL) {
                 playAsFirstEventRecord(event, eventKey);
             }
             /**
-             * if less than viewTTL, take this as a re-entry event record then we will not send the notification
+             * if less than processTTL, take this as a re-entry event record then we will not send the notification
              */
             else {
                 playAsReEntryRecord(event, eventKey, stateData, false);
@@ -504,7 +480,6 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
     private void playAsReEntryRecord(NotificationEvent event, String eventKey, Map<String, Object> stateData,
             boolean isRetry) {
 
-        // NOTE: if the state is VIEW, the UPDATE should not be set as the latest state
         int curstate = (int) stateData.get(NCConstant.COLUMN_STATE);
 
         if (curstate < StateFlag.UPDATE.getStatFlag()) {
@@ -557,7 +532,6 @@ public class NCJudgementHandler extends AbstractHandler<NotificationEvent> {
         statusSet.put(NCConstant.COLUMN_STATE, NCConstant.StateFlag.NEWCOME.getStatFlag());
         statusSet.put(NCConstant.COLUMN_RETRY_COUNT, 1);
         statusSet.put(NCConstant.COLUMN_LATESTIME, System.currentTimeMillis());
-        statusSet.put(NCConstant.COLUMN_FIRSTRECORDTIME, System.currentTimeMillis());
         // NOTE: the latest record event time, then we can find out all records from first record startTime to this time
         statusSet.put(NCConstant.COLUMN_LATESTRECORDTIME, event.getTime());
 

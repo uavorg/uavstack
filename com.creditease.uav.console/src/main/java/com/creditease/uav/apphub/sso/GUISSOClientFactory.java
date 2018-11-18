@@ -45,7 +45,7 @@ public class GUISSOClientFactory {
         String ClientImplClassName = request.getServletContext().getInitParameter("uav.apphub.sso.implclass");
 
         if (StringHelper.isEmpty(ClientImplClassName)) {
-            ClientImplClassName = "com.creditease.uav.apphub.sso.GUISSOLdapClient";
+            ClientImplClassName = "com.creditease.uav.apphub.sso.GUISSOSimpleClient";
         }
 
         GUISSOClient GUISSOClientImpl = null;

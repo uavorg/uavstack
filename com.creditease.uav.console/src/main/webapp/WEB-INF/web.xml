@@ -182,7 +182,7 @@
 		<param-value>http://localhost:8765</param-value>
 	</context-param>
 	<context-param>
-		<param-name>@url:uav.app.godeye.notify.view.http.addr</param-name>
+		<param-name>@url:uav.app.godeye.notify.update.http.addr</param-name>
 		<param-value>http://localhost:8766</param-value>
 	</context-param>
 	<context-param>
@@ -236,7 +236,7 @@
 	
 	<context-param>
 		<param-name>uav.apphub.sso.implclass</param-name>
-		<param-value>com.creditease.uav.apphub.sso.GUISSOLdapClient</param-value>
+		<param-value>com.creditease.uav.apphub.sso.GUISSOSimpleClient</param-value>
 	</context-param>	
 	
 	<context-param>

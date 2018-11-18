@@ -1491,9 +1491,9 @@ var StgyClass = {
 			sb.append( '</div>');
 
             if(isOwner=="true"){
-				sb.append( '<div id="convergence_exp" class="edit-div-option input_must" contenteditable="true"   placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10">');
+				sb.append( '<div id="convergence_exp" class="edit-div-option input_must" contenteditable="true"   placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10，每次则填写-1">');
 			}else{
-				sb.append( '<div id="convergence_exp" class="edit-div-option "  placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10">');
+				sb.append( '<div id="convergence_exp" class="edit-div-option "  placeholder="编写梯度收敛规则（可选，优先级高于默认收敛规则），以“,”分割的数字，例如：1,5,10，每次则填写-1">');
 			}
 			
 			if(type=="edit"){
