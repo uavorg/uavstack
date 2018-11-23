@@ -235,6 +235,23 @@ public class Log4jHookProxy extends HookProxy {
                     }
                 }, false);
 
+        // for log4j RollingFileAppender
+        dpInstall.defineField("uavLogHook", LogIT.class, "org.apache.log4j.helpers.CountingQuietWriter", "new LogIT()");
+        dpInstall.defineField("uavLogHookLineSep", String.class, "org.apache.log4j.helpers.CountingQuietWriter",
+                "System.getProperty(\"line.separator\")");
+        dpInstall.installProxy("org.apache.log4j.helpers.CountingQuietWriter",
+                new String[] { "com.creditease.uav.log.hook.interceptors" }, new DynamicProxyProcessor() {
+
+                    @Override
+                    public void process(DPMethod m) throws Exception {
+
+                        if ("write".equals(m.getName())) {
+                            m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
+
+                        }
+                    }
+                }, false);
+
         // release loader
         dpInstall.releaseTargetClassLoader();
     }

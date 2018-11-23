@@ -178,6 +178,41 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
                     });
         }
 
+        // for log4j RollingFileAppender
+        else if (className.equals("org.apache.log4j.helpers.CountingQuietWriter")) {
+            try {
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "org.apache.log4j.helpers.CountingQuietWriter", "new LogIT()");
+                aa.defineField("uavLogHookLineSep", "java.lang.String", "org.apache.log4j.helpers.CountingQuietWriter",
+                        "System.getProperty(\"line.separator\")");
+            }
+            catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
+                e.printStackTrace();
+            }
+            return this.inject(className, new String[] { "com.creditease.uav.log.hook.interceptors" },
+                    new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "write";
+                        }
+
+                    });
+        }
+
         // 进行log4j2的劫持
         else if (className.equals("org.apache.logging.log4j.core.layout.PatternLayout")) {
             try {
