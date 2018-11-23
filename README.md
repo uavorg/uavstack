@@ -34,8 +34,6 @@ uavstack is the All in One source repository of UAVStack.
 * com.creditease.uav.jetty.plus.core: JVM MonitorFramework extension for Jetty
 * com.creditease.uav.mock.sl4j: mock sl4j
 * com.creditease.uav.ttl: com.alibaba.ttl source code introduction (Alibaba TTL)
-* com.creditease.uav.monitorframework.buildFat: function test of JVM MonitorFramework)
-* com.creditease.uav.monitorframework.springbootFat: function test of JVM MonitorFramework for Springboot)
 * com.creditease.uav.agent.buildComponent: build POM for MonitorAgent
 * com.creditease.uav.healthmanager.buildComponent: build POM for HealthManager
 * com.creditease.uav.monitorframework.buildComponent: build POM for JVM MonitorFramework
