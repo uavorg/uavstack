@@ -157,7 +157,7 @@ public abstract class AbstractHttpServiceComponent<T> extends AbstractBaseHttpSe
     @Override
     public void start(Executor executor, int port, int backlog) {
 
-        start(executor, port, backlog, false);
+        start(executor, port, backlog, true);
 
     }
 
@@ -181,7 +181,7 @@ public abstract class AbstractHttpServiceComponent<T> extends AbstractBaseHttpSe
             server = HttpServer.create(isa, backlog);
 
         }
-        catch (IOException e) {
+        catch (Exception e) {
 
             log.err(this, "HttpServiceComponent[" + this.cName + "] for feature[" + this.feature + "] starts FAIL.", e);
 

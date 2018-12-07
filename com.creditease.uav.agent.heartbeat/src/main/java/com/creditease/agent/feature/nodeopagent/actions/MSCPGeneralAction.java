@@ -306,7 +306,7 @@ public class MSCPGeneralAction extends AbstractBaseAction {
             sbf.append(" && sh start_upgrade.sh ");
         }
 
-        sbf.append(upgrade_profile + " ").append(System.getProperty("NetCardIndex", "0")).append(" ");
+        sbf.append(upgrade_profile + " ");
 
         if (JVMToolHelper.isWindows()) {
             sbf.append(JSONHelper.toString(upgradeInfo).replace("\"", "'"));

@@ -96,6 +96,7 @@ public abstract class AbstractBaseHttpServComponent<T> extends AbstractHandleWor
         /**
          * step 2: run http handlers
          */
+        boolean dispatchFlag = false;
         for (AbstractHttpHandler<T> handler : handlers) {
 
             if (!path.equalsIgnoreCase(handler.getContextPath())) {
@@ -111,9 +112,16 @@ public abstract class AbstractBaseHttpServComponent<T> extends AbstractHandleWor
                         e);
             }
 
+            dispatchFlag = true;
             break;
         }
 
+        if (false == dispatchFlag) {
+        	log.warn(this, "NO Matching Handler To Handle This REQUEST, for path: " + path);
+        	message.putResponseBodyInString("NO Matching Handler To Handle This REQUEST, for IP: " + com.creditease.agent.helpers.NetworkHelper.getLocalIP() + ", and path: " + path, 404, "utf-8");
+        	return;
+        }
+        
         /**
          * step 3:
          */
