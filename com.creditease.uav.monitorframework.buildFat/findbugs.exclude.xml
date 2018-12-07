@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<FindBugsFilter> 
-   <Match>
-   		<Class name="com.creditease.monitorframework.fat.*">
-   		</Class>
-   		<Bug pattern="NP_ALWAYS_NULL" />
-   </Match>
-  
-</FindBugsFilter>
