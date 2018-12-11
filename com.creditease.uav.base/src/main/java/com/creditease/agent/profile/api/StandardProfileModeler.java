@@ -900,6 +900,12 @@ public class StandardProfileModeler extends AbstractBaseAction {
             if (annoWebService != null) {
 
                 resourceClassRelativePaths = (List<String>) annoWebService.get("value");
+                /**
+                 * NOTE: RequestMapping can setup a path by 'value' or 'path'
+                 */
+                if (resourceClassRelativePaths == null) {
+                    resourceClassRelativePaths = (List<String>) annoWebService.get("path");
+                }
             }
 
             /**
@@ -967,6 +973,11 @@ public class StandardProfileModeler extends AbstractBaseAction {
                         }
 
                         List<String> methodRelativePaths = (List<String>) pathAnnoInfo.get("value");
+
+                        // try to get info from filed 'path'
+                        if (methodRelativePaths == null) {
+                            methodRelativePaths = (List<String>) pathAnnoInfo.get("path");
+                        }
 
                         // FIX NPE
                         if (methodRelativePaths == null) {

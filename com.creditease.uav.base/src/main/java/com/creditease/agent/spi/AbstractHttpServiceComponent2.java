@@ -373,7 +373,7 @@ public abstract class AbstractHttpServiceComponent2<T> extends AbstractBaseHttpS
                         + "] started SUCCESS: port=" + this.port);
             }
         }
-        catch (InterruptedException e) {
+        catch (Exception e) {
             log.err(this, "HttpServiceComponent[" + this.cName + "] for feature[" + this.feature + "] starts FAIL.", e);
 
             if (forceExit == true) {
