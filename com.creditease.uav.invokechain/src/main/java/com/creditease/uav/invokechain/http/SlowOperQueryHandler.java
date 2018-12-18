@@ -117,12 +117,20 @@ public class SlowOperQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
     @SuppressWarnings("rawtypes")
     private void queryByBodyContent(UAVHttpMessage data) {
 
+        String appid = data.getRequest("appid");
+        if (appid == null) {
+            data.putResponse("rs", "ERR");
+            data.putResponse("msg", "appid is required");
+            return;
+        }
+
         String[] types = buildTypes(data);
         String content = data.getRequest("content");
         if (types.length == 0) {
             types = typeMap.values().toArray(types);
         }
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.matchQuery("appid", appid));
         for (String type : types) {
             for (String field : typeBodyMap.get(type)) {
                 queryBuilder.should(QueryBuilders.matchQuery(field, content));
@@ -141,7 +149,15 @@ public class SlowOperQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
     @SuppressWarnings("rawtypes")
     private void queryByParams(UAVHttpMessage data) {
 
+        String appid = data.getRequest("appid");
+        if (appid == null) {
+            data.putResponse("rs", "ERR");
+            data.putResponse("msg", "appid is required");
+            return;
+        }
+
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.matchQuery("appid", appid));
         if (data.getRequest("traceid") != null) {
             queryBuilder.must(QueryBuilders.matchQuery("traceid", data.getRequest("traceid")));
         }
@@ -274,22 +290,15 @@ public class SlowOperQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
     private SearchResponse query(UAVHttpMessage data, QueryBuilder queryBuilder, QueryBuilder postFilter,
             SortBuilder[] sorts) {
 
-        String appid = data.getRequest("appid");
-        if (appid == null) {
-            data.putResponse("rs", "ERR");
-            data.putResponse("msg", "appid is required");
-            return null;
-        }
-
         String indexDate = data.getRequest("indexdate");
         String currentIndex;
         if (indexDate != null) {
             // 获得指定的index
-            currentIndex = this.indexMgr.getIndexByDate(indexDate, appid);
+            currentIndex = this.indexMgr.getIndexByDate(indexDate);
         }
         else {
             // get current index
-            currentIndex = this.indexMgr.getCurrentIndex(appid);
+            currentIndex = this.indexMgr.getCurrentIndex();
         }
 
         SearchRequestBuilder srb = client.getClient().prepareSearch(currentIndex).setTypes(buildTypes(data))

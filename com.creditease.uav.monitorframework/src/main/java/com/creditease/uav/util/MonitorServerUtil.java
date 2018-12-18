@@ -353,8 +353,8 @@ public class MonitorServerUtil {
             ap = AppIDPolicy.Default;
         }
 
-        switch(ap) {
-            case Default :
+        switch (ap) {
+            case Default:
                 return getDefaultApplicationId(contextroot, basePath);
             case Custom:
                 return appid;
@@ -452,7 +452,9 @@ public class MonitorServerUtil {
         reUrl = StringHelper.getSubStrBeforeToken(reUrl, "=");
         reUrl = StringHelper.getSubStrBeforeToken(reUrl, ":");
         reUrl = StringHelper.getSubStrBeforeToken(reUrl, "&");
-
+        // Replace multi "/" to one "/"
+        reUrl = StringHelper.removeContinuousDupChars(reUrl, '/');
+        
         return reUrl;
     }
 
@@ -469,7 +471,7 @@ public class MonitorServerUtil {
      */
     public static String cleanIplnkTargetURL(String iplinkTargetUrl) {
 
-        if (!StringHelper.isEmpty(iplinkTargetUrl)&&iplinkTargetUrl.contains("\"")) {
+        if (!StringHelper.isEmpty(iplinkTargetUrl) && iplinkTargetUrl.contains("\"")) {
             iplinkTargetUrl = iplinkTargetUrl.replace("\"", "");
         }
         return iplinkTargetUrl;
@@ -569,6 +571,10 @@ public class MonitorServerUtil {
 
         // mysql
         if (oriJDBCURI.indexOf("mysql") > -1) {
+            if (oriJDBCURI.indexOf("?") > -1) {
+
+                oriJDBCURI = oriJDBCURI.substring(0, oriJDBCURI.indexOf("?"));
+            }
             return oriJDBCURI;
         }
         // oracle
@@ -618,9 +624,9 @@ public class MonitorServerUtil {
     }
 
     private static String getDefaultApplicationId(String contextroot, String basePath) {
-        
+
         String appid = "";
-        
+
         if ("".equals(contextroot)) {
             /*
              * NOTE: springboot's basePath is a random temp directory,so we use main(usually the jar name) as the appid

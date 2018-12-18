@@ -29,11 +29,11 @@ import javax.servlet.http.HttpServletResponseWrapper;
 
 public class RewriteIvcResponseWrapper extends HttpServletResponseWrapper {
 
-    private ServletOutputStream outputStream;
-
     private RewriteIvcOutputStream rewriteOutStream;
 
-    private StringBuilder builder;
+    private RewriteIvcPrintWriter rewritePrintWriter;
+
+    private StringBuilder builder = new StringBuilder();
 
     private String tag;
 
@@ -43,16 +43,6 @@ public class RewriteIvcResponseWrapper extends HttpServletResponseWrapper {
         super(response);
         this.tag = tag;
         this.response = response;
-        try {
-            this.outputStream = response.getOutputStream();
-            // 由于tomcat等实现类会记录是否调用了getOutputStream方法，故此处进行这种操作
-            response.reset();
-        }
-        catch (IOException e) {
-            // 出现异常时则将异常信息放入
-            builder.append(e.toString());
-        }
-        this.rewriteOutStream = new RewriteIvcOutputStream(outputStream, response.getCharacterEncoding());
     }
 
     public String getTag() {
@@ -63,17 +53,35 @@ public class RewriteIvcResponseWrapper extends HttpServletResponseWrapper {
     @Override
     public ServletOutputStream getOutputStream() throws IOException {
 
+        if (this.rewriteOutStream == null) {
+            try {
+                this.rewriteOutStream = new RewriteIvcOutputStream(response.getOutputStream(),
+                        response.getCharacterEncoding());
+            }
+            catch (IOException e) {
+                // 出现异常时则将异常信息放入
+                builder.append(e.toString());
+                throw e;
+            }
+        }
+
         return this.rewriteOutStream;
     }
 
     public StringBuilder getContent() {
 
-        if (this.builder == null) {
+        if (rewriteOutStream != null) {
             return this.rewriteOutStream.getContent();
         }
-        else {
+        else if (rewritePrintWriter != null) {
+            return this.rewritePrintWriter.getContent();
+        }
+        else if (this.builder != null) {
             return this.builder;
         }
+
+        return new StringBuilder();
+
     }
 
     /**
@@ -81,8 +89,11 @@ public class RewriteIvcResponseWrapper extends HttpServletResponseWrapper {
      */
     public void clearBodyContent() {
 
-        if (this.builder == null) {
+        if (rewriteOutStream != null) {
             this.rewriteOutStream.clearBodyContent();
+        }
+        else if (rewritePrintWriter != null) {
+            this.rewritePrintWriter.clearBodyContent();
         }
         else {
             this.builder.delete(0, this.builder.length());
@@ -92,7 +103,16 @@ public class RewriteIvcResponseWrapper extends HttpServletResponseWrapper {
     @Override
     public PrintWriter getWriter() throws IOException {
 
-        return this.response.getWriter();
+        if (this.rewritePrintWriter == null) {
+            try {
+                this.rewritePrintWriter = new RewriteIvcPrintWriter(this.response.getWriter());
+            }
+            catch (IOException e) {
+                builder.append(e.toString());
+                throw e;
+            }
+        }
+        return rewritePrintWriter;
     }
 
 }

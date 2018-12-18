@@ -27,7 +27,7 @@ public class NCConstant {
 
     public enum StateFlag {
 
-        NEWCOME(0), UPDATE(10), VIEW(15), VIEWUPDATE(20);
+        NEWCOME(0), UPDATE(10), VIEW(15), VIEWUPDATE(20), PROCESS(25);
 
         private final int flag;
 
@@ -43,7 +43,6 @@ public class NCConstant {
 
     public static final String NC1NQueueWorkerName = "NC1NQueueWorker";
     public static final String NCEventParam = "ncevent";
-    public static final String NCEventTime = "time";
 
     /**
      * notify control flag
@@ -53,10 +52,11 @@ public class NCConstant {
     /**
      * NTF key-value
      */
-    public static final String NTFKEY = "NTFKey";
-    public static final String NTFVALUE = "NTFValue";
+    public static final String NTFKEY = "ntfkey";
+    public static final String NTFVALUE = "ntfvalue";
+    public static final String NTFTime = "time";
     public static final String NCFirstEvent = "firstEvent";
-    public static final String NCAction = "NTFKeyAction";
+    public static final String NCAction = "ntfkeyaction";
 
     public static final String NCCacheActionP = "put";
     public static final String NCCacheActionD = "delete";
@@ -71,8 +71,8 @@ public class NCConstant {
     public static final String COLUMN_STARTTIME = "start_ts";
     public static final String COLUMN_LATESTIME = "latest_ts";
     public static final String COLUMN_VIEWTIME = "view_ts";
+    public static final String COLUMN_PROCESSTIME = "process_ts";
     public static final String COLUMN_LATESTRECORDTIME = "latestrecord_ts";
-    public static final String COLUMN_FIRSTRECORDTIME = "firstrecord_ts";
     public static final String COLUMN_RETRY_COUNT = "retry";
     public static final String COLUMN_PRIORITY = "priority";// default is 0
 
@@ -100,7 +100,6 @@ public class NCConstant {
      * CACHE STORE
      */
     public static final String STORE_REGION = "store.region.uav";
-    public static final String STORE_KEY_NCINFO = "notify.center.info";
 
     /**
      * Notification dataStorename & collection name

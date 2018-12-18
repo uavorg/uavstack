@@ -5,36 +5,45 @@
  */
 function loadDescDiv(appendId,datas){
 
-	var appendObj =  HtmlHelper.id(appendId);
+	/***
+	* 因为是同一预警，为了拿到首次预警时间故获取最后一个输出
+	*/
+	var mainObj = datas[datas.length-1];
+	var ntfkey = mainObj["ntfkey"];
+	var time = TimeHelper.getTime(mainObj["time"],'FMS');
 	/**
 	 * init head
 	 */
 	var sb=new StringBuffer();
 	sb.append("<div class=\"title-head\">");
 	sb.append("<span>预警详情</span>");
+	if(mainObj['state']==25) {//已处理状态则按钮不可用
+		sb.append("&nbsp;&nbsp;<button type=\"button\" disabled=\"disabled\" class=\"btn btn-SetProcess\" title=\"设为已处理\" onclick=\"javascript:setProcess('"+ntfkey+"','"+time+"')\">设为已处理</button>");
+	}
+	else{
+		sb.append("&nbsp;&nbsp;<button type=\"button\" class=\"btn btn-SetProcess\" title=\"设为已处理\" onclick=\"javascript:setProcess('"+ntfkey+"','"+time+"')\">设为已处理</button>");
+	}
 	sb.append("<div class=\"icon-signout icon-myout\" onclick=\"javascript:closeDescDiv()\"></div>");
 	sb.append( "</div>");
-		
-	
+
 	if(null == datas){
 		return;
 	}
 
-	/***
-	 * 因为是同一预警，默认获取第一个输出相同信息
-	 */
-	var mainObj = datas[0];
 	var nodeAttr ={
-		"ip":{"n":"IP","v":mainObj['ip']},	
-		"host":{"n":"HOST","v":mainObj['host']},		
-		"state":{"n":"状态","v":""},
-		"latTs":{"n":"最近触发报警动作时间","v":""},
-		"viewTs":{"n":"预警浏览时间","v":""},
-		"count":{"n":"报警次数","v":datas.length},
-		"retry":{"n":"触发报警动作次数(邮件/短信)","v":""},
+		"ip":{"n":"IP","v":mainObj['ip']},
+		"host":{"n":"HOST","v":mainObj['host']},
 		"title":{"n":"问题摘要","v":mainObj['title']},
-		"eventid":{"n":"事件类型","v":mainObj['eventid']}
+		"eventid":{"n":"事件类型","v":mainObj['eventid']},
+		"count":{"n":"报警次数","v":datas.length},
+		"state":{"n":"状态","v":""},
+		"viewTs":{"n":"预警浏览时间","v":mainObj['view_ts'] ? TimeHelper.getTime(mainObj['view_ts'],'FMS'): ""},
+		"processTs":{"n":"预警处理时间","v":mainObj['process_ts'] ? TimeHelper.getTime(mainObj['process_ts'],'FMS') : ""},
+		"retry":{"n":"触发报警动作次数(邮件/短信)","v":mainObj['retry']},
+		"latTs":{"n":"最近触发报警动作时间","v":mainObj['latest_ts'] ? TimeHelper.getTime(mainObj['latest_ts'],'FMS') : ""}
 	}
+	
+	setState(nodeAttr,mainObj['state']);
 	
 	/**
 	 * 渲染容器
@@ -45,18 +54,20 @@ function loadDescDiv(appendId,datas){
 	sb.append( "<li><span >"+nodeAttr.title.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.title.v+"</span></li>");
 	sb.append( "<li><span >"+nodeAttr.eventid.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.eventid.v+"</span></li>");
 	sb.append("<li><span >"+nodeAttr.count.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.count.v+"</span></li>");
-	sb.append("<li id=\"stateLi\"><span >"+nodeAttr.state.n+"</span><span class=\"colon\">：</span><span class=\"tValue\" id=\"stateValue\"></span></li>");
-	sb.append("<li id=\"viewTsLi\"><span >"+nodeAttr.viewTs.n+"</span><span class=\"colon\">：</span><span class=\"tValue\" id=\"viewTsValue\"></span></li>");
-	sb.append("<li><span >"+nodeAttr.retry.n+"</span><span class=\"colon\">：</span><span class=\"tValue\" id=\"retryValue\"></span></li>");
-	sb.append("<li><span >"+nodeAttr.latTs.n+"</span><span class=\"colon\">：</span><span class=\"tValue\" id=\"latTsValue\"></span></li>");
+	sb.append("<li><span >"+nodeAttr.state.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.state.v+"</span></li>");
+	sb.append("<li><span >"+nodeAttr.viewTs.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.viewTs.v+"</span></li>");
+	if(nodeAttr.processTs.v != ""){
+		sb.append("<li><span >"+nodeAttr.processTs.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.processTs.v+"</span></li>");
+	}
+	sb.append("<li><span >"+nodeAttr.retry.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.retry.v+"</span></li>");
+	sb.append("<li><span >"+nodeAttr.latTs.n+"</span><span class=\"colon\">：</span><span class=\"tValue\">"+nodeAttr.latTs.v+"</span></li>");
 	
 	
 	sb.append( "</ul>");
 	sb.append( "</div>");
 	
+	var appendObj =  HtmlHelper.id(appendId);
 	appendObj.innerHTML=sb.toString();
-	
-	
 	sb=new StringBuffer();
 	
 	var display = "block";
@@ -65,11 +76,6 @@ function loadDescDiv(appendId,datas){
 		
 		var objattr ={
 				"time":{"n":"预警时间","v":TimeHelper.getTime(obj['time'],'FMS')},	
-				"state":{"n":"状态","v":obj['state']},
-				"retry":{"n":"报警次数","v":obj['retry']},
-				"firstRecord":{"n":"第一条记录","v":obj['firstrecord']},
-				"latTs":{"n":"最近触发报警动作时间","v":obj['latest_ts'] ? TimeHelper.getTime(obj['latest_ts'],'FMS') : ""},
-				"viewTs":{"n":"预警浏览时间","v":obj['view_ts'] ? TimeHelper.getTime(obj['view_ts'],'FMS'): ""},
 				"nodename":{"n":"UAV节点进程","v":obj['args']['nodename']},
 				"nodeuuid":{"n":"UAV节点ID","v":obj['args']['nodeuuid']},
 				"component":{"n":"报警组件","v":obj['args']['component']},
@@ -111,10 +117,6 @@ function loadDescDiv(appendId,datas){
 		
 		display = "none";
 		
-		if(objattr.firstRecord){
-			setState(objattr);
-		}
-		
 		index++;
 	});
 	
@@ -122,21 +124,18 @@ function loadDescDiv(appendId,datas){
 	
 }
 
-function setState(objattr){
-	var state = objattr.state.v;
+function setState(nodeAttr,state){
 	if(0==state){
-		$("#stateValue").text("新预警");
+		nodeAttr.state.v="新预警";
 	}else if(10==state){
-		$("#stateValue").text("报警持续中");
+		nodeAttr.state.v="报警持续中";
 	}else if(15==state){
-		$("#stateValue").text("已查看");
+		nodeAttr.state.v="已查看";
 	}else if(state==20){
-		$("#stateValue").text("已查看&报警持续中");
+		nodeAttr.state.v="已查看&报警持续中";
+	}else if(state==25){
+		nodeAttr.state.v="已处理";
 	}
-
-	$("#retryValue").text(objattr.retry.v);
-	$("#latTsValue").text(objattr.latTs.v);
-	$("#viewTsValue").text(objattr.viewTs.v);
 }
 
 function showDesc(obj){
@@ -147,4 +146,9 @@ function showDesc(obj){
 	}else{
 		listbodyDiv.style.display = "block";
 	}
+}
+
+function setProcess(ntfkey,time){
+	var paramObject = {"action":"process","ntfkey":ntfkey,"time":time,"type":"mgr"};
+	updateNotify_RestfulClient(paramObject);
 }

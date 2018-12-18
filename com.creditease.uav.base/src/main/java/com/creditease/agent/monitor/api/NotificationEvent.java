@@ -67,6 +67,16 @@ public class NotificationEvent {
     private String host;
     private String ip;
 
+    
+    /**
+     * Notification Event Level Tag
+     * 
+     */
+    public final static String EVENT_LEVEL_KEY = "notifyLevel";
+    public final static String INFO_NOTIFY_EVENT = "info";
+    public final static String WARN_NOTIFY_EVENT = "warn";
+    public final static String CRITICAL_NOTIFY_EVENT = "critical";
+    
     /**
      * NotificationEvent的过滤字段（可选） 增加过滤字段可以提高Notification检索的准确性
      */

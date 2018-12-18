@@ -20,10 +20,42 @@
 
 package com.creditease.uav.monitorframework.adaptors;
 
+import com.creditease.agent.helpers.ReflectionHelper;
+
 import javassist.ClassPool;
 import javassist.CtMethod;
 
 public class SpringBootTomcatAdaptor extends AbstractAdaptor {
+
+    private String springBootVersion = "";
+
+    private void getSpringBootVersion(ClassLoader clsLoader, String className) {
+
+        if (!"".equals(springBootVersion) || clsLoader == null) {
+            return;
+        }
+
+        /**
+         * NOTE:this class is used to detect springboot version. it exists in all versions of springboot, and we
+         * probably will never inject this class.
+         */
+        String versionDetectClassName = "org.springframework.boot.Banner";
+
+        if (versionDetectClassName.equals(className)) {
+            return;
+        }
+
+        Class<?> springBootVersionDetectClass = ReflectionHelper.tryLoadClass(versionDetectClassName, clsLoader);
+
+        if (springBootVersionDetectClass == null) {
+            return;
+        }
+
+        Package pkg = springBootVersionDetectClass.getPackage();
+        String version = (pkg != null) ? pkg.getImplementationVersion() : null;
+        springBootVersion = (version != null) ? version : "UnKnownVersion";
+        System.out.println("MOF.ApplicationVersion=SpringBoot " + springBootVersion);
+    }
 
     @Override
     public byte[] onStartup(ClassLoader clsLoader, String uavMofRoot, String className) {
@@ -105,6 +137,8 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
     @Override
     public byte[] onLoadClass(ClassLoader clsLoader, final String uavMofRoot, String className) {
 
+        getSpringBootVersion(clsLoader, className);
+
         this.addClassPath(clsLoader);
 
         final AbstractAdaptor aa = this;
@@ -120,6 +154,41 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
                 aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
                         "org.apache.log4j.helpers.QuietWriter", "new LogIT()");
                 aa.defineField("uavLogHookLineSep", "java.lang.String", "org.apache.log4j.helpers.QuietWriter",
+                        "System.getProperty(\"line.separator\")");
+            }
+            catch (Exception e) {
+                System.out.println("MOF.Interceptor[\" springboot \"] Install MonitorFramework Jars FAIL.");
+                e.printStackTrace();
+            }
+            return this.inject(className, new String[] { "com.creditease.uav.log.hook.interceptors" },
+                    new AdaptorProcessor() {
+
+                        @Override
+                        public void process(CtMethod m) throws Exception {
+
+                            m.insertBefore("{if(!$1.equals(uavLogHookLineSep)){$1=uavLogHook.formatLog($1);}}");
+                        }
+
+                        @Override
+                        public String getMethodName() {
+
+                            return "write";
+                        }
+
+                    });
+        }
+
+        // for log4j RollingFileAppender
+        else if (className.equals("org.apache.log4j.helpers.CountingQuietWriter")) {
+            try {
+                String logJarPath = uavMofRoot + "/com.creditease.uav.appfrk/com.creditease.uav.loghook-1.0.jar";
+                aa.installJar(clsLoader, logJarPath, true);
+                // 兼容在ide环境下启动
+                String mofJarPath = uavMofRoot + "/com.creditease.uav/com.creditease.uav.monitorframework-1.0.jar";
+                aa.installJar(clsLoader, mofJarPath, true);
+                aa.defineField("uavLogHook", "com.creditease.uav.log.hook.interceptors.LogIT",
+                        "org.apache.log4j.helpers.CountingQuietWriter", "new LogIT()");
+                aa.defineField("uavLogHookLineSep", "java.lang.String", "org.apache.log4j.helpers.CountingQuietWriter",
                         "System.getProperty(\"line.separator\")");
             }
             catch (Exception e) {
@@ -243,8 +312,13 @@ public class SpringBootTomcatAdaptor extends AbstractAdaptor {
                         public void process(CtMethod m) throws Exception {
 
                             aa.addLocalVar(m, "mObj", "com.creditease.tomcat.plus.interceptor.SpringBootTomcatPlusIT");
-                            m.insertBefore(
-                                    "{mObj=new SpringBootTomcatPlusIT();mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"server.context-path\"),this.getEnvironment().getProperty(\"spring.application.name\"),this);mObj.onSpringBeanRegist(new Object[]{this,this.getEnvironment().getProperty(\"server.context-path\")});}");
+                            String contextPathKey = springBootVersion.startsWith("2") ? "server.servlet.context-path"
+                                    : "server.context-path";
+                            String sb = "{mObj = new SpringBootTomcatPlusIT();"
+                                    + "mObj.startServer(this.getEnvironment().getProperty(\"server.port\"),this.getEnvironment().getProperty(\"spring.application.name\"),this);"
+                                    + "mObj.onSpringBeanRegist(new Object[]{this,this.getEnvironment().getProperty(\""
+                                    + contextPathKey + "\")});}";
+                            m.insertBefore(sb);
                             m.insertAfter("{mObj.onSpringFinishRefresh(this);}");
 
                         }

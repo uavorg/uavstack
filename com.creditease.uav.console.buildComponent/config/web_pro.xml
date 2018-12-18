@@ -174,7 +174,7 @@
 		<param-value>http://127.0.0.1:8044,http://127.0.0.1:8044</param-value>
 	</context-param>
 	<context-param>
-		<param-name>@url:uav.app.godeye.notify.view.http.addr</param-name>
+		<param-name>@url:uav.app.godeye.notify.update.http.addr</param-name>
 		<param-value>http://127.0.0.1:9011,http://127.0.0.1:9011</param-value>
 	</context-param>
 	<context-param>
@@ -231,7 +231,7 @@
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.grafana.connection.info</param-name>
-		<param-value>{"api.url":"http://127.0.0.1:3000","web.url":"http://uav.creditease.corp/datacenter","datasource.opentsdb.url":"http://127.0.0.1:4242","datasource.elasticsearch.url":"http://127.0.0.1:9300","authorization.loginId":"apiuser","authorization.loginPwd":"Uav!630admin","authorization.register.defPwd":"1q@W3e","authorization.register.sleep.time":"2000"}</param-value>
+		<param-value>{"api.url":"http://127.0.0.1:3000","web.url":"http://127.0.0.1:8080/datacenter","datasource.opentsdb.url":"http://127.0.0.1:4242","datasource.elasticsearch.url":"http://127.0.0.1:9300","authorization.loginId":"apiuser","authorization.loginPwd":"Uav!630admin","authorization.register.defPwd":"1q@W3e","authorization.register.sleep.time":"2000"}</param-value>
 	</context-param>
 	<context-param>
 		<param-name>uav.apphub.sso.white.list</param-name>

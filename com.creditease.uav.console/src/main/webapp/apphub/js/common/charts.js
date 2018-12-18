@@ -723,6 +723,13 @@ function AppHubChart(_chartsConfig){
     	}
         else {       
 	        draw(arrayData,false);
+	        
+	    	/**
+	    	 * 随着运行时的变化，改变config绘画的值，因为除去第一次，后续所有将不需要重绘
+	    	 * 
+	    	 * 后续的reset 理论都是false
+	    	 */
+	    	chartObj.chart.config.chart["drawAction"]=false;
         }
     };
     

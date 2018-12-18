@@ -21,19 +21,22 @@
 package com.creditease.uav.apm;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletOutputStream;
 
+import com.creditease.agent.helpers.DataConvertHelper;
 import com.creditease.agent.helpers.StringHelper;
 
 public class RewriteIvcOutputStream extends ServletOutputStream {
+
+    private static final int bodyLength = DataConvertHelper
+            .toInt(System.getProperty("com.creditease.uav.ivcdat.rpc.body"), 2000);
 
     private ServletOutputStream outputStream;
 
     private StringBuilder builder = new StringBuilder();
 
-    private AtomicBoolean isWrited = new AtomicBoolean();
+    private Boolean isWrited = false;
 
     private String encoding;
 
@@ -50,8 +53,11 @@ public class RewriteIvcOutputStream extends ServletOutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
 
         this.outputStream.write(b, off, len);
-        if (!isWrited.get()) {
-            builder.append(new String(b, encoding));
+        if (!isWrited) {
+            int remainderLength = getRemainderLength(b.length);
+            if (remainderLength > 0) {
+                builder.append(new String(b, off, remainderLength, encoding));
+            }
         }
     }
 
@@ -59,20 +65,22 @@ public class RewriteIvcOutputStream extends ServletOutputStream {
     public void flush() throws IOException {
 
         this.outputStream.flush();
-        isWrited.set(true);
     }
 
     @Override
     public void close() throws IOException {
 
         this.outputStream.close();
-        isWrited.set(true);
+        isWrited = true;
     }
 
     @Override
     public void write(int b) throws IOException {
 
         this.outputStream.write(b);
+        if (!isWrited && this.builder.length() < bodyLength) {
+            builder.append((char) b);
+        }
     }
 
     public StringBuilder getContent() {
@@ -86,12 +94,30 @@ public class RewriteIvcOutputStream extends ServletOutputStream {
     public void clearBodyContent() {
 
         this.builder.delete(0, this.builder.length());
-        isWrited.set(true);
+        isWrited = true;
     }
 
     @Override
     public void write(byte[] b) throws IOException {
 
         this.outputStream.write(b);
+        if (!isWrited) {
+            int remainderLength = getRemainderLength(b.length);
+            if (remainderLength > 0) {
+                builder.append(new String(b, 0, remainderLength, encoding));
+            }
+        }
+    }
+
+    private int getRemainderLength(int length) {
+
+        if (bodyLength <= this.builder.length()) {
+            return 0;
+        }
+        int remainderLength = bodyLength - this.builder.length();
+        /**
+         * simply consider 1 character cost 2 bytes, it's not accurate.
+         */
+        return (2 * remainderLength) < length ? (2 * remainderLength) : length;
     }
 }

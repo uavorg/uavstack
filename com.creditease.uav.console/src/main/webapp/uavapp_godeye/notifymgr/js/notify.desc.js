@@ -1,6 +1,6 @@
 var src = window.location.href;
 var index = src.indexOf("desc.html?") + 10;
-var param = src.substr(index);
+var ntfkeyTime = src.substr(index);
 
 window.winmgr.build({
 	id : "descDiv",
@@ -12,8 +12,9 @@ window.winmgr.build({
 window.winmgr.show("descDiv");
 
 var paramObject = {
-	"url" : param,
+	"action" : "view",
+	"ntfkey" : ntfkeyTime,
 	"type" : "link"
 };
 
-viewNotify_RestfulClient(paramObject);
+updateNotify_RestfulClient(paramObject);

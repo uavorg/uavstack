@@ -911,10 +911,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
                             Node beanClazz = processor
                                     .selectXMLNode("/beans/bean[@id='" + impl.getNodeValue() + "']/@class");
-                            
-                            if(beanClazz!=null) {                               
+
+                            if (beanClazz != null) {
                                 return beanClazz.getNodeValue();
-                            } 
+                            }
                         }
 
                         // step 2.3 load serviceBean|implementor/@ref
@@ -925,9 +925,9 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                             Node beanClazz = processor
                                     .selectXMLNode("/beans/bean[@id='" + impl.getNodeValue() + "']/@class");
 
-                            if(beanClazz!=null) {                               
+                            if (beanClazz != null) {
                                 return beanClazz.getNodeValue();
-                            }  
+                            }
                         }
 
                         return key;
@@ -1959,8 +1959,21 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             getClassAnnoInfo(comCls, info, annoClasses);
 
+            // load methodAnno class
+            Class[] methodAnnoClasses = this.loadAnnoClasses(context,
+                    "org.springframework.web.bind.annotation.RequestMapping",
+                    "org.springframework.web.bind.annotation.PostMapping",
+                    "org.springframework.web.bind.annotation.GetMapping",
+                    "org.springframework.web.bind.annotation.PutMapping",
+                    "org.springframework.web.bind.annotation.DeleteMapping",
+                    "org.springframework.web.bind.annotation.PatchMapping");
+
+            if (null == methodAnnoClasses || methodAnnoClasses.length == 0) {
+                return info;
+            }
+
             // get method info
-            getMethodInfo(comCls, info, annoClasses[annoClasses.length - 1]);
+            getMethodInfo(comCls, info, methodAnnoClasses);
 
             return info;
         }
@@ -2592,6 +2605,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         if (classAnno != null) {
 
             value = classAnno.get(classPathAnnoAttrName);
+            /**
+             * SpringMVC RequestMapping can setup a path by 'value' or 'path'
+             */
+            if (value == null) {
+                value = classAnno.get("path");
+            }
         }
         else if (classPathAnnoClass.equals("org.springframework.web.bind.annotation.RequestMapping")) {
             /**
@@ -2644,10 +2663,38 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 Map<String, Object> methodPathAnno = (Map<String, Object>) methodAnno.get(methodPathAnnoClass);
 
                 if (methodPathAnno == null) {
+                    methodPathAnno = (Map<String, Object>) methodAnno
+                            .get("org.springframework.web.bind.annotation.PostMapping");
+                }
+                if (methodPathAnno == null) {
+                    methodPathAnno = (Map<String, Object>) methodAnno
+                            .get("org.springframework.web.bind.annotation.GetMapping");
+                }
+                if (methodPathAnno == null) {
+                    methodPathAnno = (Map<String, Object>) methodAnno
+                            .get("org.springframework.web.bind.annotation.PutMapping");
+                }
+                if (methodPathAnno == null) {
+                    methodPathAnno = (Map<String, Object>) methodAnno
+                            .get("org.springframework.web.bind.annotation.DeleteMapping");
+                }
+                if (methodPathAnno == null) {
+                    methodPathAnno = (Map<String, Object>) methodAnno
+                            .get("org.springframework.web.bind.annotation.PatchMapping");
+                }
+
+                if (methodPathAnno == null) {
                     continue;
                 }
 
                 Object pvalue = methodPathAnno.get("value");
+
+                /**
+                 * SpringMVC RequestMapping can setup a path by 'value' or 'path'
+                 */
+                if (pvalue == null) {
+                    pvalue = methodPathAnno.get("path");
+                }
 
                 if (pvalue == null) {
                     continue;
@@ -2928,8 +2975,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         Class<?> annoClass = annoAvailableClasses.get(componentClassName);
         if (null == annoClass) {
             return;
-        } 
-        
+        }
+
         List<String> coms = fcs.getNamesOfClassesWithAnnotation(annoClass);
 
         if (null == coms || coms.isEmpty()) {
