@@ -1069,4 +1069,29 @@ public class StringHelper {
         }
         return builder.toString();
     }
+    
+    public static String removeContinuousDupChars(String str, char ch) {
+        
+        if(isEmpty(str)) {
+            return str;
+        }
+        char[] strChars = str.toCharArray();
+        int end = strChars.length;
+        for (int i = 0; i < end - 1 ; i++) {
+            if(strChars[i] == ch) {
+                while ((i + 1 < end) && (strChars[i + 1] == ch)) {
+                    copyChars(strChars, i, i + 1, end - i - 1);
+                    end--;
+                }
+            }
+        }
+        String newStr = new String(strChars, 0, end);
+        return newStr;
+    }
+    
+    private static void copyChars(char[] chs, int dest, int src, int len) {
+        for(int pos = 0 ; pos < len; pos++) {
+            chs[pos + dest] = chs[pos + src];
+        }
+    }
 }

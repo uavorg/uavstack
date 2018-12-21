@@ -36,7 +36,13 @@ public class TransformWrapperUtil {
 
             if (!resWrapperName.equals(response.getClass().getName())) {
 
-                response = (HttpServletResponse) ReflectionHelper.getField(response.getClass(), response, "response");
+                HttpServletResponse innerResponse = (HttpServletResponse) ReflectionHelper.getField(response.getClass(), response, "response");
+                if (innerResponse == null) {
+                    return response;
+                }
+                else {
+                 response = innerResponse;
+                }  
             }
             else {
                 return response;

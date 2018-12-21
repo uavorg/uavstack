@@ -83,6 +83,13 @@ public class ApacheHttpClientAdapter extends AbstractHttpClientAdapter {
             else {
                 HttpResponse response = (HttpResponse) args[0];
                 HttpEntity entity = response.getEntity();
+                /**
+                 * NOTE:the entity may be null. eg:in the springCloud when registering application into eureka, the
+                 * com.netflix.discovery.DiscoveryClient may return a null.
+                 */
+                if (entity == null) {
+                    return;
+                }
                 try {
                     BufferedHttpEntity httpEntityWrapper = new BufferedHttpEntity(entity);
                     response.setEntity(httpEntityWrapper);
@@ -114,15 +121,21 @@ public class ApacheHttpClientAdapter extends AbstractHttpClientAdapter {
 
                 slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_HEADER, getResponHeaders(response));
                 HttpEntity entity = response.getEntity();
-                // 由于存在读取失败和无法缓存的大entity会使套壳失败，故此处添加如下判断
-                if (BufferedHttpEntity.class.isAssignableFrom(entity.getClass())) {
-                    Header header = entity.getContentEncoding();
-                    String encoding = header == null ? "utf-8" : header.getValue();
-                    slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_BODY, getHttpEntityContent(entity, encoding));
+                if (entity != null) {
+                    // 由于存在读取失败和无法缓存的大entity会使套壳失败，故此处添加如下判断
+                    if (BufferedHttpEntity.class.isAssignableFrom(entity.getClass())) {
+                        Header header = entity.getContentEncoding();
+                        String encoding = header == null ? "utf-8" : header.getValue();
+                        slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_BODY,
+                                getHttpEntityContent(entity, encoding));
+                    }
+                    else {
+                        slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_BODY,
+                                "HttpEntityWrapper failed! Maybe HTTP entity too large to be buffered in memory");
+                    }
                 }
                 else {
-                    slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_BODY,
-                            "HttpEntityWrapper failed! Maybe HTTP entity too large to be buffered in memory");
+                    slowOperContext.put(SlowOperConstants.PROTOCOL_HTTP_BODY, "");
                 }
             }
 

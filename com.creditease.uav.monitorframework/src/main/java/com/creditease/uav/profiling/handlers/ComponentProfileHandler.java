@@ -2605,6 +2605,12 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         if (classAnno != null) {
 
             value = classAnno.get(classPathAnnoAttrName);
+            /**
+             * SpringMVC RequestMapping can setup a path by 'value' or 'path'
+             */
+            if (value == null) {
+                value = classAnno.get("path");
+            }
         }
         else if (classPathAnnoClass.equals("org.springframework.web.bind.annotation.RequestMapping")) {
             /**
@@ -2682,6 +2688,13 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 }
 
                 Object pvalue = methodPathAnno.get("value");
+
+                /**
+                 * SpringMVC RequestMapping can setup a path by 'value' or 'path'
+                 */
+                if (pvalue == null) {
+                    pvalue = methodPathAnno.get("path");
+                }
 
                 if (pvalue == null) {
                     continue;
