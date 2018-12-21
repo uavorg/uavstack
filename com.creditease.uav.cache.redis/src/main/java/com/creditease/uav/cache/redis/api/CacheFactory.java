@@ -21,11 +21,12 @@
 package com.creditease.uav.cache.redis.api;
 
 import com.creditease.uav.cache.redis.AredisAsyncService;
+import com.creditease.uav.cache.redis.LettuceAsyncService;
 
 public class CacheFactory {
 
     public enum CacheClientMode {
-        AREDIS
+        AREDIS, LETTUCE
     }
 
     private static CacheFactory factory = new CacheFactory();
@@ -56,8 +57,12 @@ public class CacheFactory {
 
         switch (mode) {
             case AREDIS:
+            	service = new AredisAsyncService(redisServerAddress, minConcurrent, maxConcurrent, QueueSize, password);
+            	break;
+            case LETTUCE:
             default:
-                service = new AredisAsyncService(redisServerAddress, minConcurrent, maxConcurrent, QueueSize, password);
+                service = new LettuceAsyncService(redisServerAddress, minConcurrent, maxConcurrent, QueueSize,
+                        password);
                 break;
         }
 
