@@ -25,8 +25,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aredis.cache.StringHandler;
+
 import com.creditease.agent.helpers.DataStoreHelper;
 import com.creditease.agent.helpers.JSONHelper;
+import com.creditease.agent.helpers.StringHelper;
 import com.creditease.agent.monitor.api.MonitorDataFrame;
 import com.creditease.uav.datastore.api.DataStoreAdapter;
 import com.creditease.uav.datastore.api.DataStoreConnection;
@@ -196,8 +199,8 @@ public class NodeInfoDataAdapter extends DataStoreAdapter {
         }
         else if (meId.indexOf("procState") == 0) {
             String temp[] = instanceId.split("_");
-            if ((temp[1].equals("java") || temp[1].equals("javaw.exe") || temp[1].equals("java.exe"))
-                    && fields.get("main") != null) {
+            if (("java".equals(temp[1]) || "javaw.exe".equals(temp[1]) || "java.exe".equals(temp[1]))
+                    && !StringHelper.isEmpty((String)fields.get("main"))) {
 
                 String mainClass = (String) fields.get("main");
                 // group Id :for java, pgid is main class

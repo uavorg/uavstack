@@ -37,6 +37,42 @@
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.2</version>
-		</dependency>			
+		</dependency>		
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>4.1.11.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
+			<version>5.0.5.RELEASE</version>
+			<exclusions> 
+	            <exclusion>
+					  <groupId>io.netty</groupId>
+					  <artifactId>netty-common</artifactId>
+	            </exclusion>
+	            <exclusion>
+					  <groupId>io.netty</groupId>
+					  <artifactId>netty-transport</artifactId>
+	            </exclusion>
+	            <exclusion>
+					  <groupId>io.netty</groupId>
+					  <artifactId>netty-buffer</artifactId>
+	            </exclusion>
+	            <exclusion>
+					  <groupId>io.netty</groupId>
+					  <artifactId>netty-resolver</artifactId>
+	            </exclusion>
+	            <exclusion>
+					  <groupId>io.netty</groupId>
+					  <artifactId>netty-handler</artifactId>
+	            </exclusion>
+	            <exclusion>
+					  <groupId>io.netty</groupId>
+					  <artifactId>netty-codec</artifactId>
+	            </exclusion>
+	        </exclusions>
+		</dependency>	
 	</dependencies>	
 </project>
