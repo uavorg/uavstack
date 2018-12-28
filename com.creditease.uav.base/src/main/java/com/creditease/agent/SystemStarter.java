@@ -203,7 +203,9 @@ public class SystemStarter {
 
                 for (InetAddress addr : NetworkHelper.getAllIP()) {
 
-                    ipmsg.append("\n").append(index++).append(" ----- ").append(addr.getHostAddress());
+                    String ip = addr.getHostAddress();
+                    
+                    ipmsg.append("\n").append(index++).append(" ----- ").append(NetworkHelper.getNetCardName(ip)).append(" ----- ").append(ip);
                 }
 
                 log.info(this, ipmsg.toString());
