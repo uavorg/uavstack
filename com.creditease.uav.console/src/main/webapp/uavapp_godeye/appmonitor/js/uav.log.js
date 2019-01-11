@@ -398,6 +398,9 @@ function NewLogTool(app) {
 		
 		for(var i=0;i<keywords.length;i++) {
 			
+			if(keywords[i] == ""){
+				continue;
+			}
 			var keyword=keywords[i];
 						
 			var toSplit=undefined;
