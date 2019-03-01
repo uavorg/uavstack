@@ -54,7 +54,7 @@ public class RewriteIvcOutputStream extends ServletOutputStream {
 
         this.outputStream.write(b, off, len);
         if (!isWrited) {
-            int remainderLength = getRemainderLength(b.length);
+            int remainderLength = getRemainderLength(len);
             if (remainderLength > 0) {
                 builder.append(new String(b, off, remainderLength, encoding));
             }
