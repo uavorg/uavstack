@@ -121,11 +121,12 @@ public class NewLogQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
             queryBuilder.must(QueryBuilders.rangeQuery("l_num").lt(endLine));
         }
 
-        /**
-         * 关键字ipport
-         */
-        String ipport = data.getRequest("ipport");
+        String appid = data.getRequest("appid");
+        if (appid != null) {
+            queryBuilder.must(QueryBuilders.termQuery("appid", appid));
+        }
 
+        String ipport = data.getRequest("ipport");
         if (ipport != null) {
             queryBuilder.must(QueryBuilders.termQuery("ipport", ipport));
         }
@@ -306,17 +307,15 @@ public class NewLogQueryHandler extends AbstractHttpHandler<UAVHttpMessage> {
     private SearchResponse query(UAVHttpMessage data, QueryBuilder queryBuilder, QueryBuilder postFilter,
             SortBuilder[] sorts) {
 
-        String appid = data.getRequest("appid");
-
         String indexDate = data.getRequest("indexdate");
         String currentIndex;
         if (indexDate != null) {
             // 获得指定的index
-            currentIndex = this.indexMgr.getIndexByDate(indexDate, appid);
+            currentIndex = this.indexMgr.getIndexByDate(indexDate);
         }
         else {
             // get current index
-            currentIndex = this.indexMgr.getCurrentIndex(appid);
+            currentIndex = this.indexMgr.getCurrentIndex();
         }
 
         // get logtype for search

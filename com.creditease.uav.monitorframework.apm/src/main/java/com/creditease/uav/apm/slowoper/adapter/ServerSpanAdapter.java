@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 import com.creditease.agent.helpers.JSONHelper;
 import com.creditease.agent.helpers.ReflectionHelper;
@@ -41,6 +42,7 @@ import com.creditease.uav.apm.invokechain.spi.InvokeChainConstants;
 import com.creditease.uav.apm.invokechain.spi.InvokeChainContext;
 import com.creditease.uav.apm.slowoper.spi.SlowOperConstants;
 import com.creditease.uav.apm.slowoper.spi.SlowOperContext;
+import com.creditease.uav.util.TransformWrapperUtil;
 
 public class ServerSpanAdapter extends InvokeChainAdapter {
 
@@ -156,12 +158,9 @@ public class ServerSpanAdapter extends InvokeChainAdapter {
         }
         catch (Error e) {
             Object resp = response;
-            // 重调用链开启后这里的response是RewriteIvcResponseWrapper
-            if ("com.creditease.uav.apm.RewriteIvcResponseWrapper".equals(response.getClass().getName())) {
-                resp = ReflectionHelper.getField(response.getClass(), response, "response");
-                if (resp == null) {
-                    return JSONHelper.toString(result);
-                }
+            // 重调用链开启时，获取到原生response
+            if (HttpServletResponseWrapper.class.isAssignableFrom(response.getClass())) {
+                resp = TransformWrapperUtil.moveWrapper("", response);
             }
             if (resp == null) {
                 return JSONHelper.toString(result);

@@ -38,6 +38,7 @@ public class HostNewworkInfo {
     private static List<InetAddress> ips;
 
     private static Map<String, List<InetAddress>> nameIPsMap = new HashMap<String, List<InetAddress>>();
+
     private List<InetAddress> readInfo(String name) {
 
         List<InetAddress> ipList = new ArrayList<InetAddress>();
@@ -159,7 +160,9 @@ public class HostNewworkInfo {
                     }
 
                     Map ipInfo = new HashMap<String, String>();
-                    ipInfo.put("bcast", ia.getBroadcast().getHostAddress());
+
+                    InetAddress bcast = ia.getBroadcast();
+                    ipInfo.put("bcast", bcast == null ? "UNKNOWN" : bcast.getHostAddress());
                     ipInfo.put("mask", NetmaskLengthToNetmask(ia.getNetworkPrefixLength()));
 
                     ipInfos.put(ia.getAddress().getHostAddress(), ipInfo);

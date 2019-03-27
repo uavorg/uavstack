@@ -140,11 +140,16 @@ var JsonHelper={
 			if (val instanceof Array ) {
 				var ca=[];
 				for (var i=0;i<val.length;i++) {
-					ca[i]=this.clone(val[i]);
+					if(val[i] && typeof val[i]==="object") {
+						ca[i]=this.clone(val[i]);
+					}
+					else {
+						ca[i]=val[i];
+					}
 				}
 				co[key]=ca;
 			}
-			else if (typeof val == "object" ) {
+			else if (typeof val === "object" ) {
 				var cv=this.clone(val);
 				co[key]=cv;
 			}

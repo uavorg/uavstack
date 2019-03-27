@@ -289,6 +289,10 @@ public class JVMToolHelper {
         String javaVersion = System.getProperty("java.version");
 
         String tools = javaHome + File.separator + ".." + File.separator + "lib" + File.separator + "tools.jar";
+        
+        if(!IOHelper.exists(tools)) {
+            tools = javaHome + File.separator + "lib" + File.separator + "tools.jar";
+        }
 
         if (JVMToolClassloader == null) {
             synchronized (lock) {
@@ -320,6 +324,7 @@ public class JVMToolHelper {
                     }
                     catch (Exception e) {
                         // ignore
+                        e.printStackTrace();
                     }
                 }
             }
@@ -395,6 +400,7 @@ public class JVMToolHelper {
             }
             catch (Exception e) {
                 // ignore
+                e.printStackTrace();
             }
         }
 

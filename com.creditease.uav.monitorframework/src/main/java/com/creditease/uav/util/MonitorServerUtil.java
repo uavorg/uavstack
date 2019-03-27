@@ -452,7 +452,9 @@ public class MonitorServerUtil {
         reUrl = StringHelper.getSubStrBeforeToken(reUrl, "=");
         reUrl = StringHelper.getSubStrBeforeToken(reUrl, ":");
         reUrl = StringHelper.getSubStrBeforeToken(reUrl, "&");
-
+        // Replace multi "/" to one "/"
+        reUrl = StringHelper.removeContinuousDupChars(reUrl, '/');
+        
         return reUrl;
     }
 

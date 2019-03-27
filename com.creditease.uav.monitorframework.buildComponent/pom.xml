@@ -99,6 +99,7 @@
 									<fileset file="../com.creditease.uav.hook.jaxws/target/com.creditease.uav.hook.jaxws-1.0.jar"></fileset>
 									<fileset file="../com.creditease.uav.hook.redis/target/com.creditease.uav.hook.redis-1.0-jedis.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.redis/target/com.creditease.uav.hook.redis-1.0-lettuce.jar" ></fileset>
+									<fileset file="../com.creditease.uav.hook.redis/target/com.creditease.uav.hook.redis-1.0-lettuce5x.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.redis/target/com.creditease.uav.hook.redis-1.0-aredis.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.mongoclients/target/com.creditease.uav.hook.mongoclients-1.0.jar" ></fileset>
 									<fileset file="../com.creditease.uav.hook.mq/target/com.creditease.uav.hook.mq-1.0-rabbitmq.jar" ></fileset>		

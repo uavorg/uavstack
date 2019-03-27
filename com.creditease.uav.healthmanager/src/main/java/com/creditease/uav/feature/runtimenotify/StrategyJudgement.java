@@ -426,18 +426,10 @@ public class StrategyJudgement extends AbstractComponent {
     private boolean caculate(double currentValue, double lastValue, NotifyStrategy.Expression expr,
             Map<String, Object> judgeResult) {
 
-        boolean result = false;
-
         double diff = currentValue - lastValue;
-
-        String limitString = "";
-
-        String upperLimitString = expr.getUpperLimit();
-        String lowerLimitString = expr.getLowerLimit();
-        // 增幅or降幅
-        String upperORlower = "";
         double upperLimit = 0;
-        double lowerLimit = 0;
+        String upperLimitString = expr.getUpperLimit();
+
         // get upperLimit
         if (upperLimitString.contains("#")) {
             upperLimit = Double.parseDouble(upperLimitString.substring(upperLimitString.indexOf('#') + 1));
@@ -449,6 +441,18 @@ public class StrategyJudgement extends AbstractComponent {
         else if (!upperLimitString.contains("*")) {
             upperLimit = Double.parseDouble(upperLimitString);
         }
+
+        if (!upperLimitString.contains("*") && diff > upperLimit) {
+            judgeResult.put("actualValue", String.format("%.2f", diff) + (upperLimitString.contains("%") ? "%" : ""));
+            judgeResult.put("expectedValue", upperLimitString);
+            judgeResult.put("upperORlower", "upper");
+
+            return true;
+        }
+
+        diff = currentValue - lastValue;
+        double lowerLimit = 0;
+        String lowerLimitString = expr.getLowerLimit();
 
         // get lowerLimit
         if (lowerLimitString.contains("#")) {
@@ -462,22 +466,15 @@ public class StrategyJudgement extends AbstractComponent {
             lowerLimit = Double.parseDouble(lowerLimitString);
         }
 
-        if (!upperLimitString.contains("*") && diff > upperLimit) {
-            result = true;
-            upperORlower = "upper";
-            limitString = upperLimitString;
-        }
-        else if (!lowerLimitString.contains("*") && diff < 0 - lowerLimit) {
-            result = true;
-            upperORlower = "lower";
-            limitString = lowerLimitString;
+        if (!lowerLimitString.contains("*") && diff < 0 - lowerLimit) {
+            judgeResult.put("actualValue", String.format("%.2f", diff) + (lowerLimitString.contains("%") ? "%" : ""));
+            judgeResult.put("expectedValue", lowerLimitString);
+            judgeResult.put("upperORlower", "lower");
+
+            return true;
         }
 
-        judgeResult.put("actualValue", String.format("%.2f", diff) + (limitString.contains("%") ? "%" : ""));
-        judgeResult.put("expectedValue", limitString);
-        judgeResult.put("upperORlower", upperORlower);
-        return result;
-
+        return false;
     }
 
     @SuppressWarnings({"rawtypes" })
