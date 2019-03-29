@@ -49,6 +49,7 @@ public class SpanFactory {
         private volatile AtomicLong count = new AtomicLong(0);
 
         public TraceIDGen() {
+
             ip = NetworkHelper.getLocalIP();
         }
 
@@ -102,6 +103,8 @@ public class SpanFactory {
             return new ConcurrentHashMap<String, Span>();
         }
     };
+
+    public static final TransmittableThreadLocal<Span> mainThreadLocalTracker = new TransmittableThreadLocal<Span>();
 
     /**
      * 通过一个父span来，创建一个span
@@ -215,6 +218,10 @@ public class SpanFactory {
      */
     public Span getSpanFromContext(String key) {
 
+        if (key.equals("main")) {
+            return mainThreadLocalTracker.get();
+        }
+
         Map<String, Span> spanMap = threadLocalTracker.get();
 
         return spanMap.get(key);
@@ -228,6 +235,12 @@ public class SpanFactory {
      */
     public Span getRemoveSpanFromContext(String key) {
 
+        if (key.equals("main")) {
+            Span span = mainThreadLocalTracker.get();
+            mainThreadLocalTracker.remove();
+            return span;
+        }
+
         Map<String, Span> spanMap = threadLocalTracker.get();
 
         return spanMap.remove(key);
@@ -240,6 +253,10 @@ public class SpanFactory {
      */
     public void setSpanToContext(String key, Span span) {
 
+        if (key.equals("main")) {
+            mainThreadLocalTracker.set(span);
+            return;
+        }
         Map<String, Span> spanMap = threadLocalTracker.get();
 
         spanMap.put(key, span);
@@ -250,6 +267,7 @@ public class SpanFactory {
      */
     public void removeCurrentThreadValue() {
 
+        mainThreadLocalTracker.removeCurrent();
         threadLocalTracker.removeCurrent();
     }
 
