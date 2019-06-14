@@ -540,9 +540,9 @@ public class StandardProfileModeler extends AbstractBaseAction {
         // get spring mvc urls
         String springmvcBaseURL = getBaseURL(serviceServlets, "springmvc");
 
-        getSpringMVCURLs(springmvcBaseURL, compServices, springMVC);
+        getSpringMVCURLs(appurl, springmvcBaseURL, compServices, springMVC);
 
-        getSpringMVCURLs(springmvcBaseURL, compServices, springMVCRest);
+        getSpringMVCURLs(appurl, springmvcBaseURL, compServices, springMVCRest);
 
         // get struts2 urls
         Map<String, Object> strutsAction = mdf.getElemInstValues(appid, "cpt", "com.opensymphony.xwork2.Action");
@@ -846,28 +846,41 @@ public class StandardProfileModeler extends AbstractBaseAction {
      * @param spring
      */
     @SuppressWarnings("unchecked")
-    private void getSpringMVCURLs(String springMVCBaseUrl, Map<String, Set<String>> compServices,
+    private void getSpringMVCURLs(String appurl, String springMVCBaseUrl, Map<String, Set<String>> compServices,
             Map<String, Object> spring) {
 
-        String realSpringMVCBaseUrl = null;
-        String suffix = "";
-        if (springMVCBaseUrl != null) {
+        Set<String> realSpringMVCBaseUrls = new HashSet<>();
+        Set<String> servletPaths = new HashSet<>();
 
-            // NOTE: handle *.xxx,should remove *.xxx
-            realSpringMVCBaseUrl = springMVCBaseUrl;
+        if (StringHelper.isEmpty(springMVCBaseUrl) || springMVCBaseUrl.length() < appurl.length()) {
+            return;
+        }
 
-            int allIndex = realSpringMVCBaseUrl.indexOf("*");
+        String[] springMVCBaseUrls = springMVCBaseUrl.split(",");
 
+        for (String url : springMVCBaseUrls) {
+
+            // shouldn't happened
+            if (url.length() < appurl.length()) {
+                continue;
+            }
+
+            String servletPath = url.substring(appurl.length());
+
+            int allIndex = servletPath.indexOf("*");
             if (allIndex > -1) {
 
                 // check if there is suffix, such as *.do
-                if (allIndex != realSpringMVCBaseUrl.length() - 1) {
-                    suffix = realSpringMVCBaseUrl.substring(allIndex + 1, realSpringMVCBaseUrl.length() - 1);
-                }
+                int indexOfDot = servletPath.indexOf(".", allIndex);
+                if (indexOfDot > -1) {
 
+                    servletPath = servletPath.substring(indexOfDot, servletPath.length() - 1);
+                }
                 // get the real access path
-                realSpringMVCBaseUrl = realSpringMVCBaseUrl.substring(0, allIndex);
+                url = url.substring(0, appurl.length() + allIndex);
             }
+            servletPaths.add(servletPath);
+            realSpringMVCBaseUrls.add(url);
         }
 
         for (String compId : spring.keySet()) {
@@ -916,99 +929,100 @@ public class StandardProfileModeler extends AbstractBaseAction {
                 resourceClassRelativePaths.add("");
             }
 
-            for (String resourceClassRelativePath : resourceClassRelativePaths) {
+            // get the resource class path
+            for (String realSpringMVCBaseUrl : realSpringMVCBaseUrls) {
 
-                resourceClassRelativePath = formatRelativePath(resourceClassRelativePath);
+                for (String resourceClassRelativePath : resourceClassRelativePaths) {
+                    resourceClassRelativePath = formatRelativePath(resourceClassRelativePath);
+                    String resourceClassPath = realSpringMVCBaseUrl + resourceClassRelativePath;
 
-                // get the resource class path
-                String resourceClassPath = realSpringMVCBaseUrl + resourceClassRelativePath;
+                    // get methods path
+                    Map<String, Object> compMethodInfo = (Map<String, Object>) compInfo.get("methods");
 
-                // get methods path
-                Map<String, Object> compMethodInfo = (Map<String, Object>) compInfo.get("methods");
+                    for (String method : compMethodInfo.keySet()) {
 
-                for (String method : compMethodInfo.keySet()) {
+                        Map<String, Object> methodInfo = (Map<String, Object>) compMethodInfo.get(method);
 
-                    Map<String, Object> methodInfo = (Map<String, Object>) compMethodInfo.get(method);
-
-                    if (!methodInfo.containsKey("anno")) {
-                        continue;
-                    }
-
-                    Map<String, Object> methodAnnoInfo = (Map<String, Object>) methodInfo.get("anno");
-
-                    String serviceURL = formatRelativePath(resourceClassPath);
-
-                    /**
-                     * each method has Path info except only one
-                     */
-                    if (methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.RequestMapping")
-                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PostMapping")
-                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.GetMapping")
-                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PutMapping")
-                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.DeleteMapping")
-                            || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PatchMapping")) {
-
-                        Map<String, Object> pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
-                                .get("org.springframework.web.bind.annotation.RequestMapping");
-                        
-                        if (pathAnnoInfo == null) {
-                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
-                                    .get("org.springframework.web.bind.annotation.PostMapping");
-                        }
-                        if (pathAnnoInfo == null) {
-                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
-                                    .get("org.springframework.web.bind.annotation.GetMapping");
-                        }
-                        if (pathAnnoInfo == null) {
-                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
-                                    .get("org.springframework.web.bind.annotation.PutMapping");
-                        }
-                        if (pathAnnoInfo == null) {
-                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
-                                    .get("org.springframework.web.bind.annotation.DeleteMapping");
-                        }
-                        if (pathAnnoInfo == null) {
-                            pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
-                                    .get("org.springframework.web.bind.annotation.PatchMapping");
-                        }
-
-                        List<String> methodRelativePaths = (List<String>) pathAnnoInfo.get("value");
-
-                        // try to get info from filed 'path'
-                        if (methodRelativePaths == null) {
-                            methodRelativePaths = (List<String>) pathAnnoInfo.get("path");
-                        }
-
-                        // FIX NPE
-                        if (methodRelativePaths == null) {
-                            compServicesURLs.add(serviceURL);
+                        if (!methodInfo.containsKey("anno")) {
                             continue;
                         }
 
-                        for (String methodRelativePath : methodRelativePaths) {
+                        Map<String, Object> methodAnnoInfo = (Map<String, Object>) methodInfo.get("anno");
 
-                            methodRelativePath = formatRelativePath(methodRelativePath);
+                        String serviceURL = formatRelativePath(resourceClassPath);
 
-                            String methodServiceURL;
+                        /**
+                         * each method has Path info except only one
+                         */
+                        if (methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.RequestMapping")
+                                || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PostMapping")
+                                || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.GetMapping")
+                                || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PutMapping")
+                                || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.DeleteMapping")
+                                || methodAnnoInfo.containsKey("org.springframework.web.bind.annotation.PatchMapping")) {
 
-                            if (methodRelativePath.endsWith(suffix)) {
-
-                                methodServiceURL = formatRelativePath(serviceURL + "/" + methodRelativePath);
+                            Map<String, Object> pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                    .get("org.springframework.web.bind.annotation.RequestMapping");
+                            if (pathAnnoInfo == null) {
+                                pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                        .get("org.springframework.web.bind.annotation.PostMapping");
                             }
-                            else {
-                                // endwith "#" means the suffix is added from springMVCBaseUrl,should be removed while on query
-                                methodServiceURL = formatRelativePath(
-                                        serviceURL + "/" + methodRelativePath + suffix + "#");
+                            if (pathAnnoInfo == null) {
+                                pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                        .get("org.springframework.web.bind.annotation.GetMapping");
+                            }
+                            if (pathAnnoInfo == null) {
+                                pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                        .get("org.springframework.web.bind.annotation.PutMapping");
+                            }
+                            if (pathAnnoInfo == null) {
+                                pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                        .get("org.springframework.web.bind.annotation.DeleteMapping");
+                            }
+                            if (pathAnnoInfo == null) {
+                                pathAnnoInfo = (Map<String, Object>) methodAnnoInfo
+                                        .get("org.springframework.web.bind.annotation.PatchMapping");
+                            }
+                            List<String> methodRelativePaths = (List<String>) pathAnnoInfo.get("value");
+
+                            // try to get info from filed 'path'
+                            if (methodRelativePaths == null) {
+                                methodRelativePaths = (List<String>) pathAnnoInfo.get("path");
                             }
 
-                            compServicesURLs.add(methodServiceURL);
+                            // FIX NPE
+                            if (methodRelativePaths == null) {
+                                compServicesURLs.add(serviceURL);
+                                continue;
+                            }
+
+                            for (String methodRelativePath : methodRelativePaths) {
+
+                                methodRelativePath = formatRelativePath(methodRelativePath);
+
+                                String methodServiceURL = formatRelativePath(serviceURL + "/" + methodRelativePath);
+                                if (methodRelativePath.indexOf(".") > -1 || servletPaths.isEmpty()) {
+                                    compServicesURLs.add(methodServiceURL);
+                                    continue;
+                                }
+
+                                for (String servletPath : servletPaths) {
+                                    int indexOfDot = servletPath.indexOf(".");
+                                    if (indexOfDot > -1) {
+                                        compServicesURLs.add(methodServiceURL + servletPath.substring(indexOfDot));
+                                    }
+                                    else if (realSpringMVCBaseUrl.endsWith("/" + servletPath)) {
+                                        compServicesURLs.add(methodServiceURL);
+                                    }
+                                }
+
+                            }
+                        }
+                        else {
+                            compServicesURLs.add(serviceURL);
                         }
                     }
-                    else {
-                        compServicesURLs.add(serviceURL);
-                    }
                 }
-
             }
         }
     }
@@ -1390,7 +1404,13 @@ public class StandardProfileModeler extends AbstractBaseAction {
             serviceServlets.put("jersey", serviceURL);
         }
         else if (engine.indexOf("springmvc") > -1) {
-            serviceServlets.put("springmvc", serviceURL);
+            // 一个servlet mapping多个URL用逗号隔开.
+            if (StringHelper.isEmpty(serviceServlets.get("springmvc"))) {
+                serviceServlets.put("springmvc", serviceURL);
+            }
+            else {
+                serviceServlets.put("springmvc", serviceServlets.get("springmvc") + "/," + serviceURL);
+            }
         }
         else if (engine.indexOf("jaxws-ri") > -1) {
             serviceServlets.put("jaxws-ri", serviceURL);
