@@ -2285,7 +2285,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             /**
              * collectProfileServiceMap
              */
-            collectProfileServiceMap(componentClassName, inst);
+            collectProfileServiceMap(componentClassName, inst, webappclsLoader);
         }
 
         /**
@@ -2310,7 +2310,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
      * @param inst
      */
     @SuppressWarnings("unchecked")
-    private void collectProfileServiceMap(String componentClassName, ProfileElementInstance inst) {
+    private void collectProfileServiceMap(String componentClassName, ProfileElementInstance inst,
+            ClassLoader webappclsLoader) {
 
         if (componentClassName.equalsIgnoreCase("javax.servlet.annotation.WebListener")) {
             return;
@@ -2353,9 +2354,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
             // Spring
             else if (componentClassName.equalsIgnoreCase("org.springframework.stereotype.Controller")
                     || componentClassName.equalsIgnoreCase("org.springframework.web.bind.annotation.RestController")) {
-                addAppFrkServiceMapBinding(smgr, appid, className, classInfo,
-                        "org.springframework.web.bind.annotation.RequestMapping", "value",
-                        "org.springframework.web.bind.annotation.RequestMapping", false);
+                addSpringMVCServiceMapBinding(smgr, inst, appid, className, classInfo, webappclsLoader);
             }
             // Struts2
             else if (componentClassName.equalsIgnoreCase("com.opensymphony.xwork2.Action")) {
@@ -2605,19 +2604,8 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
         if (classAnno != null) {
 
             value = classAnno.get(classPathAnnoAttrName);
-            /**
-             * SpringMVC RequestMapping can setup a path by 'value' or 'path'
-             */
-            if (value == null) {
-                value = classAnno.get("path");
-            }
         }
-        else if (classPathAnnoClass.equals("org.springframework.web.bind.annotation.RequestMapping")) {
-            /**
-             * for springmvc controller, if without RequestMapping is declared, the default classPath is "/";
-             */
-            value = "/";
-        }
+
         else {
             return;
         }
@@ -2663,38 +2651,10 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 Map<String, Object> methodPathAnno = (Map<String, Object>) methodAnno.get(methodPathAnnoClass);
 
                 if (methodPathAnno == null) {
-                    methodPathAnno = (Map<String, Object>) methodAnno
-                            .get("org.springframework.web.bind.annotation.PostMapping");
-                }
-                if (methodPathAnno == null) {
-                    methodPathAnno = (Map<String, Object>) methodAnno
-                            .get("org.springframework.web.bind.annotation.GetMapping");
-                }
-                if (methodPathAnno == null) {
-                    methodPathAnno = (Map<String, Object>) methodAnno
-                            .get("org.springframework.web.bind.annotation.PutMapping");
-                }
-                if (methodPathAnno == null) {
-                    methodPathAnno = (Map<String, Object>) methodAnno
-                            .get("org.springframework.web.bind.annotation.DeleteMapping");
-                }
-                if (methodPathAnno == null) {
-                    methodPathAnno = (Map<String, Object>) methodAnno
-                            .get("org.springframework.web.bind.annotation.PatchMapping");
-                }
-
-                if (methodPathAnno == null) {
                     continue;
                 }
 
                 Object pvalue = methodPathAnno.get("value");
-
-                /**
-                 * SpringMVC RequestMapping can setup a path by 'value' or 'path'
-                 */
-                if (pvalue == null) {
-                    pvalue = methodPathAnno.get("path");
-                }
 
                 if (pvalue == null) {
                     continue;
@@ -2743,6 +2703,207 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 smgr.addServiceMapBinding(appid, className, method, finalMethodPaths, 0, allowMethodPathAbMatch);
             }
         }
+    }
+    
+    @SuppressWarnings({ "unchecked" })
+    private void addSpringMVCServiceMapBinding(ProfileServiceMapMgr smgr, ProfileElementInstance inst, String appid,
+            String className, Map<String, Object> classInfo, ClassLoader webappclsLoader) {
+
+        String[] pathAnnoAttrNames = new String[] { "value", "path" };
+        String classPathAnnoClass = "org.springframework.web.bind.annotation.RequestMapping";
+        String[] methodPathAnnoClasses = new String[] { "org.springframework.web.bind.annotation.RequestMapping",
+                "org.springframework.web.bind.annotation.PostMapping",
+                "org.springframework.web.bind.annotation.GetMapping",
+                "org.springframework.web.bind.annotation.PutMapping",
+                "org.springframework.web.bind.annotation.DeleteMapping",
+                "org.springframework.web.bind.annotation.PatchMapping" };
+
+        Collection<String> classPaths = new ArrayList<String>();
+
+        Map<String, Object> anno = (Map<String, Object>) classInfo.get("anno");
+
+        if (anno == null) {
+            return;
+        }
+        /**
+         * step 1: get the class anno to get the class's url path
+         */
+        Map<String, Object> classAnno = (Map<String, Object>) anno.get(classPathAnnoClass);
+
+        Object value = null;
+
+        if (classAnno != null) {
+
+            for (String pathAnnoAttrName : pathAnnoAttrNames) {
+
+                value = classAnno.get(pathAnnoAttrName);
+                if (value != null) {
+                    break;
+                }
+            }
+        }
+
+        if (value == null) {
+            value = "/";
+        }
+
+        if (Collection.class.isAssignableFrom(value.getClass())) {
+            classPaths = (Collection<String>) value;
+        }
+        else {
+            classPaths.add(value.toString());
+        }
+
+        /**
+         * step 2: get path of DispatcherServlet and subclass
+         */
+
+        Set<String> servletPaths = getDispatcherServletPath(inst, webappclsLoader);
+
+
+        /**
+         * step 3: get methods path configuration
+         */
+        Map<String, Object> methods = (Map<String, Object>) classInfo.get("methods");
+
+        if (methods == null) {
+            return;
+        }
+
+        for (String classPath : classPaths) {
+
+            String finalClassPath = this.formatRelativePath(classPath, false);
+
+            for (String method : methods.keySet()) {
+
+                Map<String, Object> methodInfo = (Map<String, Object>) methods.get(method);
+
+                if (methodInfo == null) {
+                    continue;
+                }
+
+                Map<String, Object> methodAnno = (Map<String, Object>) methodInfo.get("anno");
+
+                if (methodAnno == null) {
+                    continue;
+                }
+
+                Object pvalue = null;
+                for (String methodPathAnnoClass : methodPathAnnoClasses) {
+                    Map<String, Object> methodPathAnno = (Map<String, Object>) methodAnno.get(methodPathAnnoClass);
+
+                    if (methodPathAnno == null) {
+                        continue;
+                    }
+                    for (String pathAnnoAttrName : pathAnnoAttrNames) {
+
+                        pvalue = methodPathAnno.get(pathAnnoAttrName);
+                        if (pvalue != null) {
+                            break;
+                        }
+                    }
+                    if (pvalue != null) {
+                        break;
+                    }
+                }
+
+                if (pvalue == null) {
+                    continue;
+                }
+
+                Collection<String> methodPaths = new ArrayList<String>();
+
+                if (Collection.class.isAssignableFrom(pvalue.getClass())) {
+                    methodPaths = (Collection<String>) pvalue;
+                }
+                else {
+                    methodPaths.add(pvalue.toString());
+                }
+
+                Collection<String> finalMethodPaths = new HashSet<String>();
+
+                boolean allowMethodPathAbMatch = false;
+
+                for (String methodPath : methodPaths) {
+
+                    /**
+                     * NOTE：支持方法级的模糊匹配，只要有一个方法的URL是带*的，该方法所有url都支持模糊匹配（有点小limitation）
+                     */
+                    if (methodPath.indexOf("*") > -1) {
+                        allowMethodPathAbMatch = true;
+                    }
+
+                    String finalMethodPath = finalClassPath + this.formatRelativePath(methodPath, false);
+
+                    if (methodPath.indexOf(".") > -1 || servletPaths.isEmpty()) {
+                        finalMethodPaths.add(finalMethodPath);
+                        continue;
+                    }
+
+                    for (String servletPath : servletPaths) {
+
+                        int indexOfDot = servletPath.indexOf(".");
+                        if (indexOfDot > -1) {
+                            finalMethodPaths.add(finalMethodPath + servletPath.substring(indexOfDot));
+                            continue;
+                        }
+                        finalMethodPaths.add(finalMethodPath);
+                    }
+
+                }
+                smgr.addServiceMapBinding(appid, className, method, finalMethodPaths, 0, allowMethodPathAbMatch);
+            }
+
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getDispatcherServletPath(ProfileElementInstance inst, ClassLoader webappclsLoader) {
+
+        Set<String> result = new HashSet<String>();
+        ProfileElementInstance instance = inst.getProfileElement().getInstance("javax.servlet.annotation.WebServlet");
+
+        if (instance == null) {
+            return result;
+        }
+
+        Map<String, Object> values = instance.getValues();
+        Class<?> dispatcherServletClass = ReflectionHelper
+                .tryLoadClass("org.springframework.web.servlet.DispatcherServlet", webappclsLoader);
+        if (dispatcherServletClass == null) {
+            return result;
+        }
+        for (String key : values.keySet()) {
+            Class<?> servletClass = ReflectionHelper.tryLoadClass(key, webappclsLoader);
+            if (servletClass == null) {
+                continue;
+            }
+            if (!dispatcherServletClass.isAssignableFrom(servletClass)) {
+                continue;
+            }
+            Map<String, Object> servletInfo = (Map<String, Object>) values.get(key);
+            if (servletInfo == null) {
+                continue;
+            }
+
+            Map<String, Object> des = (Map<String, Object>) servletInfo.get("des");
+            if (des != null) {
+                Collection<String> desUrlPatterns = (Collection<String>) des.get("urlPatterns");
+                if (desUrlPatterns != null) {
+                    result.addAll(desUrlPatterns);
+                }
+            }
+
+            Map<String, Object> dyn = (Map<String, Object>) servletInfo.get("dyn");
+            if (dyn != null) {
+                Collection<String> dynUrlPatterns = (Collection<String>) dyn.get("urlPatterns");
+                if (dynUrlPatterns != null) {
+                    result.addAll(dynUrlPatterns);
+                }
+            }
+        }
+
+        return result;
     }
 
     @SuppressWarnings("unchecked")

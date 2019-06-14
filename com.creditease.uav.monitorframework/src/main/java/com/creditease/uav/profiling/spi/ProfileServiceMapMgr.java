@@ -96,18 +96,7 @@ public class ProfileServiceMapMgr {
             }
 
             /**
-             * Step 3: if there is a suffix such as xxx.do,remove the suffix and try to match again
-             */
-            int suffixIndex = targetUrl.lastIndexOf(".");
-            if (suffixIndex > -1) {
-                String targetUrlWithoutSuffix = targetUrl.substring(0, suffixIndex);
-                if (targetUrlWithoutSuffix.endsWith(this.pathPattern) == true) {
-                    return true;
-                }
-            }
-
-            /**
-             * Step 4: if the targetUrl possible has path param, need check if the path param count match
+             * Step 3: if the targetUrl possible has path param, need check if the path param count match
              */
             String pathParamStr = targetUrl.substring(index + this.pathPattern.length());
 
@@ -118,7 +107,7 @@ public class ProfileServiceMapMgr {
             }
 
             /**
-             * Step 5: check if allow abMatch,if yes, as part, then return true, mostly for servlet or filter
+             * Step 4: check if allow abMatch,if yes, as part, then return true, mostly for servlet or filter
              */
             if (this.allowAbMatch == true) {
                 return true;
