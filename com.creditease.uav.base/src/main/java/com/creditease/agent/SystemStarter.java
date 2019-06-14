@@ -197,13 +197,15 @@ public class SystemStarter {
 
                 isReady = true;
 
-                StringBuffer ipmsg = new StringBuffer("List NetCardIndex and IP Address:");
+                StringBuffer ipmsg = new StringBuffer("List NetCardIndex NetCardName and IP Address:");
 
                 int index = 0;
 
                 for (InetAddress addr : NetworkHelper.getAllIP()) {
 
-                    ipmsg.append("\n").append(index++).append(" ----- ").append(addr.getHostAddress());
+                    String ip = addr.getHostAddress();
+                    
+                    ipmsg.append("\n").append(index++).append(" ----- ").append(NetworkHelper.getNetCardName(ip)).append(" ----- ").append(ip);
                 }
 
                 log.info(this, ipmsg.toString());

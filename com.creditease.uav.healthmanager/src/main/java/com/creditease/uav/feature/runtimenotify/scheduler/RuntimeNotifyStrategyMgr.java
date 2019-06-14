@@ -219,10 +219,6 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
 
         Map<String, String> strategyMap = cm.getHashAll(UAV_CACHE_REGION, RT_STRATEGY_KEY);
 
-        if (null == strategyMap || strategyMap.isEmpty()) {
-            return;
-        }
-
         try {
             strategyLock.lockInterruptibly();
 
@@ -231,6 +227,10 @@ public class RuntimeNotifyStrategyMgr extends AbstractTimerWork {
             iScope.clear();
             multiInsts.clear();
             strategies.clear();
+
+            if (null == strategyMap || strategyMap.isEmpty()) {
+                return;
+            }
 
             for (String key : strategyMap.keySet()) {
                 String json = strategyMap.get(key);

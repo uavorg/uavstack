@@ -430,10 +430,20 @@ public class CacheManager {
     private CacheService service;
 
     private L1Cache l1cache;
-
+    
+    private static CacheClientMode clientMode;
+    
     protected CacheManager(String cacheServerAddress, int minConcurrent, int maxConcurrent, int queueSize,
             String password) {
-        service = CacheFactory.instance().createCacheService(CacheClientMode.AREDIS, cacheServerAddress, minConcurrent,
+    	
+    	if (cacheServerAddress.contains(",")) {
+           clientMode = CacheClientMode.LETTUCE;
+        }
+        else {
+           clientMode = CacheClientMode.AREDIS;
+        }
+    	
+        service = CacheFactory.instance().createCacheService(clientMode, cacheServerAddress, minConcurrent,
                 maxConcurrent, queueSize, password);
         l1cache = new L1Cache();
     }
@@ -1239,7 +1249,8 @@ public class CacheManager {
      * @param fieldNames
      * @return
      */
-    public Map<String, String> getHash(String region, String key, String... fieldNames) {
+    @SuppressWarnings("unchecked")
+	public Map<String, String> getHash(String region, String key, String... fieldNames) {
 
         if (null == fieldNames) {
             Collections.emptyMap();
@@ -1253,8 +1264,13 @@ public class CacheManager {
 
         if (null != results && results.length > 0) {
 
-            Map<String, String> value = genHMGetResults(fieldNames, results);
-
+        	Map<String, String> value = new HashMap<String, String>();
+            if (clientMode.equals(CacheClientMode.LETTUCE) && results[0] instanceof Map) {
+                value = (Map<String, String>) results[0];
+            }
+            else {
+                value = genHMGetResults(fieldNames, results);
+            }
             return value;
         }
 
@@ -1321,8 +1337,13 @@ public class CacheManager {
 
         if (null != results && results.length > 0) {
 
-            Map<String, String> value = genHMGetResults(null, results);
-
+        	Map<String, String> value = new HashMap<String, String>();
+            if (clientMode.equals(CacheClientMode.LETTUCE) && results[0] instanceof Map) {
+                value = (Map<String, String>) results[0];
+            }
+            else {
+                value = genHMGetResults(null, results);
+            }
             this.l1cache.put(rkey, value);
 
             return value;
@@ -1362,7 +1383,14 @@ public class CacheManager {
             public void process(CommandInfo[] command, Object[] result, Throwable throwable) {
 
                 if (fcallback != null && null != result && result.length > 0) {
-                    Map<String, String> mresult = genHMGetResults(null, result);
+                	Map<String, String> mresult = new HashMap<String, String>();
+
+                    if (clientMode.equals(CacheClientMode.LETTUCE) && result[0] instanceof Map) {
+                        mresult = (Map<String, String>) result[0];
+                    }
+                    else {
+                        mresult = genHMGetResults(null, result);
+                    }
 
                     /**
                      * get hash all是可以放L1Cache
@@ -1403,12 +1431,18 @@ public class CacheManager {
 
         doCacheCommand(ci, new AbstractAsyncHandler<CommandInfo>() {
 
-            @Override
+            @SuppressWarnings("unchecked")
+			@Override
             public void process(CommandInfo[] command, Object[] result, Throwable throwable) {
 
-                if (fcallback != null && null != result && result.length > 0) {
-                    Map<String, String> mresult = genHMGetResults(ffieldname, result);
-
+            	if (fcallback != null && null != result && result.length > 0) {
+                    Map<String, String> mresult = new HashMap<String, String>();
+                    if (clientMode.equals(CacheClientMode.LETTUCE) && result[0] instanceof Map) {
+                        mresult = (Map<String, String>) result[0];
+                    }
+                    else {
+                        mresult = genHMGetResults(ffieldname, result);
+                    }
                     fcallback.onResult(mresult);
                 }
             }
@@ -1795,7 +1829,7 @@ public class CacheManager {
         Object[] results = service.submitCommands(
                 new CommandInfo(CommandInfo.RedisCommand.LRANGE, rkey, String.valueOf(start), String.valueOf(end)));
 
-        if (null != results && results.length > 0) {
+        if (null != results && results.length > 0 && results[0] != null) {
 
             Object[] objs = (Object[]) results[0];
 
