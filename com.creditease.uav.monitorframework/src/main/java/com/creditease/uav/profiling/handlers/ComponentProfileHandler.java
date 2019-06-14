@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -1269,6 +1272,7 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
 
             String webAppClasspath = webAppRoot + File.separator + "WEB-INF" + File.separator + "classes"
                     + File.separator;
+
             String config = parseFilterParam(webAppRoot);
             if (!StringHelper.isEmpty(config)) {
 
@@ -1312,9 +1316,57 @@ public class ComponentProfileHandler extends BaseComponent implements ProfileHan
                 }
 
                 if (nodes != null) {
+
                     for (int i = 0; i < nodes.getLength(); i++) {
                         Node node = nodes.item(i);
-                        retFiles.add(webAppClasspath + node.getTextContent());
+                        String content = node.getTextContent();
+                        String includeFileName = webAppClasspath + node.getTextContent();
+                        if (content.indexOf("*") < 0) {
+                            retFiles.add(includeFileName);
+                            continue;
+                        }
+
+                        File f = new File(includeFileName);
+                        String fpath = f.getParent();
+                        final String fname = f.getName();
+
+                        f = new File(fpath);
+
+                        String[] includeFileNames = f.list(new FilenameFilter() {
+                            
+                            @Override
+                            public boolean accept(File dir, String name) {
+
+                                if (!name.endsWith(".xml")) {
+                                    return false;
+                                }
+
+                                String[] parts = fname.split("\\*");
+
+                                String prefix = "^(" + parts[0] + ")";
+
+                                parts[0] = prefix;
+
+                                String regEx = "";
+
+                                for (int i = 0; i < parts.length; i++) {
+                                    if (i != parts.length - 1) {
+                                        regEx = parts[i] + ".*";
+                                        continue;
+                                    }
+                                    
+                                    regEx += (parts[i].replace(".", "\\."));
+                                }
+
+                                Pattern pattern = Pattern.compile(regEx);
+                                Matcher matcher = pattern.matcher(name);
+                                return matcher.matches();
+                            }
+                        });
+
+                        for (String str : includeFileNames) {
+                            retFiles.add(fpath + File.separator + str);
+                        }
                     }
                 }
             }
