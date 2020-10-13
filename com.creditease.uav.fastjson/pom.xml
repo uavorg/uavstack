@@ -13,7 +13,7 @@
 	<artifactId>com.creditease.uav.fastjson</artifactId>
 	<version>1.2.6</version>
 	<properties>
-		<junit.version>4.12</junit.version>
+		<junit.version>4.13.1</junit.version>
 		<gpg.skip>true</gpg.skip>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jdk.version>1.6</jdk.version>
